@@ -1,12 +1,28 @@
-export type EntityId = string;
+export type {
+  ContentKind,
+  EntityId,
+  ExternalId,
+  HealthStatus,
+  IsoDateString,
+  IsoDateTimeString,
+  SourceProvider,
+} from "./core.js";
 
-export type IsoDateString = string;
+export type {
+  NotificationChannelPreferences,
+  NotificationEventPreferences,
+  NotificationEventType,
+  NotificationPreferences,
+  NotificationTimingPreset,
+} from "./notifications.js";
 
-export type NotificationEventType =
-  | "release_date_changed"
-  | "release_approaching";
+export type {
+  PlatformRelease,
+  ReleaseDatePrecision,
+  TitleDetails,
+  TitlePlatform,
+  TitleSearchResult,
+  TitleSummary,
+} from "./titles.js";
 
-export interface HealthStatus {
-  ok: true;
-  checkedAt: IsoDateString;
-}
+export type { WatchlistItem } from "./watchlist.js";
