@@ -1,49 +1,37 @@
-# Web App Guidance
+# Supabase Backend Guidance
 
 ## Project overview
 
-This directory contains the Vite + React web application.
+This directory contains backend-related resources such as migrations, functions, and backend docs.
 
-Current structure includes:
-
-- `src/main.tsx` as web entry point
-- `src/App.tsx` as current root app component
-- `src/assets` for static assets
-
-The intended stack for this app includes:
-
-- React 19
-- Tailwind v4
-- shadcn/ui
+The backend is responsible for serving both the mobile and web apps.
 
 ## Responsibilities
 
-The web app is responsible for:
+The backend manages:
 
-- guest search
-- auth UI
-- title details UI
-- watchlist UI
-- settings
-- notification center
+- authentication
+- title metadata caching
+- release/platform data
+- watchlists
+- notification preferences
+- change event generation
+- notification records
+- push delivery support later
+
+## Data rules
+
+- RAWG is the external metadata provider.
+- Clients must never call RAWG directly.
+- Search should be DB-first with RAWG fallback and cache fill.
+- Keep schema and functions understandable and maintainable.
+- Prefer idempotent sync logic where possible.
 
 ## Working agreements
 
-- Prefer minimal, readable React components.
-- Keep presentation logic in the web app and provider/backend logic outside it.
-- Reuse shared contracts and API client packages rather than duplicating request logic.
-- Do not hardcode API contract shapes in the app.
-
-## UI conventions
-
-- Prefer shadcn/ui patterns once added.
-- Prefer shared design tokens and utility classes over ad hoc styling.
-- Keep components small and composable.
-
-## Verification
-
-After changes:
-
-- run lint for the web app
-- run type checks for the web app
-- explain any commands not run
+- Keep database changes explicit and migration-driven.
+- Avoid overengineering early.
+- Start with the MVP event model only:
+  - `release_date_changed`
+  - `release_approaching`
+- Design schema to support push from day one, even if push delivery is added shortly after.
