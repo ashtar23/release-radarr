@@ -11,9 +11,9 @@ This project is a Turborepo monorepo with two client applications and shared pac
 
 ### Shared packages
 
-Planned shared packages:
+Shared packages:
 
-- `packages/types` — domain entities, DTOs, shared enums, Zod schemas
+- `packages/types` — domain entities, DTOs, shared enums
 - `packages/api-client` — shared typed client used by web and mobile
 - `packages/config` — shared configuration and constants when needed
 
