@@ -15,6 +15,8 @@ The intended stack for this app includes:
 - React 19
 - Tailwind v4
 - shadcn/ui
+- TanStack Query
+- React Hook Form
 
 ## Responsibilities
 
@@ -33,12 +35,35 @@ The web app is responsible for:
 - Keep presentation logic in the web app and provider/backend logic outside it.
 - Reuse shared contracts and API client packages rather than duplicating request logic.
 - Do not hardcode API contract shapes in the app.
+- Prefer composition over large components with mixed concerns.
+- Preserve architecture boundaries and keep provider-specific logic out of UI components.
+
+## Data and state conventions
+
+- Prefer TanStack Query for server state, async fetching, caching, and mutations.
+- Do not use `useEffect` for data fetching when TanStack Query is the correct tool.
+- Avoid unnecessary `useEffect`; derive values during render when possible.
+- Prefer local state only for simple UI-only interactions.
+- Do not use ad hoc request state management when shared async patterns already exist.
+- Follow modern React guidance: do not add `useEffect` by default.
+- Avoid `useEffect` for derived state, event handling, or straightforward data flow that can be handled during render.
+- Use `useEffect` only when synchronizing with external systems such as subscriptions, imperative APIs, timers, or browser APIs.
+- If using `useEffect`, prefer explaining why it is necessary.
+
+## Form conventions
+
+- Prefer React Hook Form for non-trivial forms such as auth, settings, and other structured inputs.
+- Avoid `useState`-heavy form state and validation when React Hook Form is more appropriate.
+- Keep validation logic close to the form and aligned with shared contracts where practical.
+- Use controlled abstractions only when they are actually needed.
 
 ## UI conventions
 
-- Prefer shadcn/ui patterns once added.
-- Prefer shared design tokens and utility classes over ad hoc styling.
-- Keep components small and composable.
+- Prefer Tailwind v4 for styling.
+- Prefer shadcn/ui patterns and components once available.
+- Avoid plain CSS files or ad hoc styling unless explicitly justified.
+- Prefer shared utility classes and consistent spacing/token usage over one-off values.
+- Keep components small, composable, and easy to review.
 
 ## Verification
 
