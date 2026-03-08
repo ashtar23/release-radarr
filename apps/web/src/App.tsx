@@ -20,6 +20,8 @@ import { Label } from "@repo/ui/components/label";
 
 import { useAuth } from "./auth/auth-context";
 import { SearchPanel } from "./features/search/search-panel";
+import { ThemeProvider } from "./providers/theme-provider";
+import { ModeToggle } from "./components/mode-toggle";
 
 interface FeedbackState {
   kind: "success" | "error";
@@ -117,112 +119,117 @@ export default function App() {
   };
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-8">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Release Radar</CardTitle>
-            <CardDescription>
-              Guest browsing stays open. Watchlist and notifications require
-              auth.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <main className="min-h-screen bg-muted/30 px-4 py-8">
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+          <ModeToggle />
+          <Card>
+            <CardHeader>
+              <CardTitle>Release Radar</CardTitle>
+              <CardDescription>
+                Guest browsing stays open. Watchlist and notifications require
+                auth.
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
-        <SearchPanel />
+          <SearchPanel />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Auth</CardTitle>
-            <CardDescription>
-              Use email and password to continue.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!isReady && (
-              <p className="text-sm text-muted-foreground">
-                Checking session...
-              </p>
-            )}
-
-            {configError && (
-              <Alert variant="destructive">
-                <AlertTitle>Configuration error</AlertTitle>
-                <AlertDescription>{configError}</AlertDescription>
-              </Alert>
-            )}
-
-            {user ? (
-              <div className="space-y-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Auth</CardTitle>
+              <CardDescription>
+                Use email and password to continue.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!isReady && (
                 <p className="text-sm text-muted-foreground">
-                  Signed in as {user.email ?? "unknown user"}.
+                  Checking session...
                 </p>
-                <Button onClick={onSignOut} disabled={isSubmitting}>
-                  Sign out
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={onSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    disabled={isActionDisabled}
-                    aria-invalid={Boolean(authForm.formState.errors.email)}
-                    {...authForm.register("email")}
-                  />
-                  {authForm.formState.errors.email?.message && (
-                    <p className="text-sm text-destructive">
-                      {authForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    disabled={isActionDisabled}
-                    aria-invalid={Boolean(authForm.formState.errors.password)}
-                    {...authForm.register("password")}
-                  />
-                  {authForm.formState.errors.password?.message && (
-                    <p className="text-sm text-destructive">
-                      {authForm.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
+              {configError && (
+                <Alert variant="destructive">
+                  <AlertTitle>Configuration error</AlertTitle>
+                  <AlertDescription>{configError}</AlertDescription>
+                </Alert>
+              )}
 
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={isActionDisabled}>
-                    Sign in
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={onSignUp}
-                    variant="outline"
-                    disabled={isActionDisabled}
-                  >
-                    Sign up
+              {user ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Signed in as {user.email ?? "unknown user"}.
+                  </p>
+                  <Button onClick={onSignOut} disabled={isSubmitting}>
+                    Sign out
                   </Button>
                 </div>
-              </form>
-            )}
+              ) : (
+                <form onSubmit={onSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      disabled={isActionDisabled}
+                      aria-invalid={Boolean(authForm.formState.errors.email)}
+                      {...authForm.register("email")}
+                    />
+                    {authForm.formState.errors.email?.message && (
+                      <p className="text-sm text-destructive">
+                        {authForm.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
 
-            {feedback && (
-              <Alert
-                variant={feedback.kind === "error" ? "destructive" : "default"}
-              >
-                <AlertDescription>{feedback.message}</AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </main>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      disabled={isActionDisabled}
+                      aria-invalid={Boolean(authForm.formState.errors.password)}
+                      {...authForm.register("password")}
+                    />
+                    {authForm.formState.errors.password?.message && (
+                      <p className="text-sm text-destructive">
+                        {authForm.formState.errors.password.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={isActionDisabled}>
+                      Sign in
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={onSignUp}
+                      variant="outline"
+                      disabled={isActionDisabled}
+                    >
+                      Sign up
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {feedback && (
+                <Alert
+                  variant={
+                    feedback.kind === "error" ? "destructive" : "default"
+                  }
+                >
+                  <AlertDescription>{feedback.message}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </ThemeProvider>
   );
 }
