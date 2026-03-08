@@ -1,9 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./auth/auth-provider.tsx";
+import { RouterProvider } from "@tanstack/react-router";
+import { AuthProvider } from "@/features/auth";
 import "@repo/ui/styles/globals.css";
-import App from "./App.tsx";
+import { router } from "./router";
 
 const queryClient = new QueryClient();
 
@@ -11,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <App />
+        <RouterProvider router={router} />
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>,

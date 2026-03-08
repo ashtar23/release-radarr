@@ -1,6 +1,4 @@
 import { useState } from "react";
-import type { TitleSummary } from "@repo/types";
-import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/alert";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -14,44 +12,22 @@ import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { apiClient, apiClientConfigError } from "@/lib/api-client";
-
-const MIN_QUERY_LENGTH = 2;
-
-function toErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  return "Something went wrong.";
-}
-
-function formatReleaseDate(value: string | null) {
-  if (!value) return "Release date unknown";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString();
-}
-
-function formatPlatforms(result: TitleSummary) {
-  if (!result.platforms.length) return "Unknown";
-  return result.platforms.map((platform) => platform.name).join(", ");
-}
+import { searchTitlesConfigError } from "../data-access/search-titles";
+import {
+  MIN_QUERY_LENGTH,
+  useSearchTitlesQuery,
+} from "../queries/use-search-titles-query";
+import {
+  formatPlatforms,
+  formatReleaseDate,
+  toSearchErrorMessage,
+} from "../utils/format-title-summary";
 
 export function SearchPanel() {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query).trim();
 
-  const searchQuery = useQuery({
-    queryKey: ["titles", "search", debouncedQuery],
-    enabled: debouncedQuery.length >= MIN_QUERY_LENGTH && Boolean(apiClient),
-    queryFn: ({ signal }) => {
-      if (!apiClient) {
-        throw new Error(
-          apiClientConfigError ?? "Search API is not configured.",
-        );
-      }
-      return apiClient.searchTitles({ query: debouncedQuery, signal });
-    },
-  });
-
+  const searchQuery = useSearchTitlesQuery(debouncedQuery);
   const trimmedQuery = query.trim();
   const hasMinimumLength =
     trimmedQuery.length === 0 || trimmedQuery.length >= MIN_QUERY_LENGTH;
@@ -72,10 +48,10 @@ export function SearchPanel() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {apiClientConfigError && (
+        {searchTitlesConfigError && (
           <Alert variant="destructive">
             <AlertTitle>Search configuration error</AlertTitle>
-            <AlertDescription>{apiClientConfigError}</AlertDescription>
+            <AlertDescription>{searchTitlesConfigError}</AlertDescription>
           </Alert>
         )}
 
@@ -87,7 +63,7 @@ export function SearchPanel() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Try: witcher, zelda, bloodborne..."
-              disabled={Boolean(apiClientConfigError)}
+              disabled={Boolean(searchTitlesConfigError)}
               aria-invalid={!hasMinimumLength}
             />
             <Button
@@ -106,7 +82,7 @@ export function SearchPanel() {
           )}
         </div>
 
-        {showResults && !apiClientConfigError && (
+        {showResults && !searchTitlesConfigError && (
           <div className="space-y-3">
             {searchQuery.isFetching && !searchQuery.data && (
               <p className="text-sm text-muted-foreground">Searching...</p>
@@ -115,7 +91,7 @@ export function SearchPanel() {
             {searchQuery.isError && (
               <Alert variant="destructive">
                 <AlertDescription>
-                  {toErrorMessage(searchQuery.error)}
+                  {toSearchErrorMessage(searchQuery.error)}
                 </AlertDescription>
               </Alert>
             )}

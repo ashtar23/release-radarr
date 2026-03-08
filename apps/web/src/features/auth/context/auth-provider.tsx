@@ -1,8 +1,8 @@
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState, type PropsWithChildren } from "react";
 
+import { supabase, supabaseConfigError } from "@/lib/supabase";
 import { AuthContext, type AuthContextValue } from "./auth-context";
-import { supabase, supabaseConfigError } from "../lib/supabase";
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
