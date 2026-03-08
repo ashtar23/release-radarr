@@ -64,6 +64,15 @@ The mobile app is responsible for:
 - Keep screens focused on composition and presentation.
 - Avoid mixing styling, data orchestration, and navigation logic in the same component.
 
+## Safe area handling
+
+- Do not use `SafeAreaView` from `react-native`.
+- It is deprecated and will be removed in future React Native releases.
+- Always use components from `react-native-safe-area-context` instead:
+  - `SafeAreaView`
+  - `SafeAreaProvider`
+  - `useSafeAreaInsets`
+
 ## Verification
 
 After changes:

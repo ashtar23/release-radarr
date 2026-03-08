@@ -64,3 +64,8 @@ Push delivery is added immediately after the in-app pipeline is working.
 5. notification preferences
 6. notification event generation
 7. push delivery
+
+## Client auth keys
+
+Web and mobile clients must use only the Supabase project URL and publishable key.
+Service role or other secret keys must not be used in client apps.

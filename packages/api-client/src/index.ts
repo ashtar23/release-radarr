@@ -1,4 +1,9 @@
 import type { HealthStatus } from "@repo/types";
+export {
+  initializeSupabaseClient,
+  type InitializedSupabaseClient,
+  type InitializeSupabaseClientOptions,
+} from "./supabase-client";
 
 export interface ReleaseRadarApiClientOptions {
   readonly baseUrl: string;

@@ -1,17 +1,14 @@
+import { initializeSupabaseClient } from "@repo/api-client";
 import { SUPABASE_WEB_ENV } from "@repo/config";
-import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env[SUPABASE_WEB_ENV.url] as string | undefined;
-const supabaseAnonKey = import.meta.env[SUPABASE_WEB_ENV.anonKey] as
-  | string
-  | undefined;
+const initializedClient = initializeSupabaseClient({
+  url: import.meta.env.VITE_SUPABASE_URL,
+  publishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  missingConfigMessage: `Missing ${SUPABASE_WEB_ENV.url} or ${SUPABASE_WEB_ENV.publishableKey}.`,
+});
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = initializedClient.isConfigured;
 
-export const supabaseConfigError = isSupabaseConfigured
-  ? null
-  : `Missing ${SUPABASE_WEB_ENV.url} or ${SUPABASE_WEB_ENV.anonKey}.`;
+export const supabaseConfigError = initializedClient.configError;
 
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
-  : null;
+export const supabase = initializedClient.client;

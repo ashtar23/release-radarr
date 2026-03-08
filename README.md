@@ -51,3 +51,47 @@ pnpm dev:mobile
 pnpm lint
 pnpm check-types
 ```
+
+## Supabase client auth setup
+
+Client apps use Supabase Auth with email and password.
+
+Required environment variables:
+
+```sh
+# apps/web/.env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+
+# apps/mobile/.env
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+```
+
+Use only the Supabase project URL and publishable key in client apps.
+Do not use service role or any other secret key in web or mobile.
+
+Guest search remains available without auth.
+Auth is required for watchlist and notification features.
+
+## Local Supabase Verification
+
+From repo root:
+
+```sh
+supabase start
+supabase status
+```
+
+`supabase status` should show:
+- Project URL (`http://127.0.0.1:54321` by default)
+- MCP endpoint (`http://127.0.0.1:54321/mcp`)
+- Publishable key
+
+Optional auth sanity check:
+
+```sh
+curl -si http://127.0.0.1:54321/auth/v1/settings -H "apikey: <YOUR_PUBLISHABLE_KEY>"
+```
+
+You should receive `HTTP/1.1 200 OK`. Use only the publishable key for client-side checks and app config.

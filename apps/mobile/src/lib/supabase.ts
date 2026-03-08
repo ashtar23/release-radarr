@@ -1,25 +1,26 @@
 import "react-native-url-polyfill/auto";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { initializeSupabaseClient } from "@repo/api-client";
 import { SUPABASE_MOBILE_ENV } from "@repo/config";
-import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const initializedClient = initializeSupabaseClient({
+  // Expo requires static EXPO_PUBLIC_* reads so values can be inlined at bundle time.
+  url: process.env.EXPO_PUBLIC_SUPABASE_URL,
+  publishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  missingConfigMessage: `Missing ${SUPABASE_MOBILE_ENV.url} or ${SUPABASE_MOBILE_ENV.publishableKey}.`,
+  clientOptions: {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  },
+});
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = initializedClient.isConfigured;
 
-export const supabaseConfigError = isSupabaseConfigured
-  ? null
-  : `Missing ${SUPABASE_MOBILE_ENV.url} or ${SUPABASE_MOBILE_ENV.anonKey}.`;
+export const supabaseConfigError = initializedClient.configError;
 
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!, {
-      auth: {
-        storage: AsyncStorage,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-      },
-    })
-  : null;
+export const supabase = initializedClient.client;

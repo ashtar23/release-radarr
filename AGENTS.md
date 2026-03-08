@@ -65,6 +65,9 @@ Not MVP:
 - Shared contracts belong in `packages/types`.
 - Shared request logic belongs in `packages/api-client`.
 - Web and mobile should stay presentation-focused and avoid backend/provider logic.
+- Workspace TypeScript packages are source-exported and consumed by bundlers/transpilers.
+- Prefer bundler-style TypeScript resolution for shared app workspace packages.
+- Do not use `.js` suffixes in internal TypeScript relative imports unless the package explicitly targets NodeNext runtime behavior.
 
 ## Verification
 

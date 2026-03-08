@@ -25,3 +25,6 @@ Typical packages include:
 - Favor small focused modules.
 - Do not include React hooks in shared packages unless the package is explicitly intended to be React-specific.
 - In api-client, prefer plain typed request functions and do not embed framework-specific caching or React hooks.
+- Workspace TypeScript packages are source-exported and consumed by bundlers/transpilers.
+- Prefer bundler-style TypeScript resolution for shared app workspace packages.
+- Do not use `.js` suffixes in internal TypeScript relative imports unless the package explicitly targets NodeNext runtime behavior.
