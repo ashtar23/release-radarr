@@ -6,7 +6,7 @@ export type {
   IsoDateString,
   IsoDateTimeString,
   SourceProvider,
-} from "./core.js";
+} from "./core";
 
 export type {
   NotificationChannelPreferences,
@@ -14,7 +14,7 @@ export type {
   NotificationEventType,
   NotificationPreferences,
   NotificationTimingPreset,
-} from "./notifications.js";
+} from "./notifications";
 
 export type {
   PlatformRelease,
@@ -23,6 +23,8 @@ export type {
   TitlePlatform,
   TitleSearchResult,
   TitleSummary,
-} from "./titles.js";
+} from "./titles";
 
-export type { WatchlistItem } from "./watchlist.js";
+export type { WatchlistItem } from "./watchlist";
+export { authCredentialsSchema } from "./auth";
+export type { AuthCredentialsInput } from "./auth";

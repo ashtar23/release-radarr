@@ -4,7 +4,7 @@ import type {
   ExternalId,
   IsoDateString,
   SourceProvider,
-} from "./core.js";
+} from "./core";
 
 export interface TitlePlatform {
   id: EntityId;

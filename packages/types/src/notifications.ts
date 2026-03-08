@@ -1,4 +1,4 @@
-import type { IsoDateTimeString } from "./core.js";
+import type { IsoDateTimeString } from "./core";
 
 export type NotificationEventType =
   | "release_date_changed"

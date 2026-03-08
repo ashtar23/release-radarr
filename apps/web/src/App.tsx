@@ -1,7 +1,29 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  authCredentialsSchema,
+  type AuthCredentialsInput,
+} from "@repo/types/auth";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/alert";
+import { Button } from "@repo/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@repo/ui/components/card";
+import { Input } from "@repo/ui/components/input";
+import { Label } from "@repo/ui/components/label";
 
 import { useAuth } from "./auth/auth-context";
-import "./App.css";
+
+interface FeedbackState {
+  kind: "success" | "error";
+  message: string;
+}
 
 function toErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -18,125 +40,186 @@ export default function App() {
     signUpWithPassword,
   } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const { register, handleSubmit, formState } = useForm<AuthCredentialsInput>({
+    resolver: zodResolver(authCredentialsSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const signInMutation = useMutation({
+    mutationFn: async (values: AuthCredentialsInput) => {
+      await signInWithPassword(values.email, values.password);
+    },
+    onSuccess: () => {
+      setFeedback({ kind: "success", message: "Signed in." });
+    },
+    onError: (error: unknown) => {
+      setFeedback({ kind: "error", message: toErrorMessage(error) });
+    },
+  });
+
+  const signUpMutation = useMutation({
+    mutationFn: async (values: AuthCredentialsInput) => {
+      await signUpWithPassword(values.email, values.password);
+    },
+    onSuccess: () => {
+      setFeedback({
+        kind: "success",
+        message:
+          "Sign-up submitted. Check your email if confirmation is enabled.",
+      });
+    },
+    onError: (error: unknown) => {
+      setFeedback({ kind: "error", message: toErrorMessage(error) });
+    },
+  });
+
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
+      await signOut();
+    },
+    onSuccess: () => {
+      setFeedback({ kind: "success", message: "Signed out." });
+    },
+    onError: (error: unknown) => {
+      setFeedback({ kind: "error", message: toErrorMessage(error) });
+    },
+  });
+
+  const isSubmitting =
+    signInMutation.isPending ||
+    signUpMutation.isPending ||
+    signOutMutation.isPending;
+
+  const isActionDisabled = isSubmitting || !isReady || Boolean(configError);
 
   const clearFeedback = () => {
-    setMessage(null);
-    setErrorMessage(null);
+    setFeedback(null);
   };
 
-  const onSignIn = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSignIn = handleSubmit((values) => {
     clearFeedback();
-    setIsSubmitting(true);
-    try {
-      await signInWithPassword(email, password);
-      setMessage("Signed in.");
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    signInMutation.mutate(values);
+  });
 
-  const onSignUp = async () => {
+  const onSignUp = handleSubmit((values) => {
     clearFeedback();
-    setIsSubmitting(true);
-    try {
-      await signUpWithPassword(email, password);
-      setMessage(
-        "Sign-up submitted. Check your email if confirmation is enabled.",
-      );
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    signUpMutation.mutate(values);
+  });
 
-  const onSignOut = async () => {
+  const onSignOut = () => {
     clearFeedback();
-    setIsSubmitting(true);
-    try {
-      await signOut();
-      setMessage("Signed out.");
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
+    signOutMutation.mutate();
   };
 
   return (
-    <main className="page">
-      <section className="panel">
-        <h1>Release Radar</h1>
-        <p className="muted">
-          Guest browsing stays open. Watchlist and notifications require auth.
-        </p>
-      </section>
+    <main className="min-h-screen bg-muted/30 px-4 py-8">
+      <div className="mx-auto flex w-full max-w-md flex-col gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Release Radar</CardTitle>
+            <CardDescription>
+              Guest browsing stays open. Watchlist and notifications require
+              auth.
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-      <section className="panel">
-        <h2>Auth</h2>
-        {!isReady && <p className="muted">Checking session...</p>}
-        {configError && <p className="error">{configError}</p>}
+        <Card>
+          <CardHeader>
+            <CardTitle>Auth</CardTitle>
+            <CardDescription>
+              Use email and password to continue.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isReady && (
+              <p className="text-sm text-muted-foreground">
+                Checking session...
+              </p>
+            )}
 
-        {user ? (
-          <>
-            <p className="muted">
-              Signed in as {user.email ?? "unknown user"}.
-            </p>
-            <button onClick={onSignOut} disabled={isSubmitting}>
-              Sign out
-            </button>
-          </>
-        ) : (
-          <form onSubmit={onSignIn} className="auth-form">
-            <label>
-              Email
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Password
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-            </label>
-            <div className="actions">
-              <button
-                type="submit"
-                disabled={isSubmitting || !isReady || Boolean(configError)}
+            {configError && (
+              <Alert variant="destructive">
+                <AlertTitle>Configuration error</AlertTitle>
+                <AlertDescription>{configError}</AlertDescription>
+              </Alert>
+            )}
+
+            {user ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Signed in as {user.email ?? "unknown user"}.
+                </p>
+                <Button onClick={onSignOut} disabled={isSubmitting}>
+                  Sign out
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={onSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    disabled={isActionDisabled}
+                    aria-invalid={Boolean(formState.errors.email)}
+                    {...register("email")}
+                  />
+                  {formState.errors.email?.message && (
+                    <p className="text-sm text-destructive">
+                      {formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    disabled={isActionDisabled}
+                    aria-invalid={Boolean(formState.errors.password)}
+                    {...register("password")}
+                  />
+                  {formState.errors.password?.message && (
+                    <p className="text-sm text-destructive">
+                      {formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isActionDisabled}>
+                    Sign in
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={onSignUp}
+                    variant="outline"
+                    disabled={isActionDisabled}
+                  >
+                    Sign up
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {feedback && (
+              <Alert
+                variant={feedback.kind === "error" ? "destructive" : "default"}
               >
-                Sign in
-              </button>
-              <button
-                type="button"
-                onClick={onSignUp}
-                disabled={isSubmitting || !isReady || Boolean(configError)}
-              >
-                Sign up
-              </button>
-            </div>
-          </form>
-        )}
-
-        {message && <p className="success">{message}</p>}
-        {errorMessage && <p className="error">{errorMessage}</p>}
-      </section>
+                <AlertDescription>{feedback.message}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

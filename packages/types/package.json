@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -15,5 +16,8 @@
     "@repo/typescript-config": "workspace:*",
     "eslint": "^9.39.1",
     "typescript": "5.9.2"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
   }
 }

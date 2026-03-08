@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  authCredentialsSchema,
+  type AuthCredentialsInput,
+} from "@repo/types/auth";
+import { useMutation } from "@tanstack/react-query";
+import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Pressable,
@@ -21,59 +28,90 @@ function toErrorMessage(error: unknown) {
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const { user, isReady, configError, signInWithPassword, signOut, signUpWithPassword } =
-    useAuth();
+  const {
+    user,
+    isReady,
+    configError,
+    signInWithPassword,
+    signOut,
+    signUpWithPassword,
+  } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
+  const { control, handleSubmit, formState } = useForm<AuthCredentialsInput>({
+    resolver: zodResolver(authCredentialsSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const signInMutation = useMutation({
+    mutationFn: async (values: AuthCredentialsInput) => {
+      await signInWithPassword(values.email, values.password);
+    },
+    onSuccess: () => {
+      setFeedback({ kind: "success", message: "Signed in." });
+    },
+    onError: (error: unknown) => {
+      setFeedback({ kind: "error", message: toErrorMessage(error) });
+    },
+  });
+
+  const signUpMutation = useMutation({
+    mutationFn: async (values: AuthCredentialsInput) => {
+      await signUpWithPassword(values.email, values.password);
+    },
+    onSuccess: () => {
+      setFeedback({
+        kind: "success",
+        message:
+          "Sign-up submitted. Check your email if confirmation is enabled.",
+      });
+    },
+    onError: (error: unknown) => {
+      setFeedback({ kind: "error", message: toErrorMessage(error) });
+    },
+  });
+
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
+      await signOut();
+    },
+    onSuccess: () => {
+      setFeedback({ kind: "success", message: "Signed out." });
+    },
+    onError: (error: unknown) => {
+      setFeedback({ kind: "error", message: toErrorMessage(error) });
+    },
+  });
 
   const clearFeedback = () => {
-    setStatusMessage(null);
-    setErrorMessage(null);
+    setFeedback(null);
   };
 
-  const onSignIn = async () => {
+  const onSignIn = handleSubmit((values) => {
     clearFeedback();
-    setIsSubmitting(true);
-    try {
-      await signInWithPassword(email, password);
-      setStatusMessage("Signed in.");
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    signInMutation.mutate(values);
+  });
 
-  const onSignUp = async () => {
+  const onSignUp = handleSubmit((values) => {
     clearFeedback();
-    setIsSubmitting(true);
-    try {
-      await signUpWithPassword(email, password);
-      setStatusMessage("Sign-up submitted. Check email if confirmation is enabled.");
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    signUpMutation.mutate(values);
+  });
 
-  const onSignOut = async () => {
+  const onSignOut = () => {
     clearFeedback();
-    setIsSubmitting(true);
-    try {
-      await signOut();
-      setStatusMessage("Signed out.");
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
+    signOutMutation.mutate();
   };
 
+  const isSubmitting =
+    signInMutation.isPending ||
+    signUpMutation.isPending ||
+    signOutMutation.isPending;
   const canSubmit = isReady && !isSubmitting && !configError;
 
   return (
@@ -92,11 +130,15 @@ export default function HomeScreen() {
           {!isReady && (
             <View style={styles.loadingRow}>
               <ActivityIndicator />
-              <ThemedText themeColor="textSecondary">Checking session...</ThemedText>
+              <ThemedText themeColor="textSecondary">
+                Checking session...
+              </ThemedText>
             </View>
           )}
 
-          {configError && <ThemedText style={styles.errorText}>{configError}</ThemedText>}
+          {configError && (
+            <ThemedText style={styles.errorText}>{configError}</ThemedText>
+          )}
 
           {user ? (
             <>
@@ -108,59 +150,91 @@ export default function HomeScreen() {
                 disabled={!canSubmit}
                 style={[
                   styles.button,
-                  { borderColor: theme.textSecondary, backgroundColor: theme.backgroundElement },
+                  {
+                    borderColor: theme.textSecondary,
+                    backgroundColor: theme.backgroundElement,
+                  },
                   !canSubmit && styles.buttonDisabled,
-                ]}>
+                ]}
+              >
                 <ThemedText type="smallBold">Sign out</ThemedText>
               </Pressable>
             </>
           ) : (
             <>
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                keyboardType="email-address"
-                placeholder="Email"
-                placeholderTextColor={theme.textSecondary}
-                style={[
-                  styles.input,
-                  {
-                    borderColor: theme.textSecondary,
-                    color: theme.text,
-                    backgroundColor: theme.background,
-                  },
-                ]}
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    placeholder="Email"
+                    placeholderTextColor={theme.textSecondary}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: theme.textSecondary,
+                        color: theme.text,
+                        backgroundColor: theme.background,
+                      },
+                    ]}
+                  />
+                )}
               />
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password"
-                placeholder="Password"
-                placeholderTextColor={theme.textSecondary}
-                style={[
-                  styles.input,
-                  {
-                    borderColor: theme.textSecondary,
-                    color: theme.text,
-                    backgroundColor: theme.background,
-                  },
-                ]}
+              {formState.errors.email?.message && (
+                <ThemedText style={styles.errorText}>
+                  {formState.errors.email.message}
+                </ThemedText>
+              )}
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="password"
+                    placeholder="Password"
+                    placeholderTextColor={theme.textSecondary}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: theme.textSecondary,
+                        color: theme.text,
+                        backgroundColor: theme.background,
+                      },
+                    ]}
+                  />
+                )}
               />
+              {formState.errors.password?.message && (
+                <ThemedText style={styles.errorText}>
+                  {formState.errors.password.message}
+                </ThemedText>
+              )}
               <View style={styles.buttonRow}>
                 <Pressable
                   onPress={onSignIn}
                   disabled={!canSubmit}
                   style={[
                     styles.button,
-                    { borderColor: theme.textSecondary, backgroundColor: theme.backgroundElement },
+                    {
+                      borderColor: theme.textSecondary,
+                      backgroundColor: theme.backgroundElement,
+                    },
                     !canSubmit && styles.buttonDisabled,
-                  ]}>
+                  ]}
+                >
                   <ThemedText type="smallBold">Sign in</ThemedText>
                 </Pressable>
                 <Pressable
@@ -168,17 +242,27 @@ export default function HomeScreen() {
                   disabled={!canSubmit}
                   style={[
                     styles.button,
-                    { borderColor: theme.textSecondary, backgroundColor: theme.backgroundElement },
+                    {
+                      borderColor: theme.textSecondary,
+                      backgroundColor: theme.backgroundElement,
+                    },
                     !canSubmit && styles.buttonDisabled,
-                  ]}>
+                  ]}
+                >
                   <ThemedText type="smallBold">Sign up</ThemedText>
                 </Pressable>
               </View>
             </>
           )}
 
-          {statusMessage && <ThemedText style={styles.successText}>{statusMessage}</ThemedText>}
-          {errorMessage && <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>}
+          {feedback?.kind === "success" && (
+            <ThemedText style={styles.successText}>
+              {feedback.message}
+            </ThemedText>
+          )}
+          {feedback?.kind === "error" && (
+            <ThemedText style={styles.errorText}>{feedback.message}</ThemedText>
+          )}
         </ThemedView>
       </SafeAreaView>
     </ThemedView>
