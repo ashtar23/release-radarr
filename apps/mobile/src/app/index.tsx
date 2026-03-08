@@ -4,11 +4,13 @@ import {
   authCredentialsSchema,
   type AuthCredentialsInput,
 } from "@repo/types/auth";
-import { useMutation } from "@tanstack/react-query";
+import type { TitleSummary } from "@repo/types";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -19,11 +21,25 @@ import { useAuth } from "@/auth/auth-provider";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useTheme } from "@/hooks/use-theme";
+import { apiClient, apiClientConfigError } from "@/lib/api-client";
 
 function toErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return "Something went wrong.";
+}
+
+function formatReleaseDate(value: string | null) {
+  if (!value) return "Release date unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString();
+}
+
+function formatPlatforms(result: TitleSummary) {
+  if (!result.platforms.length) return "Unknown";
+  return result.platforms.map((platform) => platform.name).join(", ");
 }
 
 export default function HomeScreen() {
@@ -41,6 +57,23 @@ export default function HomeScreen() {
     kind: "success" | "error";
     message: string;
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery).trim();
+  const hasSearchInput = searchQuery.trim().length > 0;
+  const showSearchResults = debouncedSearchQuery.length >= 2;
+
+  const titlesQuery = useQuery({
+    queryKey: ["titles", "search", debouncedSearchQuery],
+    enabled: showSearchResults && Boolean(apiClient),
+    queryFn: ({ signal }) => {
+      if (!apiClient) {
+        throw new Error(apiClientConfigError ?? "Search API is not configured.");
+      }
+
+      return apiClient.searchTitles({ query: debouncedSearchQuery, signal });
+    },
+  });
+
   const { control, handleSubmit, formState } = useForm<AuthCredentialsInput>({
     resolver: zodResolver(authCredentialsSchema),
     defaultValues: {
@@ -114,156 +147,263 @@ export default function HomeScreen() {
     signOutMutation.isPending;
   const canSubmit = isReady && !isSubmitting && !configError;
 
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
     <ThemedView style={styles.page}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView type="backgroundElement" style={styles.panel}>
-          <ThemedText type="title">Release Radar</ThemedText>
-          <ThemedText themeColor="textSecondary">
-            Guest browsing stays open. Watchlist and notifications require auth.
-          </ThemedText>
-        </ThemedView>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <ThemedView type="backgroundElement" style={styles.panel}>
+            <ThemedText type="title">Release Radar</ThemedText>
+            <ThemedText themeColor="textSecondary">
+              Guest browsing stays open. Watchlist and notifications require auth.
+            </ThemedText>
+          </ThemedView>
 
-        <ThemedView type="backgroundElement" style={styles.panel}>
-          <ThemedText type="subtitle">Auth</ThemedText>
+          <ThemedView type="backgroundElement" style={styles.panel}>
+            <ThemedText type="subtitle">Search</ThemedText>
+            <ThemedText themeColor="textSecondary">
+              Search is live as you type.
+            </ThemedText>
 
-          {!isReady && (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator />
-              <ThemedText themeColor="textSecondary">
-                Checking session...
-              </ThemedText>
-            </View>
-          )}
+            {apiClientConfigError && (
+              <ThemedText style={styles.errorText}>{apiClientConfigError}</ThemedText>
+            )}
 
-          {configError && (
-            <ThemedText style={styles.errorText}>{configError}</ThemedText>
-          )}
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="Search games..."
+              placeholderTextColor={theme.textSecondary}
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.textSecondary,
+                  color: theme.text,
+                  backgroundColor: theme.background,
+                },
+              ]}
+              editable={!apiClientConfigError}
+            />
 
-          {user ? (
-            <>
-              <ThemedText themeColor="textSecondary">
-                Signed in as {user.email ?? "unknown user"}.
-              </ThemedText>
+            <View style={styles.buttonRow}>
               <Pressable
-                onPress={onSignOut}
-                disabled={!canSubmit}
+                onPress={clearSearch}
+                disabled={!hasSearchInput}
                 style={[
                   styles.button,
                   {
                     borderColor: theme.textSecondary,
                     backgroundColor: theme.backgroundElement,
                   },
-                  !canSubmit && styles.buttonDisabled,
+                  !hasSearchInput && styles.buttonDisabled,
                 ]}
               >
-                <ThemedText type="smallBold">Sign out</ThemedText>
+                <ThemedText type="smallBold">Clear</ThemedText>
               </Pressable>
-            </>
-          ) : (
-            <>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onBlur, onChange, value } }) => (
-                  <TextInput
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoComplete="email"
-                    keyboardType="email-address"
-                    placeholder="Email"
-                    placeholderTextColor={theme.textSecondary}
-                    style={[
-                      styles.input,
-                      {
-                        borderColor: theme.textSecondary,
-                        color: theme.text,
-                        backgroundColor: theme.background,
-                      },
-                    ]}
-                  />
-                )}
-              />
-              {formState.errors.email?.message && (
-                <ThemedText style={styles.errorText}>
-                  {formState.errors.email.message}
-                </ThemedText>
-              )}
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onBlur, onChange, value } }) => (
-                  <TextInput
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoComplete="password"
-                    placeholder="Password"
-                    placeholderTextColor={theme.textSecondary}
-                    style={[
-                      styles.input,
-                      {
-                        borderColor: theme.textSecondary,
-                        color: theme.text,
-                        backgroundColor: theme.background,
-                      },
-                    ]}
-                  />
-                )}
-              />
-              {formState.errors.password?.message && (
-                <ThemedText style={styles.errorText}>
-                  {formState.errors.password.message}
-                </ThemedText>
-              )}
-              <View style={styles.buttonRow}>
-                <Pressable
-                  onPress={onSignIn}
-                  disabled={!canSubmit}
-                  style={[
-                    styles.button,
-                    {
-                      borderColor: theme.textSecondary,
-                      backgroundColor: theme.backgroundElement,
-                    },
-                    !canSubmit && styles.buttonDisabled,
-                  ]}
-                >
-                  <ThemedText type="smallBold">Sign in</ThemedText>
-                </Pressable>
-                <Pressable
-                  onPress={onSignUp}
-                  disabled={!canSubmit}
-                  style={[
-                    styles.button,
-                    {
-                      borderColor: theme.textSecondary,
-                      backgroundColor: theme.backgroundElement,
-                    },
-                    !canSubmit && styles.buttonDisabled,
-                  ]}
-                >
-                  <ThemedText type="smallBold">Sign up</ThemedText>
-                </Pressable>
-              </View>
-            </>
-          )}
+            </View>
 
-          {feedback?.kind === "success" && (
-            <ThemedText style={styles.successText}>
-              {feedback.message}
-            </ThemedText>
-          )}
-          {feedback?.kind === "error" && (
-            <ThemedText style={styles.errorText}>{feedback.message}</ThemedText>
-          )}
-        </ThemedView>
+            {searchQuery.trim().length > 0 && searchQuery.trim().length < 2 && (
+              <ThemedText themeColor="textSecondary">
+                Enter at least 2 characters.
+              </ThemedText>
+            )}
+
+            {showSearchResults && (
+              <>
+                {titlesQuery.isFetching && !titlesQuery.data && (
+                  <View style={styles.loadingRow}>
+                    <ActivityIndicator />
+                    <ThemedText themeColor="textSecondary">Searching...</ThemedText>
+                  </View>
+                )}
+
+                {titlesQuery.isError && (
+                  <ThemedText style={styles.errorText}>
+                    {toErrorMessage(titlesQuery.error)}
+                  </ThemedText>
+                )}
+
+                {titlesQuery.data?.results.length === 0 && (
+                  <ThemedText themeColor="textSecondary">
+                    No games found for {titlesQuery.data.query}.
+                  </ThemedText>
+                )}
+
+                {titlesQuery.data?.results.length ? (
+                  <View style={styles.searchResultsList}>
+                    {titlesQuery.data.results.map((result) => (
+                      <ThemedView
+                        key={result.id}
+                        type="background"
+                        style={[
+                          styles.searchResultItem,
+                          { borderColor: theme.textSecondary },
+                        ]}
+                      >
+                        <ThemedText type="smallBold">{result.name}</ThemedText>
+                        <ThemedText themeColor="textSecondary">
+                          {formatReleaseDate(result.earliestReleaseDate)}
+                        </ThemedText>
+                        <ThemedText themeColor="textSecondary">
+                          Platforms: {formatPlatforms(result)}
+                        </ThemedText>
+                      </ThemedView>
+                    ))}
+                  </View>
+                ) : null}
+              </>
+            )}
+          </ThemedView>
+
+          <ThemedView type="backgroundElement" style={styles.panel}>
+            <ThemedText type="subtitle">Auth</ThemedText>
+
+            {!isReady && (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator />
+                <ThemedText themeColor="textSecondary">
+                  Checking session...
+                </ThemedText>
+              </View>
+            )}
+
+            {configError && (
+              <ThemedText style={styles.errorText}>{configError}</ThemedText>
+            )}
+
+            {user ? (
+              <>
+                <ThemedText themeColor="textSecondary">
+                  Signed in as {user.email ?? "unknown user"}.
+                </ThemedText>
+                <Pressable
+                  onPress={onSignOut}
+                  disabled={!canSubmit}
+                  style={[
+                    styles.button,
+                    {
+                      borderColor: theme.textSecondary,
+                      backgroundColor: theme.backgroundElement,
+                    },
+                    !canSubmit && styles.buttonDisabled,
+                  ]}
+                >
+                  <ThemedText type="smallBold">Sign out</ThemedText>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onBlur, onChange, value } }) => (
+                    <TextInput
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="email"
+                      keyboardType="email-address"
+                      placeholder="Email"
+                      placeholderTextColor={theme.textSecondary}
+                      style={[
+                        styles.input,
+                        {
+                          borderColor: theme.textSecondary,
+                          color: theme.text,
+                          backgroundColor: theme.background,
+                        },
+                      ]}
+                    />
+                  )}
+                />
+                {formState.errors.email?.message && (
+                  <ThemedText style={styles.errorText}>
+                    {formState.errors.email.message}
+                  </ThemedText>
+                )}
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onBlur, onChange, value } }) => (
+                    <TextInput
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="password"
+                      placeholder="Password"
+                      placeholderTextColor={theme.textSecondary}
+                      style={[
+                        styles.input,
+                        {
+                          borderColor: theme.textSecondary,
+                          color: theme.text,
+                          backgroundColor: theme.background,
+                        },
+                      ]}
+                    />
+                  )}
+                />
+                {formState.errors.password?.message && (
+                  <ThemedText style={styles.errorText}>
+                    {formState.errors.password.message}
+                  </ThemedText>
+                )}
+                <View style={styles.buttonRow}>
+                  <Pressable
+                    onPress={onSignIn}
+                    disabled={!canSubmit}
+                    style={[
+                      styles.button,
+                      {
+                        borderColor: theme.textSecondary,
+                        backgroundColor: theme.backgroundElement,
+                      },
+                      !canSubmit && styles.buttonDisabled,
+                    ]}
+                  >
+                    <ThemedText type="smallBold">Sign in</ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={onSignUp}
+                    disabled={!canSubmit}
+                    style={[
+                      styles.button,
+                      {
+                        borderColor: theme.textSecondary,
+                        backgroundColor: theme.backgroundElement,
+                      },
+                      !canSubmit && styles.buttonDisabled,
+                    ]}
+                  >
+                    <ThemedText type="smallBold">Sign up</ThemedText>
+                  </Pressable>
+                </View>
+              </>
+            )}
+
+            {feedback?.kind === "success" && (
+              <ThemedText style={styles.successText}>
+                {feedback.message}
+              </ThemedText>
+            )}
+            {feedback?.kind === "error" && (
+              <ThemedText style={styles.errorText}>{feedback.message}</ThemedText>
+            )}
+          </ThemedView>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -278,6 +418,8 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 640,
     flex: 1,
+  },
+  scrollContent: {
     gap: Spacing.three,
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
@@ -319,5 +461,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#b42318",
+  },
+  searchResultsList: {
+    gap: Spacing.two,
+  },
+  searchResultItem: {
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+    padding: Spacing.two,
+    gap: Spacing.one,
   },
 });

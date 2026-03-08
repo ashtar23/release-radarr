@@ -1,4 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../_shared/database.types.ts";
+
+type AdminClient = SupabaseClient<Database>;
+type TitleInsertRow = Database["public"]["Tables"]["titles"]["Insert"];
+type DbJson = Database["public"]["Tables"]["titles"]["Row"]["platforms"];
 
 interface TitlePlatform {
   id: string;
@@ -40,25 +46,7 @@ interface TitleDetails extends TitleSummary {
   releases: PlatformRelease[];
 }
 
-interface CachedTitleRow {
-  id: string;
-  kind: "game";
-  source: "rawg";
-  external_id: string;
-  slug: string;
-  name: string;
-  cover_image_url: string | null;
-  earliest_release_date: string | null;
-  platforms: unknown;
-  search_updated_at: string;
-  description: string | null;
-  genres: string[] | null;
-  developers: string[] | null;
-  publishers: string[] | null;
-  website_url: string | null;
-  releases: unknown;
-  detail_updated_at: string | null;
-}
+type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 
 interface LocalSearchResult {
   summary: TitleSummary;
@@ -138,7 +126,7 @@ Deno.serve(async (request) => {
       );
     }
 
-    const admin = createClient(supabaseUrl, serviceRoleKey);
+    const admin = createClient<Database>(supabaseUrl, serviceRoleKey);
     const url = new URL(request.url);
     if (route.kind === "search") {
       return handleSearchRequest(admin, url);
@@ -153,7 +141,7 @@ Deno.serve(async (request) => {
 });
 
 async function handleSearchRequest(
-  client: ReturnType<typeof createClient>,
+  client: AdminClient,
   url: URL,
 ) {
   const query = url.searchParams.get("query")?.trim() ?? "";
@@ -166,9 +154,13 @@ async function handleSearchRequest(
 
   const limit = clampLimit(url.searchParams.get("limit"));
   const localResults = await findLocalResults(client, query, limit);
-  const weakResultsThreshold = Math.min(limit, MIN_LOCAL_RESULTS_BEFORE_FALLBACK);
+  const weakResultsThreshold = Math.min(
+    limit,
+    MIN_LOCAL_RESULTS_BEFORE_FALLBACK,
+  );
   const shouldFallbackToRawg =
-    localResults.length < weakResultsThreshold || areSearchResultsStale(localResults);
+    localResults.length < weakResultsThreshold ||
+    areSearchResultsStale(localResults);
 
   if (!shouldFallbackToRawg) {
     return jsonResponse({
@@ -203,12 +195,10 @@ async function handleSearchRequest(
   }
 
   const now = new Date().toISOString();
-  const { error } = await client
-    .from("titles")
-    .upsert(
-      rawgResults.map((result) => mapSummaryToSearchUpsertRow(result, now)),
-      { onConflict: "source,external_id" },
-    );
+  const { error } = await client.from("titles").upsert(
+    rawgResults.map((result) => mapSummaryToSearchUpsertRow(result, now)),
+    { onConflict: "source,external_id" },
+  );
 
   if (error) {
     return jsonResponse({ error: error.message }, 500);
@@ -218,7 +208,7 @@ async function handleSearchRequest(
 }
 
 async function handleDetailRequest(
-  client: ReturnType<typeof createClient>,
+  client: AdminClient,
   titleId: string,
 ) {
   const localRow = await findTitleById(client, titleId);
@@ -288,7 +278,7 @@ function resolveRoute(pathname: string): Route | null {
 }
 
 async function findLocalResults(
-  client: ReturnType<typeof createClient>,
+  client: AdminClient,
   query: string,
   limit: number,
 ): Promise<LocalSearchResult[]> {
@@ -312,7 +302,7 @@ async function findLocalResults(
 }
 
 async function findTitleById(
-  client: ReturnType<typeof createClient>,
+  client: AdminClient,
   titleId: string,
 ): Promise<CachedTitleRow | null> {
   const { data, error } = await client
@@ -331,6 +321,9 @@ async function findTitleById(
 }
 
 function mapCachedRowToTitleSummary(row: CachedTitleRow): TitleSummary {
+  assertTitleKind(row.kind);
+  assertTitleSource(row.source);
+
   return {
     id: row.id,
     kind: row.kind,
@@ -357,7 +350,10 @@ function mapCachedRowToTitleDetails(row: CachedTitleRow): TitleDetails {
   };
 }
 
-function mapSummaryToSearchUpsertRow(summary: TitleSummary, now: string) {
+function mapSummaryToSearchUpsertRow(
+  summary: TitleSummary,
+  now: string,
+): TitleInsertRow {
   return {
     id: summary.id,
     kind: summary.kind,
@@ -367,13 +363,13 @@ function mapSummaryToSearchUpsertRow(summary: TitleSummary, now: string) {
     name: summary.name,
     cover_image_url: summary.coverImageUrl,
     earliest_release_date: summary.earliestReleaseDate,
-    platforms: summary.platforms,
+    platforms: toDbJson(summary.platforms),
     search_updated_at: now,
     updated_at: now,
   };
 }
 
-function mapDetailToUpsertRow(detail: TitleDetails, now: string) {
+function mapDetailToUpsertRow(detail: TitleDetails, now: string): TitleInsertRow {
   return {
     id: detail.id,
     kind: detail.kind,
@@ -383,17 +379,35 @@ function mapDetailToUpsertRow(detail: TitleDetails, now: string) {
     name: detail.name,
     cover_image_url: detail.coverImageUrl,
     earliest_release_date: detail.earliestReleaseDate,
-    platforms: detail.platforms,
+    platforms: toDbJson(detail.platforms),
     description: detail.description,
     genres: detail.genres,
     developers: detail.developers,
     publishers: detail.publishers,
     website_url: detail.websiteUrl,
-    releases: detail.releases,
+    releases: toDbJson(detail.releases),
     search_updated_at: now,
     detail_updated_at: now,
     updated_at: now,
   };
+}
+
+function toDbJson(value: unknown): DbJson {
+  return value as DbJson;
+}
+
+function assertTitleKind(value: string): asserts value is TitleSummary["kind"] {
+  if (value !== "game") {
+    throw new Error(`Unsupported title kind: ${value}`);
+  }
+}
+
+function assertTitleSource(
+  value: string,
+): asserts value is TitleSummary["source"] {
+  if (value !== "rawg") {
+    throw new Error(`Unsupported title source: ${value}`);
+  }
 }
 
 function parsePlatforms(value: unknown): TitlePlatform[] {
@@ -431,7 +445,9 @@ function parseReleases(value: unknown): PlatformRelease[] {
 
     const releaseDate =
       typeof record.releaseDate === "string" ? record.releaseDate : null;
-    const releaseDatePrecision = toReleasePrecision(record.releaseDatePrecision);
+    const releaseDatePrecision = toReleasePrecision(
+      record.releaseDatePrecision,
+    );
 
     return [
       {
@@ -512,9 +528,10 @@ async function fetchRawgDetail(
     genres: mapNamedList(game.genres),
     developers: mapNamedList(game.developers),
     publishers: mapNamedList(game.publishers),
-    websiteUrl: typeof game.website === "string" && game.website.length
-      ? game.website
-      : null,
+    websiteUrl:
+      typeof game.website === "string" && game.website.length
+        ? game.website
+        : null,
     releases,
   };
 }
@@ -586,7 +603,9 @@ function mapNamedList(list: Array<{ name?: string }> | undefined): string[] {
   if (!list?.length) return [];
   return list
     .map((item) => item.name)
-    .filter((value): value is string => typeof value === "string" && value.length > 0);
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    );
 }
 
 function extractRawgExternalId(titleId: string, row: CachedTitleRow | null) {

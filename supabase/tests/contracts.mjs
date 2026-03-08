@@ -1,14 +1,77 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const supabaseUrl = process.env.SUPABASE_LOCAL_URL ?? "http://127.0.0.1:54321";
-const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-const serviceSecretKey = process.env.SUPABASE_SECRET_KEY;
+loadEnvFiles();
+
+const supabaseUrl =
+  process.env.SUPABASE_LOCAL_URL ??
+  process.env.SUPABASE_URL ??
+  process.env.VITE_SUPABASE_URL ??
+  process.env.EXPO_PUBLIC_SUPABASE_URL ??
+  "http://127.0.0.1:54321";
+const publishableKey =
+  process.env.SUPABASE_PUBLISHABLE_KEY ??
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const serviceSecretKey =
+  process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!publishableKey) {
   throw new Error("SUPABASE_PUBLISHABLE_KEY is required.");
 }
 if (!serviceSecretKey) {
-  throw new Error("SUPABASE_SECRET_KEY is required.");
+  throw new Error(
+    "SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required.",
+  );
+}
+
+function loadEnvFiles() {
+  const repoRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../..",
+  );
+  const candidates = [
+    path.join(repoRoot, ".env"),
+    path.join(repoRoot, ".env.local"),
+    path.join(repoRoot, "supabase/.env"),
+    path.join(repoRoot, "apps/web/.env"),
+    path.join(repoRoot, "apps/mobile/.env"),
+  ];
+
+  for (const envPath of candidates) {
+    if (!fs.existsSync(envPath)) continue;
+    const content = fs.readFileSync(envPath, "utf8");
+    applyEnvContent(content);
+  }
+}
+
+function applyEnvContent(content) {
+  for (const rawLine of content.split(/\r?\n/u)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex <= 0) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    if (!key || key in process.env) continue;
+
+    const rawValue = line.slice(separatorIndex + 1).trim();
+    process.env[key] = stripWrappingQuotes(rawValue);
+  }
+}
+
+function stripWrappingQuotes(value) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
 }
 
 const seedId = "rawg:contract-test";
@@ -76,13 +139,16 @@ async function upsertSeedRow() {
 }
 
 async function cleanupSeedRow() {
-  await fetch(`${supabaseUrl}/rest/v1/titles?id=eq.${encodeURIComponent(seedId)}`, {
-    method: "DELETE",
-    headers: {
-      apikey: serviceSecretKey,
-      Authorization: `Bearer ${serviceSecretKey}`,
+  await fetch(
+    `${supabaseUrl}/rest/v1/titles?id=eq.${encodeURIComponent(seedId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        apikey: serviceSecretKey,
+        Authorization: `Bearer ${serviceSecretKey}`,
+      },
     },
-  });
+  );
 }
 
 async function assertSearchContract() {
