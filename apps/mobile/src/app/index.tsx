@@ -9,11 +9,11 @@ import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/auth/auth-provider";
 import { ThemedText } from "@/components/themed-text";
