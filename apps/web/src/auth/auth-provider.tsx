@@ -1,9 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
-import {
-  useEffect,
-  useState,
-  type PropsWithChildren,
-} from "react";
+import { useEffect, useState, type PropsWithChildren } from "react";
 
 import { AuthContext, type AuthContextValue } from "./auth-context";
 import { supabase, supabaseConfigError } from "../lib/supabase";
@@ -51,7 +47,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     configError: supabaseConfigError,
     async signInWithPassword(email, password) {
       const client = ensureClient();
-      const { error } = await client.auth.signInWithPassword({ email, password });
+      const { error } = await client.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
     },
     async signUpWithPassword(email, password) {
