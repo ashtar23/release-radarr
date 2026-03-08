@@ -9,8 +9,14 @@ function toErrorMessage(error: unknown) {
 }
 
 export default function App() {
-  const { user, isReady, configError, signInWithPassword, signOut, signUpWithPassword } =
-    useAuth();
+  const {
+    user,
+    isReady,
+    configError,
+    signInWithPassword,
+    signOut,
+    signUpWithPassword,
+  } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +48,9 @@ export default function App() {
     setIsSubmitting(true);
     try {
       await signUpWithPassword(email, password);
-      setMessage("Sign-up submitted. Check your email if confirmation is enabled.");
+      setMessage(
+        "Sign-up submitted. Check your email if confirmation is enabled.",
+      );
     } catch (error) {
       setErrorMessage(toErrorMessage(error));
     } finally {
@@ -67,7 +75,9 @@ export default function App() {
     <main className="page">
       <section className="panel">
         <h1>Release Radar</h1>
-        <p className="muted">Guest browsing stays open. Watchlist and notifications require auth.</p>
+        <p className="muted">
+          Guest browsing stays open. Watchlist and notifications require auth.
+        </p>
       </section>
 
       <section className="panel">
@@ -77,7 +87,9 @@ export default function App() {
 
         {user ? (
           <>
-            <p className="muted">Signed in as {user.email ?? "unknown user"}.</p>
+            <p className="muted">
+              Signed in as {user.email ?? "unknown user"}.
+            </p>
             <button onClick={onSignOut} disabled={isSubmitting}>
               Sign out
             </button>
@@ -105,13 +117,17 @@ export default function App() {
               />
             </label>
             <div className="actions">
-              <button type="submit" disabled={isSubmitting || !isReady || Boolean(configError)}>
+              <button
+                type="submit"
+                disabled={isSubmitting || !isReady || Boolean(configError)}
+              >
                 Sign in
               </button>
               <button
                 type="button"
                 onClick={onSignUp}
-                disabled={isSubmitting || !isReady || Boolean(configError)}>
+                disabled={isSubmitting || !isReady || Boolean(configError)}
+              >
                 Sign up
               </button>
             </div>
