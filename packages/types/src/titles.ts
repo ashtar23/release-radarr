@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type {
   ContentKind,
   EntityId,
@@ -36,6 +37,12 @@ export interface TitleSearchResult {
   query: string;
   results: TitleSummary[];
 }
+
+export const titleSearchQuerySchema = z.object({
+  query: z.string().trim().min(2, "Enter at least 2 characters."),
+});
+
+export type TitleSearchQueryInput = z.infer<typeof titleSearchQuerySchema>;
 
 export interface TitleDetails extends TitleSummary {
   description: string | null;

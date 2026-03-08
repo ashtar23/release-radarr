@@ -20,10 +20,12 @@ export type {
   PlatformRelease,
   ReleaseDatePrecision,
   TitleDetails,
+  TitleSearchQueryInput,
   TitlePlatform,
   TitleSearchResult,
   TitleSummary,
 } from "./titles";
+export { titleSearchQuerySchema } from "./titles";
 
 export type { WatchlistItem } from "./watchlist";
 export { authCredentialsSchema } from "./auth";
