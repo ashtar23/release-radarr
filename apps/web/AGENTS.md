@@ -60,10 +60,18 @@ The web app is responsible for:
 ## UI conventions
 
 - Prefer Tailwind v4 for styling.
-- Prefer shadcn/ui patterns and components once available.
+- Use official shadcn/ui setup and CLI-managed components where appropriate.
+- Do not hand-roll shadcn lookalikes when the real shadcn component should be installed instead.
+- Prefer shadcn/ui primitives with Radix UI under the hood and lucide-react for icons where appropriate.
 - Avoid plain CSS files or ad hoc styling unless explicitly justified.
 - Prefer shared utility classes and consistent spacing/token usage over one-off values.
 - Keep components small, composable, and easy to review.
+
+## Structure conventions
+
+- Prefer a practical feature-first or route-first structure.
+- Do not force atomic design naming unless explicitly requested.
+- Reusable low-level UI primitives may live in a shared UI area, but avoid ceremony-heavy folder structures without clear benefit.
 
 ## Verification
 

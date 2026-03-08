@@ -23,3 +23,5 @@ Typical packages include:
 - Do not include UI logic.
 - Keep dependencies minimal.
 - Favor small focused modules.
+- Do not include React hooks in shared packages unless the package is explicitly intended to be React-specific.
+- In api-client, prefer plain typed request functions and do not embed framework-specific caching or React hooks.
