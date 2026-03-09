@@ -26,6 +26,7 @@ import { Spacing } from "@/constants/theme";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useTheme } from "@/hooks/use-theme";
 import { apiClient, apiClientConfigError } from "@/lib/api-client";
+import { AppInput } from "@/components/ui/input";
 
 function toErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -182,7 +183,17 @@ export default function HomeScreen() {
           </ThemedText>
         )}
 
-        <TextInput
+        <AppInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="Search games..."
+          placeholderTextColor={theme.textSecondary}
+          editable={!apiClientConfigError}
+        />
+
+        {/* <TextInput
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoCapitalize="none"
@@ -198,7 +209,7 @@ export default function HomeScreen() {
             },
           ]}
           editable={!apiClientConfigError}
-        />
+        /> */}
 
         <View style={styles.buttonRow}>
           <Pressable
