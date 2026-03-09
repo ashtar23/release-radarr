@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GamesIndexRouteImport } from './routes/games/index'
+import { Route as TitlesTitleIdRouteImport } from './routes/titles/$titleId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const GamesIndexRoute = GamesIndexRouteImport.update({
   path: '/games/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TitlesTitleIdRoute = TitlesTitleIdRouteImport.update({
+  id: '/titles/$titleId',
+  path: '/titles/$titleId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/titles/$titleId': typeof TitlesTitleIdRoute
   '/games/': typeof GamesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/titles/$titleId': typeof TitlesTitleIdRoute
   '/games': typeof GamesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/titles/$titleId': typeof TitlesTitleIdRoute
   '/games/': typeof GamesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/games/'
+  fullPaths: '/' | '/titles/$titleId' | '/games/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/games'
-  id: '__root__' | '/' | '/games/'
+  to: '/' | '/titles/$titleId' | '/games'
+  id: '__root__' | '/' | '/titles/$titleId' | '/games/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  TitlesTitleIdRoute: typeof TitlesTitleIdRoute
   GamesIndexRoute: typeof GamesIndexRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/titles/$titleId': {
+      id: '/titles/$titleId'
+      path: '/titles/$titleId'
+      fullPath: '/titles/$titleId'
+      preLoaderRoute: typeof TitlesTitleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  TitlesTitleIdRoute: TitlesTitleIdRoute,
   GamesIndexRoute: GamesIndexRoute,
 }
 export const routeTree = rootRouteImport

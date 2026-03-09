@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/alert";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -109,7 +110,13 @@ export function SearchPanel() {
                     key={result.id}
                     className="rounded-md border bg-background p-3"
                   >
-                    <p className="font-medium">{result.name}</p>
+                    <Link
+                      to="/titles/$titleId"
+                      params={{ titleId: result.id }}
+                      className="font-medium underline-offset-4 hover:underline"
+                    >
+                      {result.name}
+                    </Link>
                     <p className="text-sm text-muted-foreground">
                       {formatReleaseDate(result.earliestReleaseDate)}
                     </p>
