@@ -155,6 +155,8 @@ export default function HomeScreen() {
   const clearSearch = () => {
     setSearchQuery("");
   };
+  const errorTextStyle = { color: theme.status.error };
+  const successTextStyle = { color: theme.status.success };
 
   return (
     <ScrollView
@@ -178,7 +180,7 @@ export default function HomeScreen() {
         </ThemedText>
 
         {apiClientConfigError && (
-          <ThemedText style={styles.errorText}>
+          <ThemedText style={errorTextStyle}>
             {apiClientConfigError}
           </ThemedText>
         )}
@@ -189,27 +191,9 @@ export default function HomeScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           placeholder="Search games..."
-          placeholderTextColor={theme.textSecondary}
+          placeholderTextColor={theme.input.placeholder}
           editable={!apiClientConfigError}
         />
-
-        {/* <TextInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="Search games..."
-          placeholderTextColor={theme.textSecondary}
-          style={[
-            styles.input,
-            {
-              borderColor: theme.textSecondary,
-              color: theme.text,
-              backgroundColor: theme.background,
-            },
-          ]}
-          editable={!apiClientConfigError}
-        /> */}
 
         <View style={styles.buttonRow}>
           <Pressable
@@ -244,7 +228,7 @@ export default function HomeScreen() {
             )}
 
             {titlesQuery.isError && (
-              <ThemedText style={styles.errorText}>
+              <ThemedText style={errorTextStyle}>
                 {toErrorMessage(titlesQuery.error)}
               </ThemedText>
             )}
@@ -304,7 +288,7 @@ export default function HomeScreen() {
         )}
 
         {configError && (
-          <ThemedText style={styles.errorText}>{configError}</ThemedText>
+          <ThemedText style={errorTextStyle}>{configError}</ThemedText>
         )}
 
         {user ? (
@@ -342,11 +326,11 @@ export default function HomeScreen() {
                   autoComplete="email"
                   keyboardType="email-address"
                   placeholder="Email"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor={theme.input.placeholder}
                   style={[
                     styles.input,
                     {
-                      borderColor: theme.textSecondary,
+                      borderColor: theme.input.fallbackBorder,
                       color: theme.text,
                       backgroundColor: theme.background,
                     },
@@ -355,7 +339,7 @@ export default function HomeScreen() {
               )}
             />
             {formState.errors.email?.message && (
-              <ThemedText style={styles.errorText}>
+              <ThemedText style={errorTextStyle}>
                 {formState.errors.email.message}
               </ThemedText>
             )}
@@ -372,11 +356,11 @@ export default function HomeScreen() {
                   autoCorrect={false}
                   autoComplete="password"
                   placeholder="Password"
-                  placeholderTextColor={theme.textSecondary}
+                  placeholderTextColor={theme.input.placeholder}
                   style={[
                     styles.input,
                     {
-                      borderColor: theme.textSecondary,
+                      borderColor: theme.input.fallbackBorder,
                       color: theme.text,
                       backgroundColor: theme.background,
                     },
@@ -385,7 +369,7 @@ export default function HomeScreen() {
               )}
             />
             {formState.errors.password?.message && (
-              <ThemedText style={styles.errorText}>
+              <ThemedText style={errorTextStyle}>
                 {formState.errors.password.message}
               </ThemedText>
             )}
@@ -423,10 +407,10 @@ export default function HomeScreen() {
         )}
 
         {feedback?.kind === "success" && (
-          <ThemedText style={styles.successText}>{feedback.message}</ThemedText>
+          <ThemedText style={successTextStyle}>{feedback.message}</ThemedText>
         )}
         {feedback?.kind === "error" && (
-          <ThemedText style={styles.errorText}>{feedback.message}</ThemedText>
+          <ThemedText style={errorTextStyle}>{feedback.message}</ThemedText>
         )}
       </ThemedView>
     </ScrollView>
@@ -473,12 +457,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
-  },
-  successText: {
-    color: "#0f6b2c",
-  },
-  errorText: {
-    color: "#b42318",
   },
   searchResultsList: {
     gap: Spacing.two,

@@ -14,7 +14,11 @@ export default function AppTabs() {
       blurEffect={Platform.OS === "ios" ? "systemChromeMaterial" : undefined}
       indicatorColor={colors.backgroundElement}
       minimizeBehavior={Platform.OS === "ios" ? "onScrollDown" : undefined}
-      labelStyle={{ selected: { color: colors.text } }}
+      labelVisibilityMode={Platform.OS === "android" ? "labeled" : undefined}
+      labelStyle={{
+        default: { color: colors.textSecondary },
+        selected: { color: colors.text },
+      }}
     >
       <NativeTabs.Trigger name="home">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
@@ -28,6 +32,14 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="watchlist">
         <NativeTabs.Trigger.Label>Watchlist</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="bookmark" md="bookmark" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger
+        name="search"
+        role={Platform.OS === "ios" ? "search" : undefined}
+      >
+        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="settings">

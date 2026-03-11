@@ -3,9 +3,11 @@ import React, {
   useImperativeHandle,
   useRef,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   StyleSheet,
@@ -22,7 +24,7 @@ import {
   isLiquidGlassAvailable,
 } from "expo-glass-effect";
 
-import { Spacing } from "@/constants/theme";
+import { Spacing, isDarkTheme } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 import { ThemedText } from "../themed-text";
@@ -69,6 +71,8 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
       onBlur,
       onChangeText,
       placeholderTextColor,
+      selectionColor,
+      cursorColor,
       value,
       style,
       ...textInputProps
@@ -83,17 +87,46 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
     const shouldUseGlass = useGlass && canUseGlassEffect();
     const hasError = Boolean(errorMessage);
     const hasValue = typeof value === "string" && value.length > 0;
-    const isDarkTheme = theme.background === "#000000";
-    const glassTintColor = isDarkTheme
-      ? "rgba(255,255,255,0.1)"
-      : isFocused
-        ? "rgba(252,253,255,0.88)"
-        : "rgba(215,222,232,0.56)";
-    const glassBackgroundColor = isDarkTheme
-      ? "transparent"
-      : isFocused
-        ? "rgba(231,237,246,0.28)"
-        : "rgba(210,217,227,0.16)";
+    const darkTheme = isDarkTheme(theme);
+    const control = theme.control.input;
+    const glassTintColor = isFocused
+      ? theme.glassInput.tintFocused
+      : theme.glassInput.tintIdle;
+    const glassBackgroundColor = isFocused
+      ? theme.glassInput.bgFocused
+      : theme.glassInput.bgIdle;
+    const defaultFocusAccentColor = darkTheme
+      ? "rgba(236,236,240,0.92)"
+      : "rgba(48,52,56,0.86)";
+
+    useEffect(() => {
+      if (!__DEV__ || Platform.OS !== "ios") return;
+
+      let disposed = false;
+      const glassApiAvailable = isGlassEffectAPIAvailable();
+      const liquidGlassAvailable = isLiquidGlassAvailable();
+
+      AccessibilityInfo.isReduceTransparencyEnabled()
+        .then((reduceTransparencyEnabled) => {
+          if (disposed) return;
+
+          console.log("[AppInput][glass-debug]", {
+            glassApiAvailable,
+            liquidGlassAvailable,
+            reduceTransparencyEnabled,
+            useGlass,
+            shouldUseGlass,
+          });
+        })
+        .catch((error) => {
+          if (disposed) return;
+          console.log("[AppInput][glass-debug] failed to read accessibility state", error);
+        });
+
+      return () => {
+        disposed = true;
+      };
+    }, [shouldUseGlass, useGlass]);
 
     useImperativeHandle(ref, () => inputRef.current as TextInput, []);
 
@@ -113,34 +146,32 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
     };
 
     const fallbackBorderColor = hasError
-      ? "#b42318"
+      ? theme.input.fallbackBorderError
       : isFocused
-        ? theme.text
-        : theme.textSecondary;
+        ? theme.input.fallbackBorderFocused
+        : theme.input.fallbackBorder;
 
     const glassBorderColor = hasError
-      ? "rgba(180,35,24,0.75)"
+      ? theme.glassInput.borderError
       : isFocused
-        ? isDarkTheme
-          ? "rgba(255,255,255,0.3)"
-          : "rgba(0,0,0,0.24)"
-        : isDarkTheme
-          ? "rgba(255,255,255,0.14)"
-          : "rgba(0,0,0,0.12)";
+        ? theme.glassInput.borderFocused
+        : theme.glassInput.borderIdle;
 
     const containerStyles = [
       styles.container,
-      Platform.OS === "android" && !shouldUseGlass
-        ? isFocused
-          ? styles.androidShadowFocused
-          : styles.androidShadow
-        : null,
+      // Platform.OS === "android" && !shouldUseGlass
+      //   ? isFocused
+      //     ? theme.input.androidShadowFocused
+      //     : theme.input.androidShadow
+      //   : null,
       {
         borderColor: shouldUseGlass ? glassBorderColor : fallbackBorderColor,
         borderWidth: shouldUseGlass ? 0 : Platform.OS === "android" ? 0 : 1,
         backgroundColor: shouldUseGlass
           ? glassBackgroundColor
           : theme.background,
+        borderRadius: theme.control.radius.lg,
+        minHeight: control.height,
       },
       disabled && styles.containerDisabled,
       containerStyle,
@@ -157,11 +188,16 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
           onFocus={handleFocus}
           onBlur={handleBlur}
           onChangeText={onChangeText}
-          placeholderTextColor={placeholderTextColor ?? theme.textSecondary}
+          placeholderTextColor={placeholderTextColor ?? theme.input.placeholder}
+          selectionColor={selectionColor ?? defaultFocusAccentColor}
+          cursorColor={cursorColor ?? defaultFocusAccentColor}
           style={[
             styles.input,
             {
               color: theme.text,
+              minHeight: control.textMinHeight,
+              fontSize: control.textSize,
+              lineHeight: control.textLineHeight,
             },
             inputStyle,
             style,
@@ -175,7 +211,15 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
             accessibilityRole="button"
             accessibilityLabel="Clear input"
             hitSlop={8}
-            style={[styles.clearButton, { borderColor: theme.textSecondary }]}
+            style={[
+              styles.clearButton,
+              {
+                borderColor: theme.input.fallbackBorder,
+                width: control.clearButtonSize,
+                height: control.clearButtonSize,
+                borderRadius: control.clearButtonRadius,
+              },
+            ]}
           >
             <ThemedText type="smallBold">×</ThemedText>
           </Pressable>
@@ -190,7 +234,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
         {shouldUseGlass ? (
           <GlassView
             style={containerStyles}
-            colorScheme={isDarkTheme ? "dark" : "light"}
+            colorScheme={darkTheme ? "dark" : "light"}
             tintColor={glassTintColor}
             isInteractive={isEditable}
             glassEffectStyle={{
@@ -206,7 +250,9 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
         )}
 
         {errorMessage ? (
-          <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
+          <ThemedText style={{ color: theme.status.error }}>
+            {errorMessage}
+          </ThemedText>
         ) : null}
       </View>
     );
@@ -224,25 +270,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderRadius: 18,
     overflow: "hidden",
     paddingHorizontal: Spacing.three,
     paddingVertical: 0,
-    minHeight: 44,
-  },
-  androidShadow: {
-    elevation: 2,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.14,
-    shadowRadius: 4,
-  },
-  androidShadowFocused: {
-    elevation: 4,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
   },
   containerDisabled: {
     opacity: 0.55,
@@ -254,22 +284,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 20,
-    fontSize: 16,
-    lineHeight: 20,
     paddingHorizontal: 0,
     paddingVertical: 0,
   },
   clearButton: {
-    width: 24,
-    height: 24,
     borderWidth: 1,
-    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     marginLeft: Spacing.two,
-  },
-  errorText: {
-    color: "#b42318",
   },
 });

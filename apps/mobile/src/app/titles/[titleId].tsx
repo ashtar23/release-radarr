@@ -17,6 +17,7 @@ import { apiClient, apiClientConfigError } from "@/lib/api-client";
 
 export default function TitleDetailsScreen() {
   const theme = useTheme();
+  const errorTextStyle = { color: theme.status.error };
   const { titleId: rawTitleId, titleName: rawTitleName } =
     useLocalSearchParams<{
       titleId?: string | string[];
@@ -61,13 +62,13 @@ export default function TitleDetailsScreen() {
           </ThemedText>
 
           {apiClientConfigError && (
-            <ThemedText style={styles.errorText}>
+            <ThemedText style={errorTextStyle}>
               {apiClientConfigError}
             </ThemedText>
           )}
 
           {!apiClientConfigError && !titleId && (
-            <ThemedText style={styles.errorText}>Invalid title id.</ThemedText>
+            <ThemedText style={errorTextStyle}>Invalid title id.</ThemedText>
           )}
 
           {!apiClientConfigError &&
@@ -82,7 +83,7 @@ export default function TitleDetailsScreen() {
             )}
 
           {!apiClientConfigError && detailsQuery.isError && (
-            <ThemedText style={styles.errorText}>
+            <ThemedText style={errorTextStyle}>
               {toDetailErrorMessage(detailsQuery.error)}
             </ThemedText>
           )}
@@ -232,8 +233,5 @@ const styles = StyleSheet.create({
   },
   releaseList: {
     gap: Spacing.one,
-  },
-  errorText: {
-    color: "#b42318",
   },
 });
