@@ -1,11 +1,26 @@
-import { ThemedScrollView } from "@/components/themed-scroll-view";
 import { ThemedText } from "@/components/themed-text";
-import { View } from "react-native";
+import { capabilities } from "@/constants/capabilities";
+import { Spacing } from "@/constants/theme";
+import { ScrollView, StyleSheet } from "react-native";
 
 export default function GeneralSettingsScreen() {
   return (
-    <ThemedScrollView>
+    <ScrollView
+      contentInsetAdjustmentBehavior={
+        capabilities.autoContentInsets ? "automatic" : "never"
+      }
+      contentContainerStyle={styles.content}
+    >
       <ThemedText>General Settings</ThemedText>
-    </ThemedScrollView>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
+    paddingBottom: Spacing.five,
+  },
+});
