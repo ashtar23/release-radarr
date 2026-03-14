@@ -65,6 +65,15 @@ export type AppTheme = {
     borderFocused: string;
     borderError: string;
   };
+  card: {
+    search: {
+      background: string;
+      border: string;
+      pressedOverlay: string;
+      meta: string;
+      shadow: ShadowToken;
+    };
+  };
 };
 
 /**
@@ -100,6 +109,11 @@ export const THEME_TOKEN_ROLE_MATRIX = {
   "glass-input/border-idle": "glassInput.borderIdle",
   "glass-input/border-focused": "glassInput.borderFocused",
   "glass-input/border-error": "glassInput.borderError",
+  "card/search-background": "card.search.background",
+  "card/search-border": "card.search.border",
+  "card/search-pressed-overlay": "card.search.pressedOverlay",
+  "card/search-meta": "card.search.meta",
+  "card/search-shadow": "card.search.shadow.shadowColor",
 } as const;
 
 /**
@@ -166,6 +180,26 @@ export const THEME_PLATFORM_BASELINE = {
     ios: "systemRed over material",
     android: "error",
   },
+  "card/search-background": {
+    ios: "secondarySystemBackground",
+    android: "surfaceContainerLow",
+  },
+  "card/search-border": {
+    ios: "separator",
+    android: "outlineVariant",
+  },
+  "card/search-pressed-overlay": {
+    ios: "quaternarySystemFill",
+    android: "onSurface with low alpha",
+  },
+  "card/search-meta": {
+    ios: "secondaryLabel",
+    android: "onSurfaceVariant",
+  },
+  "card/search-shadow": {
+    ios: "shadow",
+    android: "shadow",
+  },
 } as const;
 
 export const Colors = {
@@ -229,6 +263,21 @@ export const Colors = {
       borderFocused: "rgba(0,0,0,0.44)",
       borderError: "rgba(180,35,24,0.75)",
     },
+    card: {
+      search: {
+        background: "#F7F8FA",
+        border: "rgba(60,60,67,0.16)",
+        pressedOverlay: "rgba(15,23,42,0.08)",
+        meta: "#60646C",
+        shadow: {
+          elevation: 1,
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.08,
+          shadowRadius: 2,
+        },
+      },
+    },
   },
   dark: {
     text: "#ffffff",
@@ -289,6 +338,21 @@ export const Colors = {
       borderIdle: "rgba(255,255,255,0.16)",
       borderFocused: "rgba(255,255,255,0.35)",
       borderError: "rgba(249,112,102,0.8)",
+    },
+    card: {
+      search: {
+        background: "#111317",
+        border: "rgba(255,255,255,0.14)",
+        pressedOverlay: "rgba(255,255,255,0.12)",
+        meta: "#B0B4BA",
+        shadow: {
+          elevation: 2,
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.24,
+          shadowRadius: 4,
+        },
+      },
     },
   },
 } as const satisfies Record<ThemeName, AppTheme>;
