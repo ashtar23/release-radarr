@@ -1,20 +1,57 @@
 import React from "react";
-import { Platform, ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
-import { ThemedText } from "@/components/themed-text";
+import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
+import { ListSection } from "@/components/list-section";
+import {
+  AppSymbol,
+  type AndroidSymbolName,
+  type IOSSymbolName,
+} from "@/auth/app-symbol";
+import { Href } from "expo-router";
+import { AppLink } from "@/components/app-link";
+
+type SettingsItem = {
+  href: Href;
+  label: string;
+  iosSymbol: IOSSymbolName;
+  androidSymbol: AndroidSymbolName;
+};
+
+const SETTINGS_ITEMS: SettingsItem[] = [
+  {
+    href: "/settings/general",
+    label: "General",
+    iosSymbol: "gearshape",
+    androidSymbol: "settings",
+  },
+  {
+    href: "/settings/theme",
+    label: "Theme",
+    iosSymbol: "paintbrush",
+    androidSymbol: "palette",
+  },
+];
 
 export default function SettingsScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior={
-        Platform.OS === "ios" ? "automatic" : "never"
+        capabilities.autoContentInsets ? "automatic" : "never"
       }
       contentContainerStyle={styles.content}
     >
-      {Array.from({ length: 50 }, (_, index) => (
-        <ThemedText key={index}>Settings</ThemedText>
-      ))}
+      <ListSection>
+        {SETTINGS_ITEMS.map(({ href, label, iosSymbol, androidSymbol }) => (
+          <AppLink
+            key={label}
+            href={href}
+            label={label}
+            leadingIcon={<AppSymbol ios={iosSymbol} android={androidSymbol} />}
+          />
+        ))}
+      </ListSection>
     </ScrollView>
   );
 }

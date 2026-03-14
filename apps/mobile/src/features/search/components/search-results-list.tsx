@@ -3,7 +3,6 @@ import { Link } from "expo-router";
 import type { TitleSummary } from "@repo/types";
 import {
   Keyboard,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -28,12 +28,14 @@ export function SearchResultsList({ results }: SearchResultsListProps) {
     <ScrollView
       style={styles.scrollView}
       contentInsetAdjustmentBehavior={
-        Platform.OS === "ios" ? "automatic" : "never"
+        capabilities.autoContentInsets ? "automatic" : "never"
       }
-      automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+      automaticallyAdjustKeyboardInsets={capabilities.automaticKeyboardInsets}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
-      keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+      keyboardDismissMode={
+        capabilities.interactiveKeyboardDismiss ? "interactive" : "on-drag"
+      }
     >
       <ThemedView style={styles.panel}>
         <View style={styles.searchResultsList}>

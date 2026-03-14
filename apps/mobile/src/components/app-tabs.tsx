@@ -2,6 +2,7 @@ import { NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
 import { Platform, useColorScheme } from "react-native";
 
+import { capabilities } from "@/constants/capabilities";
 import { Colors } from "@/constants/theme";
 
 export default function AppTabs() {
@@ -11,9 +12,11 @@ export default function AppTabs() {
   return (
     <NativeTabs
       backgroundColor={Platform.OS === "ios" ? undefined : colors.background}
-      blurEffect={Platform.OS === "ios" ? "systemChromeMaterial" : undefined}
+      blurEffect={
+        capabilities.tabBlurEffect ? "systemChromeMaterial" : undefined
+      }
       indicatorColor={colors.backgroundElement}
-      minimizeBehavior={Platform.OS === "ios" ? "onScrollDown" : undefined}
+      minimizeBehavior={capabilities.tabMinimize ? "onScrollDown" : undefined}
       labelVisibilityMode={Platform.OS === "android" ? "labeled" : undefined}
       labelStyle={{
         default: { color: colors.textSecondary },
@@ -36,7 +39,7 @@ export default function AppTabs() {
 
       <NativeTabs.Trigger
         name="search"
-        role={Platform.OS === "ios" ? "search" : undefined}
+        role={capabilities.tabSearchRole ? "search" : undefined}
       >
         <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />

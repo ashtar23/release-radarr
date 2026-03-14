@@ -12,7 +12,6 @@ import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Pressable,
-  Platform,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -22,6 +21,7 @@ import {
 import { useAuth } from "@/auth/auth-provider";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useTheme } from "@/hooks/use-theme";
@@ -162,7 +162,7 @@ export default function HomeScreen() {
     <ScrollView
       style={[styles.scrollView, { backgroundColor: theme.background }]}
       contentInsetAdjustmentBehavior={
-        Platform.OS === "ios" ? "automatic" : "never"
+        capabilities.autoContentInsets ? "automatic" : "never"
       }
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"

@@ -1,16 +1,11 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { apiClient, apiClientConfigError } from "@/lib/api-client";
@@ -51,7 +46,7 @@ export default function TitleDetailsScreen() {
       <ScrollView
         style={[styles.scrollView, { backgroundColor: theme.background }]}
         contentInsetAdjustmentBehavior={
-          Platform.OS === "ios" ? "automatic" : "never"
+          capabilities.autoContentInsets ? "automatic" : "never"
         }
         contentContainerStyle={styles.scrollContent}
       >

@@ -18,12 +18,9 @@ import {
   type StyleProp,
   View,
 } from "react-native";
-import {
-  GlassView,
-  isGlassEffectAPIAvailable,
-  isLiquidGlassAvailable,
-} from "expo-glass-effect";
+import { GlassView } from "expo-glass-effect";
 
+import { capabilities } from "@/constants/capabilities";
 import { Spacing, isDarkTheme } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -43,16 +40,6 @@ export type AppInputProps = TextInputProps & {
 
 type InputFocusEvent = Parameters<NonNullable<TextInputProps["onFocus"]>>[0];
 type InputBlurEvent = Parameters<NonNullable<TextInputProps["onBlur"]>>[0];
-
-function canUseGlassEffect() {
-  if (Platform.OS !== "ios") return false;
-
-  try {
-    return isGlassEffectAPIAvailable() && isLiquidGlassAvailable();
-  } catch {
-    return false;
-  }
-}
 
 export const AppInput = forwardRef<TextInput, AppInputProps>(
   (
@@ -84,7 +71,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
     const inputRef = useRef<TextInput>(null);
 
     const isEditable = !disabled && editable !== false;
-    const shouldUseGlass = useGlass && canUseGlassEffect();
+    const shouldUseGlass = useGlass && capabilities.glassEffect;
     const hasError = Boolean(errorMessage);
     const hasValue = typeof value === "string" && value.length > 0;
     const darkTheme = isDarkTheme(theme);
@@ -98,35 +85,6 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
     const defaultFocusAccentColor = darkTheme
       ? "rgba(236,236,240,0.92)"
       : "rgba(48,52,56,0.86)";
-
-    useEffect(() => {
-      if (!__DEV__ || Platform.OS !== "ios") return;
-
-      let disposed = false;
-      const glassApiAvailable = isGlassEffectAPIAvailable();
-      const liquidGlassAvailable = isLiquidGlassAvailable();
-
-      AccessibilityInfo.isReduceTransparencyEnabled()
-        .then((reduceTransparencyEnabled) => {
-          if (disposed) return;
-
-          console.log("[AppInput][glass-debug]", {
-            glassApiAvailable,
-            liquidGlassAvailable,
-            reduceTransparencyEnabled,
-            useGlass,
-            shouldUseGlass,
-          });
-        })
-        .catch((error) => {
-          if (disposed) return;
-          console.log("[AppInput][glass-debug] failed to read accessibility state", error);
-        });
-
-      return () => {
-        disposed = true;
-      };
-    }, [shouldUseGlass, useGlass]);
 
     useImperativeHandle(ref, () => inputRef.current as TextInput, []);
 
@@ -166,7 +124,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
       //   : null,
       {
         borderColor: shouldUseGlass ? glassBorderColor : fallbackBorderColor,
-        borderWidth: shouldUseGlass ? 0 : Platform.OS === "android" ? 0 : 1,
+        borderWidth: shouldUseGlass ? 0 : Platform.OS === "android" ? 0 : 0.5,
         backgroundColor: shouldUseGlass
           ? glassBackgroundColor
           : theme.background,

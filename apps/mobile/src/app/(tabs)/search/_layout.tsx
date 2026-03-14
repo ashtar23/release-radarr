@@ -1,15 +1,18 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
+
+import { defaultStackScreenOptions } from "@/constants/navigation";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function SearchLayout() {
+  const theme = useTheme();
+
   return (
     <Stack
       screenOptions={{
-        headerTitle: "Search",
-        headerBackButtonDisplayMode: "minimal",
-        headerShadowVisible: false,
-        headerTransparent: Platform.OS === "ios",
+        ...defaultStackScreenOptions,
+        headerLargeTitleEnabled: false,
+        headerTintColor: theme.text,
       }}
     >
       <Stack.Screen

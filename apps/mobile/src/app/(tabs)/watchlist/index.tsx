@@ -1,14 +1,15 @@
 import React from "react";
-import { Platform, ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
+import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 
 export default function WatchlistScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior={
-        Platform.OS === "ios" ? "automatic" : "never"
+        capabilities.autoContentInsets ? "automatic" : "never"
       }
       contentContainerStyle={styles.content}
     >

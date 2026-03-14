@@ -1,17 +1,11 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
+
+import { defaultStackScreenOptions } from "@/constants/navigation";
 
 export default function WatchlistLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerBackButtonDisplayMode: "minimal",
-        headerLargeTitle: Platform.OS === "ios",
-        headerShadowVisible: false,
-        headerTransparent: Platform.OS === "ios",
-      }}
-    >
+    <Stack screenOptions={defaultStackScreenOptions}>
       <Stack.Screen
         name="index"
         options={{

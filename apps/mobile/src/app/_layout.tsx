@@ -6,10 +6,11 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { StyleSheet, View, useColorScheme } from "react-native";
 
 import { AuthProvider } from "@/auth/auth-provider";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { defaultStackScreenOptions } from "@/constants/navigation";
 import { Colors } from "@/constants/theme";
 
 const queryClient = new QueryClient();
@@ -45,11 +46,8 @@ export default function RootLayout() {
               <Stack.Screen
                 name="titles/[titleId]"
                 options={{
+                  ...defaultStackScreenOptions,
                   title: "Title",
-                  headerBackButtonDisplayMode: "minimal",
-                  headerLargeTitle: Platform.OS === "ios",
-                  headerShadowVisible: false,
-                  headerTransparent: Platform.OS === "ios",
                 }}
               />
             </Stack>
