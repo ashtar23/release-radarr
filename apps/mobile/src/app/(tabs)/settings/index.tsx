@@ -8,7 +8,7 @@ import {
   AppSymbol,
   type AndroidSymbolName,
   type IOSSymbolName,
-} from "@/auth/app-symbol";
+} from "@/components/app-symbol";
 import { Href } from "expo-router";
 import { AppLink } from "@/components/app-link";
 

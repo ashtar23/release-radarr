@@ -57,6 +57,8 @@ type Capabilities = {
   tabSearchRole: boolean;
   /** iOS 16–25: `blurEffect="systemChromeMaterial"` on NativeTabs. */
   tabBlurEffect: boolean;
+  /** iOS only: `headerTransparent` on NativeStack. */
+  headerTransparent: boolean;
 };
 
 export const capabilities: Capabilities = {
@@ -75,6 +77,7 @@ export const capabilities: Capabilities = {
   interactiveKeyboardDismiss: Platform.OS === "ios",
   automaticKeyboardInsets: Platform.OS === "ios",
   tabMinimize: Platform.OS === "ios",
+  headerTransparent: Platform.OS === "ios",
   tabSearchRole: Platform.OS === "ios",
   tabBlurEffect: Platform.OS === "ios" && iosVersion < 26,
 };
