@@ -7,3 +7,19 @@ export interface WatchlistItem {
   releases: PlatformRelease[];
   addedAt: IsoDateTimeString;
 }
+
+export interface WatchlistListResult {
+  items: WatchlistItem[];
+}
+
+export interface WatchlistUpsertResult {
+  item: WatchlistItem;
+}
+
+export interface AddWatchlistItemInput {
+  titleId: EntityId;
+}
+
+export interface RemoveWatchlistItemInput {
+  titleId: EntityId;
+}

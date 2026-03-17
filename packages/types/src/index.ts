@@ -27,6 +27,12 @@ export type {
 } from "./titles";
 export { titleSearchQuerySchema } from "./titles";
 
-export type { WatchlistItem } from "./watchlist";
+export type {
+  AddWatchlistItemInput,
+  RemoveWatchlistItemInput,
+  WatchlistItem,
+  WatchlistListResult,
+  WatchlistUpsertResult,
+} from "./watchlist";
 export { authCredentialsSchema } from "./auth";
 export type { AuthCredentialsInput } from "./auth";
