@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "expo-router";
 import { Platform, Pressable, StyleSheet } from "react-native";
 
 import { AppSymbol } from "@/components/app-symbol";
@@ -6,6 +7,7 @@ import { capabilities } from "@/constants/capabilities";
 import { useTheme } from "@/hooks/use-theme";
 
 export function ProfileHeaderButton() {
+  const router = useRouter();
   const theme = useTheme();
   const symbolSize =
     Platform.OS === "android" || !capabilities.liquidGlass ? 28 : 20;
@@ -15,7 +17,7 @@ export function ProfileHeaderButton() {
       accessibilityRole="button"
       accessibilityLabel="Open profile menu"
       hitSlop={8}
-      onPress={() => {}}
+      onPress={() => router.push("/profile")}
       style={styles.button}
     >
       <AppSymbol
