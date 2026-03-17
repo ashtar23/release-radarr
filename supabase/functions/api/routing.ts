@@ -1,20 +1,46 @@
-export type Route = { kind: "search" } | { kind: "detail"; id: string };
+export type Route =
+  | { kind: "search" }
+  | { kind: "detail"; id: string }
+  | { kind: "watchlist-list" }
+  | { kind: "watchlist-item"; titleId: string };
 
 export function resolveRoute(pathname: string): Route | null {
   const segments = pathname.split("/").filter(Boolean);
-  const titlesIndex = segments.lastIndexOf("titles");
-  if (titlesIndex === -1) {
+  const apiIndex = segments.lastIndexOf("api");
+  if (apiIndex === -1) {
     return null;
   }
 
-  const maybeId = segments[titlesIndex + 1];
-  if (!maybeId) {
-    return { kind: "search" };
-  }
-
-  if (segments.length !== titlesIndex + 2) {
+  const resource = segments[apiIndex + 1];
+  if (!resource) {
     return null;
   }
 
-  return { kind: "detail", id: decodeURIComponent(maybeId) };
+  const maybeId = segments[apiIndex + 2];
+
+  if (resource === "titles") {
+    if (!maybeId) {
+      return { kind: "search" };
+    }
+
+    if (segments.length !== apiIndex + 3) {
+      return null;
+    }
+
+    return { kind: "detail", id: decodeURIComponent(maybeId) };
+  }
+
+  if (resource === "watchlist") {
+    if (!maybeId) {
+      return { kind: "watchlist-list" };
+    }
+
+    if (segments.length !== apiIndex + 3) {
+      return null;
+    }
+
+    return { kind: "watchlist-item", titleId: decodeURIComponent(maybeId) };
+  }
+
+  return null;
 }

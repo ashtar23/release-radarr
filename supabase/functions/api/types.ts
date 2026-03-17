@@ -6,6 +6,9 @@ export type AdminClient = SupabaseClient<Database>;
 export type TitleInsertRow = Database["public"]["Tables"]["titles"]["Insert"];
 export type DbJson = Database["public"]["Tables"]["titles"]["Row"]["platforms"];
 export type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
+export type WatchlistInsertRow =
+  Database["public"]["Tables"]["watchlists"]["Insert"];
+export type WatchlistRow = Database["public"]["Tables"]["watchlists"]["Row"];
 
 export interface TitlePlatform {
   id: string;
@@ -36,6 +39,21 @@ export interface TitleSummary {
 export interface TitleSearchResult {
   query: string;
   results: TitleSummary[];
+}
+
+export interface WatchlistItem {
+  id: string;
+  title: TitleSummary;
+  releases: PlatformRelease[];
+  addedAt: string;
+}
+
+export interface WatchlistListResult {
+  items: WatchlistItem[];
+}
+
+export interface WatchlistUpsertResult {
+  item: WatchlistItem;
 }
 
 export interface TitleDetails extends TitleSummary {
