@@ -1,48 +1,59 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { apiClient, apiClientConfigError } from "@/lib/api-client";
+import { apiClientConfigError } from "@/lib/api-client";
+import { HeaderIconButton } from "@/components/header-icon-button";
+import { useTitleDetailsQuery } from "@/features/title-details/data-access/queries/use-title-details-query";
+
+type TitleDetailsScreenProps = {
+  titleId?: string | string[];
+  titleName?: string | string[];
+};
 
 export default function TitleDetailsScreen() {
   const theme = useTheme();
   const errorTextStyle = { color: theme.status.error };
   const { titleId: rawTitleId, titleName: rawTitleName } =
-    useLocalSearchParams<{
-      titleId?: string | string[];
-      titleName?: string | string[];
-    }>();
-  const titleId = normalizeParam(rawTitleId).trim();
-  const initialTitle = normalizeParam(rawTitleName).trim();
+    useLocalSearchParams<TitleDetailsScreenProps>();
+
+  const titleId = normalizeRouteParam(rawTitleId);
+  const initialTitle = normalizeRouteParam(rawTitleName);
   const headerTitle = detailsQueryNamePlaceholder(initialTitle);
 
-  const detailsQuery = useQuery({
-    queryKey: ["titles", "detail", titleId],
-    enabled: titleId.length > 0 && Boolean(apiClient),
-    queryFn: ({ signal }) => {
-      if (!apiClient) {
-        throw new Error(
-          apiClientConfigError ?? "Title details API is not configured.",
-        );
-      }
-
-      return apiClient.getTitleDetails({ id: titleId, signal });
-    },
-  });
+  const {
+    data: titleDetails,
+    isPending,
+    isError,
+    error,
+  } = useTitleDetailsQuery({ titleId });
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: detailsQuery.data?.name?.trim() || headerTitle,
+          title: titleDetails?.name?.trim() || headerTitle,
+          headerRight: () => (
+            <HeaderIconButton
+              onPress={() => Alert.alert("Watchlisted")}
+              accessibilityLabel="Add to watchlist"
+              iconProps={{ ios: "bookmark", android: "bookmark_add" }}
+            />
+          ),
         }}
       />
+
       <ScrollView
         style={[styles.scrollView, { backgroundColor: theme.background }]}
         contentInsetAdjustmentBehavior={
@@ -66,46 +77,42 @@ export default function TitleDetailsScreen() {
             <ThemedText style={errorTextStyle}>Invalid title id.</ThemedText>
           )}
 
-          {!apiClientConfigError &&
-            titleId.length > 0 &&
-            detailsQuery.isPending && (
-              <View style={styles.loadingRow}>
-                <ActivityIndicator />
-                <ThemedText themeColor="textSecondary">
-                  Loading title details...
-                </ThemedText>
-              </View>
-            )}
+          {!apiClientConfigError && titleId.length > 0 && isPending && (
+            <View style={styles.loadingRow}>
+              <ActivityIndicator />
+              <ThemedText themeColor="textSecondary">
+                Loading title details...
+              </ThemedText>
+            </View>
+          )}
 
-          {!apiClientConfigError && detailsQuery.isError && (
+          {!apiClientConfigError && isError && (
             <ThemedText style={errorTextStyle}>
-              {toDetailErrorMessage(detailsQuery.error)}
+              {toDetailErrorMessage(error)}
             </ThemedText>
           )}
 
-          {detailsQuery.data && (
+          {titleDetails && (
             <View style={styles.detailsContent}>
               <View style={styles.section}>
-                <ThemedText type="smallBold">
-                  {detailsQuery.data.name}
-                </ThemedText>
+                <ThemedText type="smallBold">{titleDetails.name}</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  {formatReleaseDate(detailsQuery.data.earliestReleaseDate)}
+                  {formatReleaseDate(titleDetails.earliestReleaseDate)}
                 </ThemedText>
               </View>
 
               <View style={styles.section}>
                 <ThemedText type="smallBold">Platforms</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  {formatPlatforms(detailsQuery.data.platforms)}
+                  {formatPlatforms(titleDetails.platforms)}
                 </ThemedText>
               </View>
 
               <View style={styles.section}>
                 <ThemedText type="smallBold">Description</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  {detailsQuery.data.description?.trim()
-                    ? detailsQuery.data.description
+                  {titleDetails.description?.trim()
+                    ? titleDetails.description
                     : "No description available."}
                 </ThemedText>
               </View>
@@ -113,29 +120,29 @@ export default function TitleDetailsScreen() {
               <View style={styles.section}>
                 <ThemedText type="smallBold">Genres</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  {formatList(detailsQuery.data.genres)}
+                  {formatList(titleDetails.genres)}
                 </ThemedText>
               </View>
 
               <View style={styles.section}>
                 <ThemedText type="smallBold">Developers</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  {formatList(detailsQuery.data.developers)}
+                  {formatList(titleDetails.developers)}
                 </ThemedText>
               </View>
 
               <View style={styles.section}>
                 <ThemedText type="smallBold">Publishers</ThemedText>
                 <ThemedText themeColor="textSecondary">
-                  {formatList(detailsQuery.data.publishers)}
+                  {formatList(titleDetails.publishers)}
                 </ThemedText>
               </View>
 
               <View style={styles.section}>
                 <ThemedText type="smallBold">Platform Releases</ThemedText>
-                {detailsQuery.data.releases.length ? (
+                {titleDetails.releases.length ? (
                   <View style={styles.releaseList}>
-                    {detailsQuery.data.releases.map((release) => (
+                    {titleDetails.releases.map((release) => (
                       <ThemedText
                         key={release.platformId}
                         themeColor="textSecondary"
@@ -159,9 +166,13 @@ export default function TitleDetailsScreen() {
   );
 }
 
-function normalizeParam(value: string | string[] | undefined) {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) return value[0] ?? "";
+export function normalizeRouteParam(
+  value: string | string[] | undefined,
+): string {
+  if (typeof value === "string") return value.trim();
+
+  if (Array.isArray(value)) return (value[0] ?? "").trim();
+
   return "";
 }
 
@@ -173,17 +184,21 @@ function formatReleaseDate(value: string | null) {
   if (!value) return "Release date unknown";
 
   const date = new Date(value);
+
   if (Number.isNaN(date.getTime())) return value;
+
   return date.toLocaleDateString();
 }
 
 function formatPlatforms(platforms: { name: string }[]) {
   if (!platforms.length) return "Unknown";
+
   return platforms.map((platform) => platform.name).join(", ");
 }
 
 function formatList(values: string[]) {
   if (!values.length) return "Unknown";
+
   return values.join(", ");
 }
 
