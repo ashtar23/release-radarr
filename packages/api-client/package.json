@@ -4,7 +4,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts",
+    "./errors": "./src/errors.ts",
+    "./release-radar-client": "./src/release-radar-client.ts",
+    "./request": "./src/request.ts",
+    "./search": "./src/search.ts",
+    "./supabase-client": "./src/supabase-client.ts",
+    "./titles": "./src/titles.ts",
+    "./watchlist": "./src/watchlist.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

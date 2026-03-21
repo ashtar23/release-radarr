@@ -14,19 +14,22 @@ create index if not exists watchlists_title_id_idx
 
 alter table public.watchlists enable row level security;
 
-create policy if not exists "watchlists_select_own"
+drop policy if exists "watchlists_select_own" on public.watchlists;
+create policy "watchlists_select_own"
   on public.watchlists
   for select
   to authenticated
   using (auth.uid() = user_id);
 
-create policy if not exists "watchlists_insert_own"
+drop policy if exists "watchlists_insert_own" on public.watchlists;
+create policy "watchlists_insert_own"
   on public.watchlists
   for insert
   to authenticated
   with check (auth.uid() = user_id);
 
-create policy if not exists "watchlists_delete_own"
+drop policy if exists "watchlists_delete_own" on public.watchlists;
+create policy "watchlists_delete_own"
   on public.watchlists
   for delete
   to authenticated

@@ -1,5 +1,4 @@
 import {
-  findWatchlistItem,
   listWatchlistItems,
   removeWatchlistItem,
   titleExists,
@@ -47,11 +46,6 @@ export async function handleWatchlistRemoveRequest(
   const normalizedTitleId = titleId.trim();
   if (!normalizedTitleId) {
     return jsonResponse({ error: "titleId is required." }, 400);
-  }
-
-  const existing = await findWatchlistItem(client, userId, normalizedTitleId);
-  if (!existing) {
-    return jsonResponse({ error: "Watchlist item not found." }, 404);
   }
 
   await removeWatchlistItem(client, userId, normalizedTitleId);
