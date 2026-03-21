@@ -78,9 +78,6 @@ export default function ProfileModalScreen() {
   const pageBackgroundColor = isDarkTheme(theme)
     ? theme.backgroundElement
     : theme.background;
-  const cardBackgroundColor = isDarkTheme(theme)
-    ? theme.backgroundSelected
-    : theme.backgroundElement;
 
   return (
     <ScrollView
