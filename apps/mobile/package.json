@@ -22,6 +22,7 @@
     "@repo/api-client": "workspace:*",
     "@repo/config": "workspace:*",
     "@repo/types": "workspace:*",
+    "@shopify/flash-list": "2.0.2",
     "@supabase/supabase-js": "^2.58.0",
     "@tanstack/react-query": "^5.90.10",
     "expo": "~55.0.5",

@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
+import { Alert } from "react-native";
 
 import { HeaderIconButton } from "@/components/header-icon-button";
 import { useTitleDetailsQuery } from "@/features/title-details/data-access/queries/use-title-details-query";
