@@ -15,7 +15,6 @@ import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { AppSheetProvider } from "@/components/sheets";
 import { defaultStackScreenOptions } from "@/constants/navigation";
 import { Colors } from "@/constants/theme";
-import { ThemedText } from "@/components/themed-text";
 import { AppSymbol } from "@/components/app-symbol";
 
 const queryClient = new QueryClient();
