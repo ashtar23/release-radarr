@@ -1,4 +1,6 @@
 import {
+  MAX_STALE_RATIO,
+  MIN_LOCAL_PAGE_COVERAGE,
   MIN_QUERY_LENGTH,
 } from "../config.ts";
 import {
@@ -8,7 +10,9 @@ import {
 } from "../data/titles-repository.ts";
 import { fetchRawgSearchResults } from "../providers/rawg.ts";
 import type { AdminClient, RawgSearchPage, TitleSummary } from "../types.ts";
+import { getSearchStaleRatio } from "../utils/freshness.ts";
 import { jsonResponse } from "../utils/http.ts";
+import { evaluateSearchFallbackPolicy } from "../utils/search-fallback-policy.ts";
 import { clampLimit, clampPage } from "../utils/values.ts";
 
 type QueryIntentMode = "broad" | "specific";
@@ -33,9 +37,17 @@ export async function handleSearchRequest(client: AdminClient, url: URL) {
   const localPage = await findLocalResultsPage(client, query, page, limit);
   const localResults = localPage.results;
   const localSummaries = localResults.map((result) => result.summary);
+  const localTotalCount = await getLocalTotalCount(
+    client,
+    query,
+    page,
+    limit,
+    localSummaries.length,
+  );
   const returnResults = (
     results: TitleSummary[],
     totalCount: number,
+    servedBy: "local-cache" | "rawg-refresh",
     hasMoreOverride?: boolean,
   ) =>
     jsonResponse({
@@ -45,17 +57,47 @@ export async function handleSearchRequest(client: AdminClient, url: URL) {
       page,
       limit,
       hasMore: hasMoreOverride ?? page * limit < totalCount,
+      servedBy,
     });
-  const returnLocalResults = async () => {
-    const localTotalCount = await getLocalTotalCount(
-      client,
+  const returnLocalResults = () => {
+    const mergedLocalResults = mergeResults(
+      localSummaries,
+      [],
       query,
+      searchOptions.intentMode,
       page,
       limit,
-      localSummaries.length,
     );
-    return returnResults(localSummaries, localTotalCount);
+
+    if (mergedLocalResults.relevanceExhausted) {
+      const totalCount = (page - 1) * limit + mergedLocalResults.results.length;
+      return returnResults(
+        mergedLocalResults.results,
+        totalCount,
+        "local-cache",
+        false,
+      );
+    }
+
+    const totalCount = Math.max(
+      localTotalCount,
+      (page - 1) * limit + mergedLocalResults.results.length,
+    );
+    return returnResults(mergedLocalResults.results, totalCount, "local-cache");
   };
+
+  const policy = evaluateSearchFallbackPolicy({
+    localPageCount: localSummaries.length,
+    localTotalCount,
+    staleRatio: getSearchStaleRatio(localResults),
+    page,
+    limit,
+    minLocalPageCoverage: MIN_LOCAL_PAGE_COVERAGE,
+    maxStaleRatio: MAX_STALE_RATIO,
+  });
+  if (!policy.needsProvider) {
+    return returnLocalResults();
+  }
 
   const rawgApiKey = Deno.env.get("RAWG_API_KEY");
   if (!rawgApiKey) {
@@ -100,15 +142,14 @@ export async function handleSearchRequest(client: AdminClient, url: URL) {
 
   if (mergedResults.relevanceExhausted) {
     const totalCount = (page - 1) * limit + mergedResults.results.length;
-    return returnResults(mergedResults.results, totalCount, false);
+    return returnResults(mergedResults.results, totalCount, "rawg-refresh", false);
   }
 
   const totalCount = Math.max(
-    rawgPage.totalCount ??
-      await getLocalTotalCount(client, query, page, limit, localSummaries.length),
-    mergedResults.results.length,
+    rawgPage.totalCount ?? localTotalCount,
+    (page - 1) * limit + mergedResults.results.length,
   );
-  return returnResults(mergedResults.results, totalCount);
+  return returnResults(mergedResults.results, totalCount, "rawg-refresh");
 }
 
 async function tryFetchRawgSearchResults(

@@ -31,6 +31,7 @@ export async function searchTitles({
       page,
       limit,
       hasMore: false,
+      servedBy: "local-cache",
     };
   }
 
@@ -40,7 +41,7 @@ export async function searchTitles({
     limit: String(limit),
   });
 
-  return requestJson({
+  const payload = await requestJson({
     context,
     method: "GET",
     path: `${API_PATH_PREFIX}/titles?${searchParams.toString()}`,
@@ -49,6 +50,11 @@ export async function searchTitles({
     invalidPayloadMessage: "Search response payload is invalid.",
     failureMessage: "Search request failed.",
   });
+
+  return {
+    ...payload,
+    servedBy: payload.servedBy ?? "local-cache",
+  };
 }
 
 const DEFAULT_SEARCH_LIMIT = 20;

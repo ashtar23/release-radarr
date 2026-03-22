@@ -37,6 +37,7 @@ export default function SearchTabScreen() {
           loadMoreErrorMessage={searchState.loadMoreErrorMessage}
           onRetryLoadMore={searchState.loadMoreResults}
           results={searchState.results}
+          servedBy={searchState.servedBy}
           onEndReached={searchState.loadMoreResults}
         />
       ) : (

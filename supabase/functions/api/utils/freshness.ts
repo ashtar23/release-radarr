@@ -3,12 +3,25 @@ import type { CachedTitleRow, LocalSearchResult } from "../types.ts";
 
 export function areSearchResultsStale(results: LocalSearchResult[]) {
   if (!results.length) return true;
+  return getSearchStaleRatio(results) >= 1;
+}
+
+export function getSearchStaleRatio(results: LocalSearchResult[]) {
+  if (!results.length) {
+    return 1;
+  }
 
   const cutoff = Date.now() - SEARCH_FRESHNESS_DAYS * 24 * 60 * 60 * 1000;
-  return results.every((result) => {
+  const staleCount = results.reduce((count, result) => {
     const timestamp = Date.parse(result.searchUpdatedAt);
-    return Number.isFinite(timestamp) && timestamp < cutoff;
-  });
+    if (!Number.isFinite(timestamp) || timestamp < cutoff) {
+      return count + 1;
+    }
+
+    return count;
+  }, 0);
+
+  return staleCount / results.length;
 }
 
 export function isDetailStale(row: CachedTitleRow) {

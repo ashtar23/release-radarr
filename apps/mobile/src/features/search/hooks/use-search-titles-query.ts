@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { TitleSummary } from "@repo/types";
+import type { TitleSearchResult, TitleSummary } from "@repo/types";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { apiClient, apiClientConfigError } from "@/lib/api-client";
@@ -19,6 +19,7 @@ export interface SearchTitlesQueryState {
   debouncedQuery: string;
   results: TitleSummary[];
   totalCount: number;
+  servedBy: TitleSearchResult["servedBy"] | null;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
   loadMoreErrorMessage: string | null;
@@ -75,6 +76,7 @@ export function useSearchTitlesQuery(
   const pages = titlesQuery.data?.pages ?? [];
   const results = dedupeResults(pages.flatMap((page) => page.results));
   const totalCount = pages[0]?.totalCount ?? 0;
+  const servedBy = pages[0]?.servedBy ?? null;
   const normalizedResolvedQuery = pages[0]?.query.trim().toLowerCase() ?? "";
   const hasStaleQueryData = pages.length > 0 &&
     normalizedResolvedQuery !== normalizedDebouncedQuery;
@@ -105,6 +107,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results: EMPTY_RESULTS,
       totalCount: 0,
+      servedBy: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -120,6 +123,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results: EMPTY_RESULTS,
       totalCount: 0,
+      servedBy: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -135,6 +139,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results: EMPTY_RESULTS,
       totalCount: 0,
+      servedBy: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -150,6 +155,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results: EMPTY_RESULTS,
       totalCount: 0,
+      servedBy: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -168,6 +174,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results: EMPTY_RESULTS,
       totalCount: 0,
+      servedBy: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -183,6 +190,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results: EMPTY_RESULTS,
       totalCount: 0,
+      servedBy: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -198,6 +206,7 @@ export function useSearchTitlesQuery(
       debouncedQuery,
       results,
       totalCount,
+      servedBy,
       hasMoreResults: false,
       isLoadingMore,
       loadMoreErrorMessage,
@@ -212,6 +221,7 @@ export function useSearchTitlesQuery(
     debouncedQuery,
     results,
     totalCount,
+    servedBy,
     hasMoreResults,
     isLoadingMore,
     loadMoreErrorMessage,

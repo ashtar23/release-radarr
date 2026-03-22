@@ -40,6 +40,7 @@ export interface TitleSearchResult {
   page: number;
   limit: number;
   hasMore: boolean;
+  servedBy?: "local-cache" | "rawg-refresh";
 }
 
 export const titleSearchQuerySchema = z.object({

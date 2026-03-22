@@ -21,7 +21,12 @@ export function isTitleSearchResult(value: unknown): value is TitleSearchResult 
     typeof value.limit === "number" &&
     Number.isInteger(value.limit) &&
     value.limit >= 1 &&
-    typeof value.hasMore === "boolean"
+    typeof value.hasMore === "boolean" &&
+    (
+      value.servedBy === undefined ||
+      value.servedBy === "local-cache" ||
+      value.servedBy === "rawg-refresh"
+    )
   );
 }
 

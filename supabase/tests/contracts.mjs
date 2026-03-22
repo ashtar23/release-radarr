@@ -175,6 +175,10 @@ async function assertSearchContract() {
   assert.equal(typeof payload.page, "number");
   assert.equal(typeof payload.limit, "number");
   assert.equal(typeof payload.hasMore, "boolean");
+  assert.equal(
+    payload.servedBy === "local-cache" || payload.servedBy === "rawg-refresh",
+    true,
+  );
 
   const first = payload.results.find((item) => item.id === seedId);
   assert.ok(first, "Expected seeded title in search results.");

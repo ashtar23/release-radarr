@@ -1,17 +1,19 @@
 import React, { useCallback } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 
-import type { TitleSummary } from "@repo/types";
+import type { TitleSearchResult, TitleSummary } from "@repo/types";
 import { StyleSheet, View } from "react-native";
 
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 
 import { SearchResultsFooter } from "./search-results.footer";
+import { SearchResultsHeader } from "./search-results-header";
 import { SearchResultRow } from "./search-result-row";
 
 interface SearchResultsListProps {
   results: TitleSummary[];
+  servedBy: TitleSearchResult["servedBy"] | null;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
   loadMoreErrorMessage: string | null;
@@ -21,6 +23,7 @@ interface SearchResultsListProps {
 
 export function SearchResultsList({
   results,
+  servedBy,
   hasMoreResults,
   isLoadingMore,
   loadMoreErrorMessage,
@@ -51,6 +54,11 @@ export function SearchResultsList({
         capabilities.interactiveKeyboardDismiss ? "interactive" : "on-drag"
       }
       contentContainerStyle={styles.listContent}
+      ListHeaderComponent={
+        <SearchResultsHeader
+          servedBy={servedBy}
+        />
+      }
       ItemSeparatorComponent={ResultSeparator}
       ListFooterComponent={
         <SearchResultsFooter
