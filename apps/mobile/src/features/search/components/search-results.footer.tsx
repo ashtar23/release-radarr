@@ -1,16 +1,22 @@
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
 type SearchResultsFooterProps = {
   hasMoreResults: boolean;
+  loadedCount: number;
   isLoadingMore: boolean;
+  loadMoreErrorMessage: string | null;
+  onRetryLoadMore: () => void;
 };
 
 function SearchResultsFooter({
   hasMoreResults,
+  loadedCount,
   isLoadingMore,
+  loadMoreErrorMessage,
+  onRetryLoadMore,
 }: SearchResultsFooterProps) {
   const theme = useTheme();
 
@@ -25,11 +31,28 @@ function SearchResultsFooter({
     );
   }
 
-  if (!hasMoreResults) {
+  if (loadMoreErrorMessage) {
     return (
       <View style={styles.footerRow}>
         <ThemedText type="small" style={{ color: theme.card.search.meta }}>
-          End of results
+          Could not load more results.
+        </ThemedText>
+        <Pressable onPress={onRetryLoadMore}>
+          <ThemedText type="smallBold" style={{ color: theme.text }}>
+            Retry
+          </ThemedText>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (!hasMoreResults) {
+    const noun = loadedCount === 1 ? "result" : "results";
+
+    return (
+      <View style={styles.footerRow}>
+        <ThemedText type="small" style={{ color: theme.card.search.meta }}>
+          End of results. Showing {loadedCount} of {loadedCount} {noun}.
         </ThemedText>
       </View>
     );

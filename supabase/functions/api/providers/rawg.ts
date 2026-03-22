@@ -6,20 +6,30 @@ import {
 } from "../mapping/titles.ts";
 import type {
   RawgDetailGame,
+  RawgSearchPage,
   RawgSearchResponse,
   TitleDetails,
-  TitleSummary,
 } from "../types.ts";
 
 export async function fetchRawgSearchResults(
   query: string,
+  page: number,
   limit: number,
+  precise: boolean,
+  exact: boolean,
   rawgApiKey: string,
-): Promise<TitleSummary[]> {
+): Promise<RawgSearchPage> {
   const searchUrl = new URL(RAWG_BASE_URL);
   searchUrl.searchParams.set("key", rawgApiKey);
   searchUrl.searchParams.set("search", query);
+  searchUrl.searchParams.set("page", String(page));
   searchUrl.searchParams.set("page_size", String(limit));
+  if (precise) {
+    searchUrl.searchParams.set("search_precise", "true");
+  }
+  if (exact) {
+    searchUrl.searchParams.set("search_exact", "true");
+  }
 
   const response = await fetch(searchUrl);
   if (!response.ok) {
@@ -28,7 +38,17 @@ export async function fetchRawgSearchResults(
 
   const payload = (await response.json()) as RawgSearchResponse;
   const games = payload.results ?? [];
-  return games.map(mapRawgSearchGameToSummary);
+  const totalCount =
+    typeof payload.count === "number" &&
+      Number.isFinite(payload.count) &&
+      payload.count >= 0
+      ? payload.count
+      : null;
+
+  return {
+    totalCount,
+    results: games.map(mapRawgSearchGameToSummary),
+  };
 }
 
 export async function fetchRawgDetail(

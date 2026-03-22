@@ -11,11 +11,18 @@ import {
   mapSummaryToSearchUpsertRow,
 } from "../mapping/titles.ts";
 
-export async function findLocalResults(
+export interface LocalResultsPage {
+  results: LocalSearchResult[];
+}
+
+export async function findLocalResultsPage(
   client: AdminClient,
   query: string,
+  page: number,
   limit: number,
-): Promise<LocalSearchResult[]> {
+): Promise<LocalResultsPage> {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
   const { data, error } = await client
     .from("titles")
     .select(
@@ -23,16 +30,35 @@ export async function findLocalResults(
     )
     .ilike("name", `%${query}%`)
     .order("search_updated_at", { ascending: false })
-    .limit(limit);
+    .order("id", { ascending: true })
+    .range(from, to);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as CachedTitleRow[]).map((row) => ({
-    summary: mapCachedRowToTitleSummary(row),
-    searchUpdatedAt: row.search_updated_at,
-  }));
+  return {
+    results: ((data ?? []) as CachedTitleRow[]).map((row) => ({
+      summary: mapCachedRowToTitleSummary(row),
+      searchUpdatedAt: row.search_updated_at,
+    })),
+  };
+}
+
+export async function countLocalResults(
+  client: AdminClient,
+  query: string,
+): Promise<number> {
+  const { error, count } = await client
+    .from("titles")
+    .select("id", { count: "exact", head: true })
+    .ilike("name", `%${query}%`);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
 }
 
 export async function findTitleById(

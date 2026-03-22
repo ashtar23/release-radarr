@@ -39,6 +39,10 @@ export interface TitleSummary {
 export interface TitleSearchResult {
   query: string;
   results: TitleSummary[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
 }
 
 export interface WatchlistItem {
@@ -71,7 +75,13 @@ export interface LocalSearchResult {
 }
 
 export interface RawgSearchResponse {
+  count?: number;
   results?: RawgSearchGame[];
+}
+
+export interface RawgSearchPage {
+  totalCount: number | null;
+  results: TitleSummary[];
 }
 
 export interface RawgSearchGame {

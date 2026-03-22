@@ -9,7 +9,20 @@ export function isTitleSearchResult(value: unknown): value is TitleSearchResult 
     return false;
   }
 
-  return typeof value.query === "string" && Array.isArray(value.results);
+  return (
+    typeof value.query === "string" &&
+    Array.isArray(value.results) &&
+    typeof value.totalCount === "number" &&
+    Number.isFinite(value.totalCount) &&
+    value.totalCount >= 0 &&
+    typeof value.page === "number" &&
+    Number.isInteger(value.page) &&
+    value.page >= 1 &&
+    typeof value.limit === "number" &&
+    Number.isInteger(value.limit) &&
+    value.limit >= 1 &&
+    typeof value.hasMore === "boolean"
+  );
 }
 
 export function isTitleDetails(value: unknown): value is TitleDetails {

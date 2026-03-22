@@ -10,14 +10,7 @@ import { useTheme } from "@/hooks/use-theme";
 export default function SearchTabScreen() {
   const theme = useTheme();
   const [query, setQuery] = useState("");
-  const [resultLimit, setResultLimit] = useState(10);
-  const searchState = useSearchTitlesQuery(query, resultLimit);
-
-  const loadMoreResults = () => {
-    if (searchState.mode !== "results") return;
-    if (!searchState.hasMoreResults || searchState.isLoadingMore) return;
-    setResultLimit((currentLimit) => currentLimit + 10);
-  };
+  const searchState = useSearchTitlesQuery(query);
 
   return (
     <View style={styles.root}>
@@ -33,17 +26,18 @@ export default function SearchTabScreen() {
         hintTextColor={theme.textSecondary}
         onChangeText={(event) => {
           setQuery(event.nativeEvent.text);
-          setResultLimit(10);
         }}
       />
 
       {searchState.mode === "results" ? (
         <SearchResultsList
+          key={searchState.debouncedQuery}
           hasMoreResults={searchState.hasMoreResults}
           isLoadingMore={searchState.isLoadingMore}
+          loadMoreErrorMessage={searchState.loadMoreErrorMessage}
+          onRetryLoadMore={searchState.loadMoreResults}
           results={searchState.results}
-          query={searchState.debouncedQuery}
-          onEndReached={loadMoreResults}
+          onEndReached={searchState.loadMoreResults}
         />
       ) : (
         <SearchStateView

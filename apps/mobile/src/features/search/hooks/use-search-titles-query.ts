@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import type { TitleSummary } from "@repo/types";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -17,12 +18,18 @@ export interface SearchTitlesQueryState {
   query: string;
   debouncedQuery: string;
   results: TitleSummary[];
+  totalCount: number;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
+  loadMoreErrorMessage: string | null;
+  loadMoreResults: () => void;
   errorMessage: string | null;
 }
 
-const SEARCH_PAGE_SIZE = 10;
+const SEARCH_PAGE_SIZE = 20;
+const INITIAL_PAGE = 1;
+const EMPTY_RESULTS: TitleSummary[] = [];
+const noop = () => {};
 
 function toErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -31,52 +38,77 @@ function toErrorMessage(error: unknown) {
 
 export function useSearchTitlesQuery(
   query: string,
-  limit: number = SEARCH_PAGE_SIZE,
 ): SearchTitlesQueryState {
   const rawQuery = query.trim();
   const debouncedQuery = useDebouncedValue(query).trim();
   const showSearchResults = debouncedQuery.length >= 2;
-  const normalizedLimit = Math.max(SEARCH_PAGE_SIZE, limit);
   const normalizedRawQuery = rawQuery.toLowerCase();
   const normalizedDebouncedQuery = debouncedQuery.toLowerCase();
 
-  const titlesQuery = useQuery({
-    queryKey: ["titles", "search", debouncedQuery, normalizedLimit],
+  const titlesQuery = useInfiniteQuery({
+    queryKey: ["titles", "search", debouncedQuery, SEARCH_PAGE_SIZE],
     enabled: showSearchResults && Boolean(apiClient),
-    queryFn: ({ signal }) => {
+    initialPageParam: INITIAL_PAGE,
+    queryFn: ({ pageParam, signal }) => {
       if (!apiClient) {
         throw new Error(
           apiClientConfigError ?? "Search API is not configured.",
         );
       }
 
+      const page =
+        typeof pageParam === "number" && pageParam >= 1
+          ? pageParam
+          : INITIAL_PAGE;
       return apiClient.searchTitles({
         query: debouncedQuery,
-        limit: normalizedLimit,
+        page,
+        limit: SEARCH_PAGE_SIZE,
         signal,
       });
     },
-    placeholderData: (previousData) => previousData,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.page + 1 : undefined,
+    retry: 1,
   });
 
-  const results = titlesQuery.data?.results ?? [];
-  const normalizedResolvedQuery = titlesQuery.data?.query.trim().toLowerCase() ?? "";
-  const hasStaleQueryData =
-    Boolean(titlesQuery.data) && normalizedResolvedQuery !== normalizedDebouncedQuery;
+  const pages = titlesQuery.data?.pages ?? [];
+  const results = dedupeResults(pages.flatMap((page) => page.results));
+  const totalCount = pages[0]?.totalCount ?? 0;
+  const normalizedResolvedQuery = pages[0]?.query.trim().toLowerCase() ?? "";
+  const hasStaleQueryData = pages.length > 0 &&
+    normalizedResolvedQuery !== normalizedDebouncedQuery;
   const isTypingDifferentQuery =
     rawQuery.length >= 2 && normalizedRawQuery !== normalizedDebouncedQuery;
-  const isLoadingMore =
-    showSearchResults && titlesQuery.isFetching && results.length > 0;
-  const hasMoreResults = showSearchResults && results.length >= normalizedLimit;
+  const latestPage = pages.at(-1);
+  const hasMoreResults = Boolean(latestPage?.hasMore);
+  const isLoadingMore = titlesQuery.isFetchingNextPage;
+  const loadMoreErrorMessage = titlesQuery.isFetchNextPageError
+    ? toErrorMessage(titlesQuery.error)
+    : null;
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = titlesQuery;
+  const loadMoreResults = useCallback(() => {
+    if (!showSearchResults || !hasNextPage) return;
+    if (isFetchingNextPage) return;
+    void fetchNextPage();
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    showSearchResults,
+  ]);
 
   if (rawQuery.length === 0) {
     return {
       mode: "idle",
       query: rawQuery,
       debouncedQuery,
-      results: [],
+      results: EMPTY_RESULTS,
+      totalCount: 0,
       hasMoreResults: false,
       isLoadingMore: false,
+      loadMoreErrorMessage: null,
+      loadMoreResults: noop,
       errorMessage: null,
     };
   }
@@ -86,9 +118,12 @@ export function useSearchTitlesQuery(
       mode: "typing-too-short",
       query: rawQuery,
       debouncedQuery,
-      results: [],
+      results: EMPTY_RESULTS,
+      totalCount: 0,
       hasMoreResults: false,
       isLoadingMore: false,
+      loadMoreErrorMessage: null,
+      loadMoreResults: noop,
       errorMessage: null,
     };
   }
@@ -98,9 +133,12 @@ export function useSearchTitlesQuery(
       mode: "error",
       query: rawQuery,
       debouncedQuery,
-      results: [],
+      results: EMPTY_RESULTS,
+      totalCount: 0,
       hasMoreResults: false,
       isLoadingMore: false,
+      loadMoreErrorMessage: null,
+      loadMoreResults: noop,
       errorMessage: apiClientConfigError,
     };
   }
@@ -110,9 +148,12 @@ export function useSearchTitlesQuery(
       mode: "loading",
       query: rawQuery,
       debouncedQuery,
-      results: [],
+      results: EMPTY_RESULTS,
+      totalCount: 0,
       hasMoreResults: false,
       isLoadingMore: false,
+      loadMoreErrorMessage: null,
+      loadMoreResults: noop,
       errorMessage: null,
     };
   }
@@ -125,21 +166,27 @@ export function useSearchTitlesQuery(
       mode: "loading",
       query: rawQuery,
       debouncedQuery,
-      results: [],
+      results: EMPTY_RESULTS,
+      totalCount: 0,
       hasMoreResults: false,
       isLoadingMore: false,
+      loadMoreErrorMessage: null,
+      loadMoreResults: noop,
       errorMessage: null,
     };
   }
 
-  if (showSearchResults && titlesQuery.isError) {
+  if (showSearchResults && titlesQuery.isError && !titlesQuery.data) {
     return {
       mode: "error",
       query: rawQuery,
       debouncedQuery,
-      results: [],
+      results: EMPTY_RESULTS,
+      totalCount: 0,
       hasMoreResults: false,
       isLoadingMore: false,
+      loadMoreErrorMessage: null,
+      loadMoreResults: noop,
       errorMessage: toErrorMessage(titlesQuery.error),
     };
   }
@@ -150,8 +197,11 @@ export function useSearchTitlesQuery(
       query: rawQuery,
       debouncedQuery,
       results,
+      totalCount,
       hasMoreResults: false,
       isLoadingMore,
+      loadMoreErrorMessage,
+      loadMoreResults,
       errorMessage: null,
     };
   }
@@ -161,8 +211,27 @@ export function useSearchTitlesQuery(
     query: rawQuery,
     debouncedQuery,
     results,
+    totalCount,
     hasMoreResults,
     isLoadingMore,
+    loadMoreErrorMessage,
+    loadMoreResults,
     errorMessage: null,
   };
+}
+
+function dedupeResults(results: TitleSummary[]) {
+  const deduped: TitleSummary[] = [];
+  const seenIds = new Set<string>();
+
+  for (const result of results) {
+    if (seenIds.has(result.id)) {
+      continue;
+    }
+
+    seenIds.add(result.id);
+    deduped.push(result);
+  }
+
+  return deduped;
 }

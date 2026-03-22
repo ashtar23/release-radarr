@@ -6,6 +6,7 @@ import { requestJson, type RequestContext } from "./request";
 
 export interface SearchTitlesParams {
   readonly query: string;
+  readonly page?: number;
   readonly limit?: number;
   readonly signal?: AbortSignal;
 }
@@ -20,14 +21,24 @@ export async function searchTitles({
   params,
 }: SearchTitlesRequestParams): Promise<TitleSearchResult> {
   const normalizedQuery = params.query.trim();
+  const page = normalizePage(params.page);
+  const limit = normalizeLimit(params.limit);
   if (!normalizedQuery) {
-    return { query: "", results: [] };
+    return {
+      query: "",
+      results: [],
+      totalCount: 0,
+      page,
+      limit,
+      hasMore: false,
+    };
   }
 
-  const searchParams = new URLSearchParams({ query: normalizedQuery });
-  if (params.limit) {
-    searchParams.set("limit", String(params.limit));
-  }
+  const searchParams = new URLSearchParams({
+    query: normalizedQuery,
+    page: String(page),
+    limit: String(limit),
+  });
 
   return requestJson({
     context,
@@ -38,4 +49,23 @@ export async function searchTitles({
     invalidPayloadMessage: "Search response payload is invalid.",
     failureMessage: "Search request failed.",
   });
+}
+
+const DEFAULT_SEARCH_LIMIT = 20;
+const DEFAULT_SEARCH_PAGE = 1;
+
+function normalizePage(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return DEFAULT_SEARCH_PAGE;
+  }
+
+  return Math.floor(value);
+}
+
+function normalizeLimit(value: number | undefined) {
+  if (!Number.isFinite(value) || !value || value < 1) {
+    return DEFAULT_SEARCH_LIMIT;
+  }
+
+  return Math.min(Math.floor(value), 25);
 }

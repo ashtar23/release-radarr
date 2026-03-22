@@ -171,6 +171,10 @@ async function assertSearchContract() {
   const payload = await response.json();
   assert.equal(typeof payload.query, "string");
   assert.equal(Array.isArray(payload.results), true);
+  assert.equal(typeof payload.totalCount, "number");
+  assert.equal(typeof payload.page, "number");
+  assert.equal(typeof payload.limit, "number");
+  assert.equal(typeof payload.hasMore, "boolean");
 
   const first = payload.results.find((item) => item.id === seedId);
   assert.ok(first, "Expected seeded title in search results.");

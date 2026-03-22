@@ -5,11 +5,20 @@ import { StyleSheet, View } from "react-native";
 
 type SearchResultsHeaderProps = {
   query: string;
-  resultCount: number;
+  loadedCount: number;
+  hasMoreResults: boolean;
 };
 
-function SearchResultsHeader({ query, resultCount }: SearchResultsHeaderProps) {
+function SearchResultsHeader({
+  query,
+  loadedCount,
+  hasMoreResults,
+}: SearchResultsHeaderProps) {
   const theme = useTheme();
+  const noun = loadedCount === 1 ? "result" : "results";
+  const summary = hasMoreResults
+    ? `Showing ${loadedCount} ${noun} for ${query}`
+    : `Showing ${loadedCount} of ${loadedCount} ${noun} for ${query}`;
 
   return (
     <View style={styles.resultsHeader}>
@@ -17,7 +26,7 @@ function SearchResultsHeader({ query, resultCount }: SearchResultsHeaderProps) {
         type="small"
         style={[styles.resultsHeaderText, { color: theme.card.search.meta }]}
       >
-        {resultCount} {resultCount === 1 ? "result" : "results"} for {query}
+        {summary}
       </ThemedText>
     </View>
   );

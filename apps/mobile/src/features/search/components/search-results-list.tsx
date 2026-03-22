@@ -8,22 +8,23 @@ import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 
 import { SearchResultsFooter } from "./search-results.footer";
-import { SearchResultsHeader } from "./search-results-header";
 import { SearchResultRow } from "./search-result-row";
 
 interface SearchResultsListProps {
   results: TitleSummary[];
-  query: string;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
+  loadMoreErrorMessage: string | null;
+  onRetryLoadMore: () => void;
   onEndReached: () => void;
 }
 
 export function SearchResultsList({
   results,
-  query,
   hasMoreResults,
   isLoadingMore,
+  loadMoreErrorMessage,
+  onRetryLoadMore,
   onEndReached,
 }: SearchResultsListProps) {
   const renderItem = useCallback(
@@ -51,13 +52,13 @@ export function SearchResultsList({
       }
       contentContainerStyle={styles.listContent}
       ItemSeparatorComponent={ResultSeparator}
-      ListHeaderComponent={
-        <SearchResultsHeader query={query} resultCount={results.length} />
-      }
       ListFooterComponent={
         <SearchResultsFooter
           hasMoreResults={hasMoreResults}
+          loadedCount={results.length}
           isLoadingMore={isLoadingMore}
+          loadMoreErrorMessage={loadMoreErrorMessage}
+          onRetryLoadMore={onRetryLoadMore}
         />
       }
       onEndReached={onEndReached}

@@ -36,6 +36,10 @@ export interface TitleSummary {
 export interface TitleSearchResult {
   query: string;
   results: TitleSummary[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
 }
 
 export const titleSearchQuerySchema = z.object({
