@@ -115,6 +115,13 @@ async function upsertSeedRow() {
         developers: ["Studio One"],
         publishers: ["Publisher One"],
         website_url: "https://example.com",
+        rawg_rating: 4.4,
+        rawg_ratings_count: 1200,
+        rawg_metacritic: 88,
+        rawg_added: 9000,
+        rawg_reviews_count: 430,
+        rawg_suggestions_count: 97,
+        rawg_rating_top: 5,
         platforms: [{ id: "rawg-platform:1", name: "PC" }],
         releases: [
           {
@@ -184,6 +191,13 @@ async function assertSearchContract() {
   assert.ok(first, "Expected seeded title in search results.");
   assert.equal(typeof first.name, "string");
   assert.equal(Array.isArray(first.platforms), true);
+  assertNullableFiniteNumber(first.rawgRating);
+  assertNullableFiniteNumber(first.rawgRatingsCount);
+  assertNullableFiniteNumber(first.rawgMetacritic);
+  assertNullableFiniteNumber(first.rawgAdded);
+  assertNullableFiniteNumber(first.rawgReviewsCount);
+  assertNullableFiniteNumber(first.rawgSuggestionsCount);
+  assertNullableFiniteNumber(first.rawgRatingTop);
 }
 
 async function assertDetailContract() {
@@ -211,6 +225,20 @@ async function assertDetailContract() {
   assert.equal(Array.isArray(payload.genres), true);
   assert.equal(Array.isArray(payload.developers), true);
   assert.equal(Array.isArray(payload.publishers), true);
+  assertNullableFiniteNumber(payload.rawgRating);
+  assertNullableFiniteNumber(payload.rawgRatingsCount);
+  assertNullableFiniteNumber(payload.rawgMetacritic);
+  assertNullableFiniteNumber(payload.rawgAdded);
+  assertNullableFiniteNumber(payload.rawgReviewsCount);
+  assertNullableFiniteNumber(payload.rawgSuggestionsCount);
+  assertNullableFiniteNumber(payload.rawgRatingTop);
+}
+
+function assertNullableFiniteNumber(value) {
+  assert.equal(
+    value === null || (typeof value === "number" && Number.isFinite(value)),
+    true,
+  );
 }
 
 run().catch((error) => {

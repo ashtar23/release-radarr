@@ -26,6 +26,13 @@ export default function SettingsLayout() {
           title: "Theme",
         }}
       />
+
+      <Stack.Screen
+        name="developer"
+        options={{
+          title: "Developer",
+        }}
+      />
     </Stack>
   );
 }

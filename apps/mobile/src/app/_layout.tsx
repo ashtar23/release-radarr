@@ -16,6 +16,7 @@ import { AppSheetProvider } from "@/components/sheets";
 import { defaultStackScreenOptions } from "@/constants/navigation";
 import { Colors } from "@/constants/theme";
 import { AppSymbol } from "@/components/app-symbol";
+import { SearchDebugSettingsProvider } from "@/features/search/debug/search-debug-settings";
 
 const queryClient = new QueryClient();
 
@@ -27,61 +28,63 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <GestureHandlerRootView style={styles.gestureHandlerRoot}>
-            <AppSheetProvider>
-              <View
-                style={[
-                  styles.root,
-                  {
-                    backgroundColor: appThemeColors.background,
-                  },
-                ]}
-              >
-                <AnimatedSplashOverlay />
-                <Stack>
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{
-                      headerShown: false,
-                      title: "Home",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="titles/[titleId]"
-                    options={{
-                      ...defaultStackScreenOptions,
-                      title: "Title",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="(modals)/profile"
-                    options={{
-                      sheetGrabberVisible: false,
-                      presentation: "modal",
-                      headerTitle: "Profile",
-                      headerBackButtonDisplayMode: "minimal",
-                      headerLargeTitleEnabled: true,
-                      headerRight: () => (
-                        <Pressable onPress={() => router.back()}>
-                          <AppSymbol
-                            ios="xmark"
-                            size={18}
-                            tintColor={Colors[scheme].text}
-                          />
-                        </Pressable>
-                      ),
-                    }}
-                  />
-                </Stack>
-              </View>
-            </AppSheetProvider>
-          </GestureHandlerRootView>
-        </ThemeProvider>
-      </AuthProvider>
+      <SearchDebugSettingsProvider>
+        <AuthProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <GestureHandlerRootView style={styles.gestureHandlerRoot}>
+              <AppSheetProvider>
+                <View
+                  style={[
+                    styles.root,
+                    {
+                      backgroundColor: appThemeColors.background,
+                    },
+                  ]}
+                >
+                  <AnimatedSplashOverlay />
+                  <Stack>
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{
+                        headerShown: false,
+                        title: "Home",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="titles/[titleId]"
+                      options={{
+                        ...defaultStackScreenOptions,
+                        title: "Title",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="(modals)/profile"
+                      options={{
+                        sheetGrabberVisible: false,
+                        presentation: "modal",
+                        headerTitle: "Profile",
+                        headerBackButtonDisplayMode: "minimal",
+                        headerLargeTitleEnabled: true,
+                        headerRight: () => (
+                          <Pressable onPress={() => router.back()}>
+                            <AppSymbol
+                              ios="xmark"
+                              size={18}
+                              tintColor={Colors[scheme].text}
+                            />
+                          </Pressable>
+                        ),
+                      }}
+                    />
+                  </Stack>
+                </View>
+              </AppSheetProvider>
+            </GestureHandlerRootView>
+          </ThemeProvider>
+        </AuthProvider>
+      </SearchDebugSettingsProvider>
     </QueryClientProvider>
   );
 }

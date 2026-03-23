@@ -6,14 +6,14 @@ import { StyleSheet, View } from "react-native";
 
 type SearchResultsHeaderProps = {
   servedBy: TitleSearchResult["servedBy"] | null;
+  showSourceBadge: boolean;
 };
 
 function SearchResultsHeader({
   servedBy,
+  showSourceBadge,
 }: SearchResultsHeaderProps) {
   const theme = useTheme();
-  const showSourceBadge =
-    __DEV__ || process.env.EXPO_PUBLIC_SEARCH_DEBUG === "1";
   const sourceSummary = servedBy === "rawg-refresh" ? "RAWG refresh" : "Cache";
 
   if (!showSourceBadge) {

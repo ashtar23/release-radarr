@@ -8,6 +8,7 @@ export interface SearchTitlesParams {
   readonly query: string;
   readonly page?: number;
   readonly limit?: number;
+  readonly forceRefresh?: boolean;
   readonly signal?: AbortSignal;
 }
 
@@ -23,6 +24,7 @@ export async function searchTitles({
   const normalizedQuery = params.query.trim();
   const page = normalizePage(params.page);
   const limit = normalizeLimit(params.limit);
+
   if (!normalizedQuery) {
     return {
       query: "",
@@ -40,6 +42,10 @@ export async function searchTitles({
     page: String(page),
     limit: String(limit),
   });
+
+  if (params.forceRefresh) {
+    searchParams.set("forceRefresh", "1");
+  }
 
   const payload = await requestJson({
     context,

@@ -2,6 +2,7 @@ import {
   MAX_STALE_RATIO,
   MIN_LOCAL_PAGE_COVERAGE,
   MIN_QUERY_LENGTH,
+  isSearchRankingV2Enabled,
 } from "../config.ts";
 import {
   countLocalResults,
@@ -12,6 +13,12 @@ import { fetchRawgSearchResults } from "../providers/rawg.ts";
 import type { AdminClient, RawgSearchPage, TitleSummary } from "../types.ts";
 import { getSearchStaleRatio } from "../utils/freshness.ts";
 import { jsonResponse } from "../utils/http.ts";
+import {
+  computeProviderQualityAdjustment,
+  computeProviderQualityAdjustmentV2,
+  computeProviderQualityComposite,
+  type LexicalConfidence,
+} from "../utils/provider-quality.ts";
 import { evaluateSearchFallbackPolicy } from "../utils/search-fallback-policy.ts";
 import { clampLimit, clampPage } from "../utils/values.ts";
 
@@ -34,6 +41,7 @@ export async function handleSearchRequest(client: AdminClient, url: URL) {
   const searchOptions = inferQuerySearchOptions(query);
   const limit = clampLimit(url.searchParams.get("limit"));
   const page = clampPage(url.searchParams.get("page"));
+  const forceRefresh = isTruthyFlag(url.searchParams.get("forceRefresh"));
   const localPage = await findLocalResultsPage(client, query, page, limit);
   const localResults = localPage.results;
   const localSummaries = localResults.map((result) => result.summary);
@@ -95,7 +103,7 @@ export async function handleSearchRequest(client: AdminClient, url: URL) {
     minLocalPageCoverage: MIN_LOCAL_PAGE_COVERAGE,
     maxStaleRatio: MAX_STALE_RATIO,
   });
-  if (!policy.needsProvider) {
+  if (!forceRefresh && !policy.needsProvider) {
     return returnLocalResults();
   }
 
@@ -192,16 +200,21 @@ function mergeResults(
 
   if (intentMode !== "specific") {
     return {
-      results: rankedResults.slice(0, limit).map((entry) => entry.result),
+      results: sliceRankedPage(rankedResults, page, limit).map((entry) => entry.result),
       relevanceExhausted: false,
     };
   }
 
   const denoised = applySpecificQueryDenoise(rankedResults, page, limit);
   return {
-    results: denoised.results.slice(0, limit).map((entry) => entry.result),
+    results: sliceRankedPage(denoised.results, page, limit).map((entry) => entry.result),
     relevanceExhausted: denoised.relevanceExhausted,
   };
+}
+
+function sliceRankedPage(results: RankedSearchResult[], page: number, limit: number) {
+  const start = Math.max(0, (page - 1) * limit);
+  return results.slice(start, start + limit);
 }
 
 function dedupeById(results: TitleSummary[]) {
@@ -231,12 +244,20 @@ function rankResults(
   results: TitleSummary[],
   query: string,
   intentMode: QueryIntentMode,
+  rankingV2Enabled = isSearchRankingV2Enabled(),
 ) {
   const normalizedQuery = toCanonicalSearchString(query);
   const queryTokens = tokenizeSearchText(query);
   const queryTokenSet = new Set(queryTokens);
   const ranked = results.map((result) =>
-    scoreResult(result, normalizedQuery, queryTokens, queryTokenSet, intentMode)
+    scoreResult(
+      result,
+      normalizedQuery,
+      queryTokens,
+      queryTokenSet,
+      intentMode,
+      rankingV2Enabled,
+    )
   );
   const sorted = ranked.sort((left, right) => {
     if (right.score !== left.score) {
@@ -264,6 +285,7 @@ function scoreResult(
   queryTokens: string[],
   queryTokenSet: Set<string>,
   intentMode: QueryIntentMode,
+  rankingV2Enabled: boolean,
 ): RankedSearchResult {
   const normalizedName = toCanonicalSearchString(result.name);
   const nameTokens = tokenizeSearchText(result.name);
@@ -272,7 +294,8 @@ function scoreResult(
   const matchedTokens = queryTokens.filter((token) => nameTokenSet.has(token)).length;
   const coverage = queryTokens.length > 0 ? matchedTokens / queryTokens.length : 0;
   const includesExactQuery = normalizedName.includes(normalizedQuery);
-  const startsWithQuery = normalizedName.startsWith(normalizedQuery);
+  const startsWithQuery = normalizedName.startsWith(normalizedQuery) ||
+    stripLeadingArticle(normalizedName).startsWith(normalizedQuery);
   const exactMatch = normalizedName === normalizedQuery;
 
   let score = 0;
@@ -306,6 +329,21 @@ function scoreResult(
   score += computePlatformRelevanceAdjustment(result, queryTokenSet, intentMode);
   score += computeNoisePenalty(result, queryTokenSet, intentMode);
   score += computeMetadataQualityAdjustment(result, intentMode);
+  score += computeProviderQualityScore(
+    result,
+    intentMode,
+    coverage,
+    includesExactQuery,
+    exactMatch,
+    startsWithQuery,
+    rankingV2Enabled,
+  );
+  score += computeBroadLowSignalAdjustment(
+    result,
+    intentMode,
+    exactMatch,
+    startsWithQuery,
+  );
   score += computeNumericIntentAdjustment(
     nameTokenSet,
     queryNumericTokens,
@@ -567,6 +605,17 @@ function computeNoisePenalty(
   return score;
 }
 
+export function rankResultsForTesting(
+  results: TitleSummary[],
+  query: string,
+  intentMode: QueryIntentMode,
+  rankingV2Enabled = true,
+) {
+  return rankResults(results, query, intentMode, rankingV2Enabled).map((entry) =>
+    entry.result
+  );
+}
+
 async function getLocalTotalCount(
   client: AdminClient,
   query: string,
@@ -586,4 +635,92 @@ async function getLocalTotalCount(
     });
     return (page - 1) * limit + localPageCount;
   }
+}
+
+function isTruthyFlag(value: string | null) {
+  if (!value) {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" ||
+    normalized === "on";
+}
+
+function stripLeadingArticle(value: string) {
+  return value.replace(/^(?:the|a|an)\s+/, "");
+}
+
+function computeProviderQualityScore(
+  result: TitleSummary,
+  intentMode: QueryIntentMode,
+  coverage: number,
+  includesExactQuery: boolean,
+  exactMatch: boolean,
+  startsWithQuery: boolean,
+  rankingV2Enabled: boolean,
+) {
+  if (!rankingV2Enabled) {
+    return computeProviderQualityAdjustment(
+      result,
+      intentMode,
+      coverage,
+      includesExactQuery,
+    );
+  }
+
+  return computeProviderQualityAdjustmentV2(
+    result,
+    intentMode,
+    toLexicalConfidence(coverage, includesExactQuery, exactMatch, startsWithQuery),
+  );
+}
+
+function toLexicalConfidence(
+  coverage: number,
+  includesExactQuery: boolean,
+  exactMatch: boolean,
+  startsWithQuery: boolean,
+): LexicalConfidence {
+  if (exactMatch || startsWithQuery || (includesExactQuery && coverage >= 0.66)) {
+    return "high";
+  }
+
+  if (includesExactQuery || coverage >= 0.5) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function computeBroadLowSignalAdjustment(
+  result: TitleSummary,
+  intentMode: QueryIntentMode,
+  exactMatch: boolean,
+  startsWithQuery: boolean,
+) {
+  if (intentMode !== "broad") {
+    return 0;
+  }
+
+  const qualityScore = computeProviderQualityComposite(result);
+  const isWebOnly = result.platforms.length > 0 &&
+    result.platforms.every((platform) => {
+      const name = platform.name.toLowerCase();
+      return name.includes("web") || name.includes("browser");
+    });
+
+  if (exactMatch && qualityScore <= 0.18) {
+    return isWebOnly ? -720 : -560;
+  }
+
+  if (exactMatch && isWebOnly && qualityScore < 0.5) {
+    return -620;
+  }
+
+  if (startsWithQuery && qualityScore <= 0.12) {
+    return isWebOnly ? -320 : -180;
+  }
+
+  return 0;
 }

@@ -14,6 +14,7 @@ import { SearchResultRow } from "./search-result-row";
 interface SearchResultsListProps {
   results: TitleSummary[];
   servedBy: TitleSearchResult["servedBy"] | null;
+  showSourceBadge: boolean;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
   loadMoreErrorMessage: string | null;
@@ -24,6 +25,7 @@ interface SearchResultsListProps {
 export function SearchResultsList({
   results,
   servedBy,
+  showSourceBadge,
   hasMoreResults,
   isLoadingMore,
   loadMoreErrorMessage,
@@ -57,6 +59,7 @@ export function SearchResultsList({
       ListHeaderComponent={
         <SearchResultsHeader
           servedBy={servedBy}
+          showSourceBadge={showSourceBadge}
         />
       }
       ItemSeparatorComponent={ResultSeparator}

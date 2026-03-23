@@ -30,6 +30,13 @@ export function mapCachedRowToTitleSummary(row: CachedTitleRow): TitleSummary {
     coverImageUrl: row.cover_image_url,
     earliestReleaseDate: row.earliest_release_date,
     platforms: parsePlatforms(row.platforms),
+    rawgRating: row.rawg_rating,
+    rawgRatingsCount: row.rawg_ratings_count,
+    rawgMetacritic: row.rawg_metacritic,
+    rawgAdded: row.rawg_added,
+    rawgReviewsCount: row.rawg_reviews_count,
+    rawgSuggestionsCount: row.rawg_suggestions_count,
+    rawgRatingTop: row.rawg_rating_top,
   };
 }
 
@@ -60,6 +67,13 @@ export function mapSummaryToSearchUpsertRow(
     cover_image_url: summary.coverImageUrl,
     earliest_release_date: summary.earliestReleaseDate,
     platforms: toDbJson(summary.platforms),
+    rawg_rating: summary.rawgRating,
+    rawg_ratings_count: summary.rawgRatingsCount,
+    rawg_metacritic: summary.rawgMetacritic,
+    rawg_added: summary.rawgAdded,
+    rawg_reviews_count: summary.rawgReviewsCount,
+    rawg_suggestions_count: summary.rawgSuggestionsCount,
+    rawg_rating_top: summary.rawgRatingTop,
     search_updated_at: now,
     updated_at: now,
   };
@@ -85,6 +99,13 @@ export function mapDetailToUpsertRow(
     publishers: detail.publishers,
     website_url: detail.websiteUrl,
     releases: toDbJson(detail.releases),
+    rawg_rating: detail.rawgRating,
+    rawg_ratings_count: detail.rawgRatingsCount,
+    rawg_metacritic: detail.rawgMetacritic,
+    rawg_added: detail.rawgAdded,
+    rawg_reviews_count: detail.rawgReviewsCount,
+    rawg_suggestions_count: detail.rawgSuggestionsCount,
+    rawg_rating_top: detail.rawgRatingTop,
     search_updated_at: now,
     detail_updated_at: now,
     updated_at: now,
@@ -105,6 +126,13 @@ export function mapRawgSearchGameToSummary(game: RawgSearchGame): TitleSummary {
     coverImageUrl: game.background_image,
     earliestReleaseDate: normalizeIsoDate(game.released),
     platforms: normalizeRawgPlatforms(game.platforms),
+    rawgRating: normalizeRawgRating(game.rating),
+    rawgRatingsCount: normalizeRawgNonNegativeInt(game.ratings_count),
+    rawgMetacritic: normalizeRawgMetacritic(game.metacritic),
+    rawgAdded: normalizeRawgNonNegativeInt(game.added),
+    rawgReviewsCount: normalizeRawgNonNegativeInt(game.reviews_count),
+    rawgSuggestionsCount: normalizeRawgNonNegativeInt(game.suggestions_count),
+    rawgRatingTop: normalizeRawgNonNegativeInt(game.rating_top),
   };
 }
 
@@ -213,4 +241,36 @@ function normalizeRawgPlatforms(
   }
 
   return Array.from(deduped.values());
+}
+
+function normalizeRawgRating(value: unknown): number | null {
+  if (!isFiniteNumber(value)) {
+    return null;
+  }
+
+  return clamp(value, 0, 5);
+}
+
+function normalizeRawgMetacritic(value: unknown): number | null {
+  if (!isFiniteNumber(value)) {
+    return null;
+  }
+
+  return Math.round(clamp(value, 0, 100));
+}
+
+function normalizeRawgNonNegativeInt(value: unknown): number | null {
+  if (!isFiniteNumber(value)) {
+    return null;
+  }
+
+  return Math.max(Math.round(value), 0);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }

@@ -11,12 +11,20 @@ import {
 } from "@/components/app-symbol";
 import { Href } from "expo-router";
 import { AppLink } from "@/components/app-link";
+import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/search/debug/search-debug-settings";
 
 type SettingsItem = {
   href: Href;
   label: string;
   iosSymbol: IOSSymbolName;
   androidSymbol: AndroidSymbolName;
+};
+
+const DEVELOPER_SETTINGS_ITEM: SettingsItem = {
+  href: "/settings/developer",
+  label: "Developer",
+  iosSymbol: "hammer",
+  androidSymbol: "build",
 };
 
 const SETTINGS_ITEMS: SettingsItem[] = [
@@ -32,6 +40,9 @@ const SETTINGS_ITEMS: SettingsItem[] = [
     iosSymbol: "paintbrush",
     androidSymbol: "palette",
   },
+  ...(SEARCH_DEBUG_MODE_ENABLED
+    ? [DEVELOPER_SETTINGS_ITEM]
+    : []),
 ];
 
 export default function SettingsScreen() {

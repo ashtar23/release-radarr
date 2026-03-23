@@ -6,6 +6,35 @@ export const MIN_LOCAL_PAGE_COVERAGE = 0.8;
 export const MAX_STALE_RATIO = 0.3;
 export const DEFAULT_LIMIT = 20;
 export const MIN_QUERY_LENGTH = 2;
+export const SEARCH_RANKING_V2_ENABLED_BY_DEFAULT = true;
+
+export function isSearchRankingV2Enabled() {
+  const rawValue = readOptionalEnv("SEARCH_RANKING_V2");
+  if (!rawValue) {
+    return SEARCH_RANKING_V2_ENABLED_BY_DEFAULT;
+  }
+
+  const normalized = rawValue.trim().toLowerCase();
+  return !(normalized === "0" || normalized === "false" || normalized === "off");
+}
+
+export function isSearchRankingDebugEnabled() {
+  const rawValue = readOptionalEnv("SEARCH_RANKING_DEBUG");
+  if (!rawValue) {
+    return false;
+  }
+
+  const normalized = rawValue.trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "on";
+}
+
+function readOptionalEnv(key: string): string | null {
+  try {
+    return Deno.env.get(key) ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

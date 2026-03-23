@@ -31,6 +31,13 @@ export interface TitleSummary {
   coverImageUrl: string | null;
   earliestReleaseDate: IsoDateString | null;
   platforms: TitlePlatform[];
+  rawgRating: number | null;
+  rawgRatingsCount: number | null;
+  rawgMetacritic: number | null;
+  rawgAdded: number | null;
+  rawgReviewsCount: number | null;
+  rawgSuggestionsCount: number | null;
+  rawgRatingTop: number | null;
 }
 
 export interface TitleSearchResult {

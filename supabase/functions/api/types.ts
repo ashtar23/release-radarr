@@ -34,6 +34,13 @@ export interface TitleSummary {
   coverImageUrl: string | null;
   earliestReleaseDate: string | null;
   platforms: TitlePlatform[];
+  rawgRating: number | null;
+  rawgRatingsCount: number | null;
+  rawgMetacritic: number | null;
+  rawgAdded: number | null;
+  rawgReviewsCount: number | null;
+  rawgSuggestionsCount: number | null;
+  rawgRatingTop: number | null;
 }
 
 export interface TitleSearchResult {
@@ -91,6 +98,13 @@ export interface RawgSearchGame {
   name: string;
   background_image: string | null;
   released: string | null;
+  rating?: number | null;
+  ratings_count?: number | null;
+  metacritic?: number | null;
+  added?: number | null;
+  reviews_count?: number | null;
+  suggestions_count?: number | null;
+  rating_top?: number | null;
   platforms?: Array<{
     platform?: {
       id?: number;

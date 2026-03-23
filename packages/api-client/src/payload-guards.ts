@@ -22,6 +22,7 @@ export function isTitleSearchResult(value: unknown): value is TitleSearchResult 
     Number.isInteger(value.limit) &&
     value.limit >= 1 &&
     typeof value.hasMore === "boolean" &&
+    value.results.every(isTitleSummary) &&
     (
       value.servedBy === undefined ||
       value.servedBy === "local-cache" ||
@@ -39,7 +40,8 @@ export function isTitleDetails(value: unknown): value is TitleDetails {
     typeof value.id === "string" &&
     typeof value.name === "string" &&
     Array.isArray(value.platforms) &&
-    Array.isArray(value.releases)
+    Array.isArray(value.releases) &&
+    hasValidRawgRichMetadata(value)
   );
 }
 
@@ -86,10 +88,34 @@ function isTitleSummary(value: unknown): boolean {
   return (
     typeof value.id === "string" &&
     typeof value.name === "string" &&
-    Array.isArray(value.platforms)
+    Array.isArray(value.platforms) &&
+    hasValidRawgRichMetadata(value)
   );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function hasValidRawgRichMetadata(value: Record<string, unknown>) {
+  return (
+    isOptionalNullableFiniteNumberField(value, "rawgRating") &&
+    isOptionalNullableFiniteNumberField(value, "rawgRatingsCount") &&
+    isOptionalNullableFiniteNumberField(value, "rawgMetacritic") &&
+    isOptionalNullableFiniteNumberField(value, "rawgAdded") &&
+    isOptionalNullableFiniteNumberField(value, "rawgReviewsCount") &&
+    isOptionalNullableFiniteNumberField(value, "rawgSuggestionsCount") &&
+    isOptionalNullableFiniteNumberField(value, "rawgRatingTop")
+  );
+}
+
+function isOptionalNullableFiniteNumberField(
+  value: Record<string, unknown>,
+  key: string,
+) {
+  if (!(key in value) || value[key] === null) {
+    return true;
+  }
+
+  return typeof value[key] === "number" && Number.isFinite(value[key]);
 }

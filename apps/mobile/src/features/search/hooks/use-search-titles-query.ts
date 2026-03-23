@@ -39,7 +39,9 @@ function toErrorMessage(error: unknown) {
 
 export function useSearchTitlesQuery(
   query: string,
+  options: { forceRefresh?: boolean } = {},
 ): SearchTitlesQueryState {
+  const forceRefresh = options.forceRefresh ?? false;
   const rawQuery = query.trim();
   const debouncedQuery = useDebouncedValue(query).trim();
   const showSearchResults = debouncedQuery.length >= 2;
@@ -47,7 +49,13 @@ export function useSearchTitlesQuery(
   const normalizedDebouncedQuery = debouncedQuery.toLowerCase();
 
   const titlesQuery = useInfiniteQuery({
-    queryKey: ["titles", "search", debouncedQuery, SEARCH_PAGE_SIZE],
+    queryKey: [
+      "titles",
+      "search",
+      debouncedQuery,
+      SEARCH_PAGE_SIZE,
+      forceRefresh ? "force-refresh" : "default-refresh",
+    ],
     enabled: showSearchResults && Boolean(apiClient),
     initialPageParam: INITIAL_PAGE,
     queryFn: ({ pageParam, signal }) => {
@@ -65,6 +73,7 @@ export function useSearchTitlesQuery(
         query: debouncedQuery,
         page,
         limit: SEARCH_PAGE_SIZE,
+        forceRefresh,
         signal,
       });
     },

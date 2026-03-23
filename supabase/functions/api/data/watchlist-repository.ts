@@ -19,7 +19,7 @@ export async function listWatchlistItems(
   const { data, error } = await client
     .from("watchlists")
     .select(
-      "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url)",
+      "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top)",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -28,7 +28,7 @@ export async function listWatchlistItems(
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as WatchlistJoinedRow[])
+  return ((data ?? []) as unknown as WatchlistJoinedRow[])
     .filter((row) => row.titles !== null)
     .map(mapWatchlistItem);
 }
@@ -64,7 +64,7 @@ export async function findWatchlistItem(
   const { data, error } = await client
     .from("watchlists")
     .select(
-      "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url)",
+      "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top)",
     )
     .eq("user_id", userId)
     .eq("title_id", titleId)
@@ -74,11 +74,11 @@ export async function findWatchlistItem(
     throw new Error(error.message);
   }
 
-  if (!data || !(data as WatchlistJoinedRow).titles) {
+  if (!data || !(data as unknown as WatchlistJoinedRow).titles) {
     return null;
   }
 
-  return mapWatchlistItem(data as WatchlistJoinedRow);
+  return mapWatchlistItem(data as unknown as WatchlistJoinedRow);
 }
 
 export async function removeWatchlistItem(

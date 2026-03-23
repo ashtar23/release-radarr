@@ -21,15 +21,18 @@ export async function findLocalResultsPage(
   page: number,
   limit: number,
 ): Promise<LocalResultsPage> {
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+  const candidateSize = Math.min(Math.max(page * limit * 5, 120), 1000);
+  const from = 0;
+  const to = candidateSize - 1;
   const { data, error } = await client
     .from("titles")
     .select(
-      "id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, search_updated_at",
+      "id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, search_updated_at, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top",
     )
     .ilike("name", `%${query}%`)
-    .order("search_updated_at", { ascending: false })
+    .order("rawg_metacritic", { ascending: false, nullsFirst: false })
+    .order("rawg_ratings_count", { ascending: false, nullsFirst: false })
+    .order("rawg_added", { ascending: false, nullsFirst: false })
     .order("id", { ascending: true })
     .range(from, to);
 
@@ -68,7 +71,7 @@ export async function findTitleById(
   const { data, error } = await client
     .from("titles")
     .select(
-      "id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, search_updated_at, description, genres, developers, publishers, website_url, releases, detail_updated_at",
+      "id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, search_updated_at, description, genres, developers, publishers, website_url, releases, detail_updated_at, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top",
     )
     .eq("id", titleId)
     .maybeSingle();
