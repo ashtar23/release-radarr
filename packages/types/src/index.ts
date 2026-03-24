@@ -19,6 +19,7 @@ export type {
 export type {
   PlatformRelease,
   ReleaseDatePrecision,
+  SearchDecisionReason,
   TitleDetails,
   TitleSearchQueryInput,
   TitlePlatform,

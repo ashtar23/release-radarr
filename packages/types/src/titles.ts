@@ -48,7 +48,16 @@ export interface TitleSearchResult {
   limit: number;
   hasMore: boolean;
   servedBy?: "local-cache" | "rawg-refresh";
+  decisionReason?: SearchDecisionReason;
 }
+
+export type SearchDecisionReason =
+  | "local_sufficient"
+  | "sparse_broad_local"
+  | "forced_refresh"
+  | "provider_missing_key"
+  | "provider_fetch_failed"
+  | "provider_used";
 
 export const titleSearchQuerySchema = z.object({
   query: z.string().trim().min(2, "Enter at least 2 characters."),

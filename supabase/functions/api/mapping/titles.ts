@@ -15,6 +15,7 @@ import {
   toDbJson,
   toReleasePrecision,
 } from "../utils/values.ts";
+import { normalizeSearchKey } from "../utils/search-normalization.ts";
 
 export function mapCachedRowToTitleSummary(row: CachedTitleRow): TitleSummary {
   assertTitleKind(row.kind);
@@ -64,6 +65,7 @@ export function mapSummaryToSearchUpsertRow(
     external_id: summary.externalId,
     slug: summary.slug,
     name: summary.name,
+    search_name: normalizeSearchKey(summary.name),
     cover_image_url: summary.coverImageUrl,
     earliest_release_date: summary.earliestReleaseDate,
     platforms: toDbJson(summary.platforms),
@@ -90,6 +92,7 @@ export function mapDetailToUpsertRow(
     external_id: detail.externalId,
     slug: detail.slug,
     name: detail.name,
+    search_name: normalizeSearchKey(detail.name),
     cover_image_url: detail.coverImageUrl,
     earliest_release_date: detail.earliestReleaseDate,
     platforms: toDbJson(detail.platforms),

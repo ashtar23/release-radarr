@@ -186,6 +186,16 @@ async function assertSearchContract() {
     payload.servedBy === "local-cache" || payload.servedBy === "rawg-refresh",
     true,
   );
+  assert.equal(
+    payload.decisionReason === undefined ||
+      payload.decisionReason === "local_sufficient" ||
+      payload.decisionReason === "sparse_broad_local" ||
+      payload.decisionReason === "forced_refresh" ||
+      payload.decisionReason === "provider_missing_key" ||
+      payload.decisionReason === "provider_fetch_failed" ||
+      payload.decisionReason === "provider_used",
+    true,
+  );
 
   const first = payload.results.find((item) => item.id === seedId);
   assert.ok(first, "Expected seeded title in search results.");

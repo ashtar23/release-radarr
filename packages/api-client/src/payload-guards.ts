@@ -27,6 +27,15 @@ export function isTitleSearchResult(value: unknown): value is TitleSearchResult 
       value.servedBy === undefined ||
       value.servedBy === "local-cache" ||
       value.servedBy === "rawg-refresh"
+    ) &&
+    (
+      value.decisionReason === undefined ||
+      value.decisionReason === "local_sufficient" ||
+      value.decisionReason === "sparse_broad_local" ||
+      value.decisionReason === "forced_refresh" ||
+      value.decisionReason === "provider_missing_key" ||
+      value.decisionReason === "provider_fetch_failed" ||
+      value.decisionReason === "provider_used"
     )
   );
 }

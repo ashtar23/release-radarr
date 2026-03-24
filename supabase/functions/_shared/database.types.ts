@@ -24,6 +24,7 @@ export type Database = {
           name: string;
           platforms: Json;
           publishers: string[];
+          search_name: string;
           rawg_added: number | null;
           rawg_metacritic: number | null;
           rawg_rating: number | null;
@@ -52,6 +53,7 @@ export type Database = {
           name: string;
           platforms?: Json;
           publishers?: string[];
+          search_name?: string;
           rawg_added?: number | null;
           rawg_metacritic?: number | null;
           rawg_rating?: number | null;
@@ -80,6 +82,7 @@ export type Database = {
           name?: string;
           platforms?: Json;
           publishers?: string[];
+          search_name?: string;
           rawg_added?: number | null;
           rawg_metacritic?: number | null;
           rawg_rating?: number | null;

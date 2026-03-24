@@ -7,6 +7,7 @@ export const MAX_STALE_RATIO = 0.3;
 export const DEFAULT_LIMIT = 20;
 export const MIN_QUERY_LENGTH = 2;
 export const SEARCH_RANKING_V2_ENABLED_BY_DEFAULT = true;
+export const SEARCH_BROAD_DENOISE_ENABLED_BY_DEFAULT = true;
 
 export function isSearchRankingV2Enabled() {
   const rawValue = readOptionalEnv("SEARCH_RANKING_V2");
@@ -26,6 +27,16 @@ export function isSearchRankingDebugEnabled() {
 
   const normalized = rawValue.trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "on";
+}
+
+export function isSearchBroadDenoiseEnabled() {
+  const rawValue = readOptionalEnv("SEARCH_BROAD_DENOISE");
+  if (!rawValue) {
+    return SEARCH_BROAD_DENOISE_ENABLED_BY_DEFAULT;
+  }
+
+  const normalized = rawValue.trim().toLowerCase();
+  return !(normalized === "0" || normalized === "false" || normalized === "off");
 }
 
 function readOptionalEnv(key: string): string | null {
