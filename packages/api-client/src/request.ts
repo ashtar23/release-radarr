@@ -6,6 +6,7 @@ export interface RequestContext {
   readonly baseUrl: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
+  readonly onUnauthorized?: () => Promise<boolean> | boolean;
   readonly fetchFn: typeof fetch;
 }
 
@@ -39,40 +40,56 @@ export async function requestJson<T>({
   failureMessage,
 }: RequestJsonParams<T>): Promise<T> {
   const fetchFn = context.fetchFn;
-  const accessToken = await resolveAccessToken(
-    context.publishableKey,
-    context.getAccessToken,
-  );
-  const response = await fetchFn(`${context.baseUrl}${path}`, {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const accessToken = await resolveAccessToken(
+      context.publishableKey,
+      context.getAccessToken,
+    );
+    const response = await fetchFn(`${context.baseUrl}${path}`, {
+      method,
+      headers: {
+        ...buildAuthHeaders(context.publishableKey, accessToken),
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      body,
+      signal,
+    });
+
+    if (response.status === 401 && attempt === 0 && context.onUnauthorized) {
+      const shouldRetry = await context.onUnauthorized();
+      if (shouldRetry) {
+        continue;
+      }
+    }
+
+    if (!response.ok) {
+      throw await toApiClientError({
+        response,
+        method,
+        path,
+        fallbackMessage: failureMessage,
+      });
+    }
+
+    const payload: unknown = await response.json();
+    if (!validate(payload)) {
+      throw new ApiClientError({
+        message: invalidPayloadMessage,
+        status: response.status,
+        method,
+        path,
+      });
+    }
+
+    return payload;
+  }
+
+  throw new ApiClientError({
+    message: failureMessage,
+    status: 401,
     method,
-    headers: {
-      ...buildAuthHeaders(context.publishableKey, accessToken),
-      ...(body ? { "Content-Type": "application/json" } : {}),
-    },
-    body,
-    signal,
+    path,
   });
-
-  if (!response.ok) {
-    throw await toApiClientError({
-      response,
-      method,
-      path,
-      fallbackMessage: failureMessage,
-    });
-  }
-
-  const payload: unknown = await response.json();
-  if (!validate(payload)) {
-    throw new ApiClientError({
-      message: invalidPayloadMessage,
-      status: response.status,
-      method,
-      path,
-    });
-  }
-
-  return payload;
 }
 
 export async function requestVoid({
@@ -83,24 +100,42 @@ export async function requestVoid({
   failureMessage,
 }: RequestVoidParams): Promise<void> {
   const fetchFn = context.fetchFn;
-  const accessToken = await resolveAccessToken(
-    context.publishableKey,
-    context.getAccessToken,
-  );
-  const response = await fetchFn(`${context.baseUrl}${path}`, {
-    method,
-    headers: buildAuthHeaders(context.publishableKey, accessToken),
-    signal,
-  });
-
-  if (!response.ok) {
-    throw await toApiClientError({
-      response,
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const accessToken = await resolveAccessToken(
+      context.publishableKey,
+      context.getAccessToken,
+    );
+    const response = await fetchFn(`${context.baseUrl}${path}`, {
       method,
-      path,
-      fallbackMessage: failureMessage,
+      headers: buildAuthHeaders(context.publishableKey, accessToken),
+      signal,
     });
+
+    if (response.status === 401 && attempt === 0 && context.onUnauthorized) {
+      const shouldRetry = await context.onUnauthorized();
+      if (shouldRetry) {
+        continue;
+      }
+    }
+
+    if (!response.ok) {
+      throw await toApiClientError({
+        response,
+        method,
+        path,
+        fallbackMessage: failureMessage,
+      });
+    }
+
+    return;
   }
+
+  throw new ApiClientError({
+    message: failureMessage,
+    status: 401,
+    method,
+    path,
+  });
 }
 
 async function toApiClientError(params: {
@@ -135,7 +170,10 @@ async function readErrorMessage(response: Response) {
     return payload.error;
   }
 
-  if (typeof payload.message === "string" && payload.message.trim().length > 0) {
+  if (
+    typeof payload.message === "string" &&
+    payload.message.trim().length > 0
+  ) {
     return payload.message;
   }
 

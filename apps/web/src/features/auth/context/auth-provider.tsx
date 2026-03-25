@@ -60,7 +60,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     },
     async signOut() {
       const client = ensureClient();
-      const { error } = await client.auth.signOut();
+      const { error } = await client.auth.signOut({
+        scope: "local",
+      });
       if (error) throw error;
     },
   };

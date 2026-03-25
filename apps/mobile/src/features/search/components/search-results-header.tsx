@@ -29,9 +29,12 @@ function SearchResultsHeader({
     <View style={styles.resultsHeader}>
       <View style={styles.summaryRow}>
         <View
-          style={[styles.sourceBadge, { borderColor: theme.card.search.meta }]}
+          style={[
+            styles.sourceBadge,
+            { borderColor: theme.card.titleCard.meta },
+          ]}
         >
-          <ThemedText type="small" style={{ color: theme.card.search.meta }}>
+          <ThemedText type="small" style={{ color: theme.card.titleCard.meta }}>
             {sourceSummary}
           </ThemedText>
         </View>

@@ -9,7 +9,7 @@ import { Spacing } from "@/constants/theme";
 
 import { SearchResultsFooter } from "./search-results.footer";
 import { SearchResultsHeader } from "./search-results-header";
-import { SearchResultRow } from "./search-result-row";
+import { TitleCardRow } from "@/features/titles/components/title-card-row";
 
 interface SearchResultsListProps {
   results: TitleSummary[];
@@ -36,7 +36,7 @@ export function SearchResultsList({
 }: SearchResultsListProps) {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TitleSummary>) => (
-      <SearchResultRow result={item} />
+      <TitleCardRow result={item} />
     ),
     [],
   );

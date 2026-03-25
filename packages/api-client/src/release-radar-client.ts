@@ -19,6 +19,7 @@ export interface ReleaseRadarApiClientOptions {
   readonly baseUrl: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
+  readonly onUnauthorized?: () => Promise<boolean> | boolean;
   readonly fetchFn?: typeof fetch;
 }
 
@@ -40,6 +41,7 @@ export function createReleaseRadarApiClient(
     baseUrl: options.baseUrl,
     publishableKey: options.publishableKey,
     getAccessToken: options.getAccessToken,
+    onUnauthorized: options.onUnauthorized,
     fetchFn: options.fetchFn ?? fetch,
   };
 

@@ -167,7 +167,6 @@ export default function ProfileModalScreen() {
                 />
               )}
             />
-            <Button title="test" />
 
             <AppButton
               label={signInMutation.isPending ? "Signing in..." : "Sign in"}

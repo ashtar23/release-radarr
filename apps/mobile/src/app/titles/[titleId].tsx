@@ -1,10 +1,12 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
-import { Alert } from "react-native";
 
 import { HeaderIconButton } from "@/components/header-icon-button";
 import { useTitleDetailsQuery } from "@/features/title-details/data-access/queries/use-title-details-query";
 import { TitleDetailsStateView } from "@/features/title-details/components";
+import { useTheme } from "@/hooks/use-theme";
+import { useWatchlistMutation } from "@/features/watchlist/queries/use-watchlist-mutation";
+import { useIsTitleInWatchlist } from "@/features/watchlist/queries/use-is-title-in-watchlist";
 
 type TitleDetailsScreenProps = {
   titleId?: string | string[];
@@ -18,6 +20,7 @@ export default function TitleDetailsScreen() {
   const titleId = normalizeRouteParam(rawTitleId);
   const initialTitle = normalizeRouteParam(rawTitleName);
   const headerTitle = detailsQueryNamePlaceholder(initialTitle);
+  const theme = useTheme();
 
   const {
     data: titleDetails,
@@ -25,6 +28,18 @@ export default function TitleDetailsScreen() {
     isError,
     error,
   } = useTitleDetailsQuery({ titleId });
+
+  const { addMutation, removeMutation } = useWatchlistMutation();
+  const { isInWatchlist } = useIsTitleInWatchlist(titleId);
+  const isMutationInFlight = addMutation.isPending || removeMutation.isPending;
+  const isBookmarkActive = isInWatchlist;
+  const canToggleWatchlist = isBookmarkActive || Boolean(titleDetails);
+  const bookmarkTintColor = isBookmarkActive
+    ? theme.accent.watchlist
+    : theme.textSecondary;
+  const bookmarkAccessibilityLabel = isBookmarkActive
+    ? "Remove from watchlist"
+    : "Add to watchlist";
 
   return (
     <>
@@ -34,9 +49,24 @@ export default function TitleDetailsScreen() {
           headerLargeTitleEnabled: false,
           headerRight: () => (
             <HeaderIconButton
-              onPress={() => Alert.alert("Watchlisted")}
-              accessibilityLabel="Add to watchlist"
-              iconProps={{ ios: "bookmark", android: "bookmark_add" }}
+              onPress={() => {
+                if (isBookmarkActive) {
+                  removeMutation.mutate({ titleId });
+                  return;
+                }
+
+                if (titleDetails) {
+                  addMutation.mutate({ title: titleDetails });
+                }
+              }}
+              accessibilityLabel={bookmarkAccessibilityLabel}
+              tintColor={bookmarkTintColor}
+              iconProps={
+                isBookmarkActive
+                  ? ({ ios: "bookmark.fill", android: "bookmark" } as const)
+                  : ({ ios: "bookmark", android: "bookmark_add" } as const)
+              }
+              disabled={isMutationInFlight || !canToggleWatchlist}
             />
           ),
         }}

@@ -24,5 +24,18 @@ export const apiClient =
           const { data } = await supabase.auth.getSession();
           return data.session?.access_token ?? null;
         },
+        async onUnauthorized() {
+          if (!supabase) {
+            return false;
+          }
+
+          const { data, error } = await supabase.auth.refreshSession();
+          if (!error && data.session) {
+            return true;
+          }
+
+          await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+          return false;
+        },
       })
     : null;

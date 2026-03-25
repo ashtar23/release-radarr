@@ -64,7 +64,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     configError: supabaseConfigError,
     async signInWithPassword(email, password) {
       const client = ensureClient();
-      const { error } = await client.auth.signInWithPassword({ email, password });
+      const { error } = await client.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
     },
     async signUpWithPassword(email, password) {
@@ -74,7 +77,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     },
     async signOut() {
       const client = ensureClient();
-      const { error } = await client.auth.signOut();
+      const { error } = await client.auth.signOut({ scope: "local" });
       if (error) throw error;
     },
   };

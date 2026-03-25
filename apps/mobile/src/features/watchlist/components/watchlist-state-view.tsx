@@ -1,0 +1,90 @@
+import type { ReactNode } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+
+import { EmptyState } from "@/components/empty-state";
+import { AppButton } from "@/components/ui/button";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+
+import type { WatchlistScreenMode } from "../hooks/use-watchlist-screen-state";
+
+type WatchlistStateViewProps = {
+  mode: WatchlistScreenMode;
+  onSignIn: () => void;
+};
+
+export function WatchlistStateView({ mode, onSignIn }: WatchlistStateViewProps) {
+  const theme = useTheme();
+
+  if (mode === "checking-session") {
+    return (
+      <WatchlistStateFrame>
+        <EmptyState
+          title="Checking your session..."
+          description="Loading your watchlist access."
+          icon={<ActivityIndicator size="small" color={theme.text} />}
+        />
+      </WatchlistStateFrame>
+    );
+  }
+
+  if (mode === "signed-out") {
+    return (
+      <WatchlistStateFrame>
+        <EmptyState
+          title="Sign in to use your watchlist"
+          description="Save games here, then come back anytime from any device."
+          action={
+            <AppButton
+              label="Sign in"
+              onPress={onSignIn}
+              variant="primary"
+              useGlass
+              style={styles.signInButton}
+            />
+          }
+        />
+      </WatchlistStateFrame>
+    );
+  }
+
+  if (mode === "refreshing") {
+    return <WatchlistStateFrame />;
+  }
+
+  if (mode === "loading") {
+    return (
+      <WatchlistStateFrame>
+        <EmptyState
+          title="Loading watchlist..."
+          description="Pulling your saved games from the server."
+          icon={<ActivityIndicator size="small" color={theme.text} />}
+        />
+      </WatchlistStateFrame>
+    );
+  }
+
+  return (
+    <WatchlistStateFrame>
+      <EmptyState
+        title="Your watchlist is empty"
+        description="Add games from title details to see them here."
+      />
+    </WatchlistStateFrame>
+  );
+}
+
+function WatchlistStateFrame({ children }: { children?: ReactNode }) {
+  return <View style={styles.emptyState}>{children}</View>;
+}
+
+const styles = StyleSheet.create({
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    paddingTop: Spacing.three,
+  },
+  signInButton: {
+    width: "100%",
+  },
+});

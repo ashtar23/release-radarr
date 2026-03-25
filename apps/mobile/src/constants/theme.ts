@@ -49,6 +49,9 @@ export type AppTheme = {
     linkPrimary: string;
     focusRing: string;
   };
+  accent: {
+    watchlist: string;
+  };
   input: {
     fallbackBorder: string;
     fallbackBorderFocused: string;
@@ -67,7 +70,7 @@ export type AppTheme = {
     borderError: string;
   };
   card: {
-    search: {
+    titleCard: {
       background: string;
       border: string;
       pressedOverlay: string;
@@ -97,6 +100,7 @@ export const THEME_TOKEN_ROLE_MATRIX = {
   "status/info": "status.info",
   "interactive/link-primary": "interactive.linkPrimary",
   "interactive/focus-ring": "interactive.focusRing",
+  "accent/watchlist": "accent.watchlist",
   "input/placeholder": "input.placeholder",
   "input/fallback-border-default": "input.fallbackBorder",
   "input/fallback-border-focus": "input.fallbackBorderFocused",
@@ -110,11 +114,11 @@ export const THEME_TOKEN_ROLE_MATRIX = {
   "glass-input/border-idle": "glassInput.borderIdle",
   "glass-input/border-focused": "glassInput.borderFocused",
   "glass-input/border-error": "glassInput.borderError",
-  "card/search-background": "card.search.background",
-  "card/search-border": "card.search.border",
-  "card/search-pressed-overlay": "card.search.pressedOverlay",
-  "card/search-meta": "card.search.meta",
-  "card/search-shadow": "card.search.shadow.shadowColor",
+  "card/title-card-background": "card.titleCard.background",
+  "card/title-card-border": "card.titleCard.border",
+  "card/title-card-pressed-overlay": "card.titleCard.pressedOverlay",
+  "card/title-card-meta": "card.titleCard.meta",
+  "card/title-card-shadow": "card.titleCard.shadow.shadowColor",
 } as const;
 
 /**
@@ -147,6 +151,7 @@ export const THEME_PLATFORM_BASELINE = {
   "status/info": { ios: "systemBlue", android: "primary" },
   "interactive/link-primary": { ios: "link", android: "primary" },
   "interactive/focus-ring": { ios: "tintColor", android: "primary" },
+  "accent/watchlist": { ios: "systemOrange", android: "secondaryContainer" },
   "input/placeholder": { ios: "placeholderText", android: "onSurfaceVariant" },
   "input/fallback-border-default": { ios: "separator", android: "outline" },
   "input/fallback-border-focus": { ios: "tintColor", android: "primary" },
@@ -236,6 +241,9 @@ export const Colors = {
       linkPrimary: "#2b6fe0",
       focusRing: "#2b6fe0",
     },
+    accent: {
+      watchlist: "#A86D1C",
+    },
     input: {
       fallbackBorder: "#60646C",
       fallbackBorderFocused: "#000000",
@@ -266,7 +274,7 @@ export const Colors = {
       borderError: "rgba(180,35,24,0.75)",
     },
     card: {
-      search: {
+      titleCard: {
         background: "#F7F8FA",
         border: "rgba(60,60,67,0.16)",
         pressedOverlay: "rgba(15,23,42,0.08)",
@@ -313,6 +321,9 @@ export const Colors = {
       linkPrimary: "#74aeff",
       focusRing: "#74aeff",
     },
+    accent: {
+      watchlist: "#E5B24A",
+    },
     input: {
       fallbackBorder: "#B0B4BA",
       fallbackBorderFocused: "#ffffff",
@@ -343,7 +354,7 @@ export const Colors = {
       borderError: "rgba(249,112,102,0.8)",
     },
     card: {
-      search: {
+      titleCard: {
         background: "#111317",
         border: "rgba(255,255,255,0.14)",
         pressedOverlay: "rgba(255,255,255,0.12)",

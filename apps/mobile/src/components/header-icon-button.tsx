@@ -4,10 +4,11 @@ import { Pressable, type PressableProps } from "react-native";
 import { AppSymbol } from "@/components/app-symbol";
 import { useTheme } from "@/hooks/use-theme";
 
-type AppSymbolProps = ComponentProps<typeof AppSymbol>;
+type AppSymbolProps = Omit<ComponentProps<typeof AppSymbol>, "tintColor">;
 
 type HeaderIconButtonProps = Omit<PressableProps, "children"> & {
   iconProps: AppSymbolProps;
+  tintColor?: string;
 };
 
 /**
@@ -29,6 +30,7 @@ type HeaderIconButtonProps = Omit<PressableProps, "children"> & {
  */
 export function HeaderIconButton({
   iconProps,
+  tintColor,
   hitSlop = 8,
   accessibilityRole = "button",
   ...pressableProps
@@ -41,7 +43,11 @@ export function HeaderIconButton({
       hitSlop={hitSlop}
       {...pressableProps}
     >
-      <AppSymbol size={20} tintColor={theme.textSecondary} {...iconProps} />
+      <AppSymbol
+        size={20}
+        tintColor={tintColor ?? theme.textSecondary}
+        {...iconProps}
+      />
     </Pressable>
   );
 }

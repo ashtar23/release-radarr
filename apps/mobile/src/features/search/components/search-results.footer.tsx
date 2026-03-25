@@ -23,8 +23,8 @@ function SearchResultsFooter({
   if (isLoadingMore) {
     return (
       <View style={styles.footerRow}>
-        <ActivityIndicator size="small" color={theme.card.search.meta} />
-        <ThemedText type="small" style={{ color: theme.card.search.meta }}>
+        <ActivityIndicator size="small" color={theme.card.titleCard.meta} />
+        <ThemedText type="small" style={{ color: theme.card.titleCard.meta }}>
           Loading more results...
         </ThemedText>
       </View>
@@ -34,7 +34,7 @@ function SearchResultsFooter({
   if (loadMoreErrorMessage) {
     return (
       <View style={styles.footerRow}>
-        <ThemedText type="small" style={{ color: theme.card.search.meta }}>
+        <ThemedText type="small" style={{ color: theme.card.titleCard.meta }}>
           Could not load more results.
         </ThemedText>
         <Pressable onPress={onRetryLoadMore}>
@@ -51,7 +51,7 @@ function SearchResultsFooter({
 
     return (
       <View style={styles.footerRow}>
-        <ThemedText type="small" style={{ color: theme.card.search.meta }}>
+        <ThemedText type="small" style={{ color: theme.card.titleCard.meta }}>
           End of results. Showing {loadedCount} of {loadedCount} {noun}.
         </ThemedText>
       </View>

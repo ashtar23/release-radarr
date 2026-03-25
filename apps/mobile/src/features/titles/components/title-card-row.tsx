@@ -6,30 +6,28 @@ import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { memo } from "react";
 import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
-import { formatSearchMetaLine } from "../utils/format-title";
 import { Spacing } from "@/constants/theme";
+import { formatTitleCardMetaLine } from "../utils/title-card-meta";
 
 const COVER_WIDTH = 64;
 const COVER_HEIGHT = 90;
 
-type SearchResultRowProps = {
+type TitleCardRowProps = {
   result: TitleSummary;
 };
 
-const SearchResultRow = memo(function SearchResultRow({
-  result,
-}: SearchResultRowProps) {
+const TitleCardRow = memo(function TitleCardRow({ result }: TitleCardRowProps) {
   const theme = useTheme();
   const rowStyle = StyleSheet.flatten([
-    styles.searchResultItem,
+    styles.titleCardItem,
     {
-      backgroundColor: theme.card.search.background,
-      borderColor: theme.card.search.border,
-      shadowColor: theme.card.search.shadow.shadowColor,
-      shadowOffset: theme.card.search.shadow.shadowOffset,
-      shadowOpacity: theme.card.search.shadow.shadowOpacity,
-      shadowRadius: theme.card.search.shadow.shadowRadius,
-      elevation: theme.card.search.shadow.elevation,
+      backgroundColor: theme.card.titleCard.background,
+      borderColor: theme.card.titleCard.border,
+      shadowColor: theme.card.titleCard.shadow.shadowColor,
+      shadowOffset: theme.card.titleCard.shadow.shadowOffset,
+      shadowOpacity: theme.card.titleCard.shadow.shadowOpacity,
+      shadowRadius: theme.card.titleCard.shadow.shadowRadius,
+      elevation: theme.card.titleCard.shadow.elevation,
     },
   ]);
 
@@ -82,9 +80,9 @@ const SearchResultRow = memo(function SearchResultRow({
           <ThemedText
             type="small"
             numberOfLines={1}
-            style={[styles.meta, { color: theme.card.search.meta }]}
+            style={[styles.meta, { color: theme.card.titleCard.meta }]}
           >
-            {formatSearchMetaLine(result)}
+            {formatTitleCardMetaLine(result)}
           </ThemedText>
         </View>
       </TouchableOpacity>
@@ -99,7 +97,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.two,
     overflow: "hidden",
   },
-  searchResultItem: {
+  titleCardItem: {
     minHeight: 96,
     flexDirection: "row",
     alignItems: "center",
@@ -131,4 +129,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export { SearchResultRow };
+export { TitleCardRow };
