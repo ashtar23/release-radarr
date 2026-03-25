@@ -1,3 +1,10 @@
+import {
+  getSearchAdjacentSwapVariantsMaxTokenLength,
+  getSearchAdjacentSwapVariantsMaxVariants,
+  getSearchAdjacentSwapVariantsMinTokenLength,
+  isSearchAdjacentSwapVariantsEnabled,
+} from "../config.ts";
+
 const SEARCH_PHRASE_ALIASES: Array<{ pattern: RegExp; replacement: string }> = [
   { pattern: /\bspiderman\b/g, replacement: "spider man" },
 ];
@@ -17,7 +24,9 @@ export function normalizeSearchKey(value: string) {
   return SEARCH_PHRASE_ALIASES.reduce(
     (current, alias) => current.replace(alias.pattern, alias.replacement),
     normalized,
-  ).replace(/\s+/g, " ").trim();
+  )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function tokenizeSearchKey(value: string) {
@@ -39,7 +48,14 @@ export function expandNormalizedQueryVariants(query: string) {
     return [];
   }
 
-  return [normalized];
+  const variants = new Set<string>([normalized]);
+  if (isSearchAdjacentSwapVariantsEnabled()) {
+    for (const variant of createAdjacentSwapTokenVariants(normalized)) {
+      variants.add(variant);
+    }
+  }
+
+  return [...variants];
 }
 
 export function toLooseComparableTokens(tokens: string[]) {
@@ -93,4 +109,47 @@ function romanNumeralToNumber(value: string) {
   };
 
   return romanMap[value] ?? null;
+}
+
+function createAdjacentSwapTokenVariants(value: string) {
+  const tokens = value.split(" ").filter((token) => token.length > 0);
+  if (tokens.length !== 1) {
+    return [];
+  }
+
+  const [token] = tokens;
+  if (!token) {
+    return [];
+  }
+
+  const minimumLength = getSearchAdjacentSwapVariantsMinTokenLength();
+  const maximumLength = getSearchAdjacentSwapVariantsMaxTokenLength();
+  if (token.length < minimumLength || token.length > maximumLength) {
+    return [];
+  }
+
+  if (!/^[a-z0-9]+$/.test(token)) {
+    return [];
+  }
+
+  const maxVariants = getSearchAdjacentSwapVariantsMaxVariants();
+  const variants: string[] = [];
+
+  for (let index = 0; index < token.length - 1; index += 1) {
+    const left = token[index];
+    const right = token[index + 1];
+    if (!left || !right || left === right) {
+      continue;
+    }
+
+    const swapped =
+      token.slice(0, index) + right + left + token.slice(index + 2);
+    variants.push(swapped);
+
+    if (variants.length >= maxVariants) {
+      break;
+    }
+  }
+
+  return variants;
 }

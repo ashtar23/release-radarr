@@ -6,6 +6,11 @@ import type {
   IsoDateString,
   SourceProvider,
 } from "./core";
+import type {
+  SearchDecisionReason as SearchDecisionReasonLiteral,
+  SearchProviderUsedTrigger,
+  SearchServedBy,
+} from "./search-contract";
 
 export interface TitlePlatform {
   id: EntityId;
@@ -47,17 +52,12 @@ export interface TitleSearchResult {
   page: number;
   limit: number;
   hasMore: boolean;
-  servedBy?: "local-cache" | "rawg-refresh";
-  decisionReason?: SearchDecisionReason;
+  servedBy?: SearchServedBy;
+  decisionReason?: SearchDecisionReasonLiteral;
+  providerUsedTrigger?: SearchProviderUsedTrigger;
 }
 
-export type SearchDecisionReason =
-  | "local_sufficient"
-  | "sparse_broad_local"
-  | "forced_refresh"
-  | "provider_missing_key"
-  | "provider_fetch_failed"
-  | "provider_used";
+export type SearchDecisionReason = SearchDecisionReasonLiteral;
 
 export const titleSearchQuerySchema = z.object({
   query: z.string().trim().min(2, "Enter at least 2 characters."),

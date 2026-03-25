@@ -20,6 +20,7 @@ export interface SearchTitlesQueryState {
   results: TitleSummary[];
   totalCount: number;
   servedBy: TitleSearchResult["servedBy"] | null;
+  decisionReason: TitleSearchResult["decisionReason"] | null;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
   loadMoreErrorMessage: string | null;
@@ -77,8 +78,35 @@ export function useSearchTitlesQuery(
         signal,
       });
     },
-    getNextPageParam: (lastPage) =>
-      lastPage.hasMore ? lastPage.page + 1 : undefined,
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.hasMore) {
+        return undefined;
+      }
+
+      if (lastPage.results.length === 0) {
+        return undefined;
+      }
+
+      if (allPages.length > 1) {
+        const previousResultIds = new Set(
+          allPages.slice(0, -1).flatMap((page) => page.results.map((result) =>
+            result.id
+          )),
+        );
+        const addedUniqueResult = lastPage.results.some((result) =>
+          !previousResultIds.has(result.id)
+        );
+        if (!addedUniqueResult) {
+          return undefined;
+        }
+      }
+
+      return lastPage.page + 1;
+    },
+    staleTime: 30_000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     retry: 1,
   });
 
@@ -86,22 +114,22 @@ export function useSearchTitlesQuery(
   const results = dedupeResults(pages.flatMap((page) => page.results));
   const totalCount = pages[0]?.totalCount ?? 0;
   const servedBy = pages[0]?.servedBy ?? null;
+  const decisionReason = pages[0]?.decisionReason ?? null;
   const normalizedResolvedQuery = pages[0]?.query.trim().toLowerCase() ?? "";
   const hasStaleQueryData = pages.length > 0 &&
     normalizedResolvedQuery !== normalizedDebouncedQuery;
   const isTypingDifferentQuery =
     rawQuery.length >= 2 && normalizedRawQuery !== normalizedDebouncedQuery;
-  const latestPage = pages.at(-1);
-  const hasMoreResults = Boolean(latestPage?.hasMore);
   const isLoadingMore = titlesQuery.isFetchingNextPage;
   const loadMoreErrorMessage = titlesQuery.isFetchNextPageError
     ? toErrorMessage(titlesQuery.error)
     : null;
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = titlesQuery;
+  const hasMoreResults = Boolean(hasNextPage);
   const loadMoreResults = useCallback(() => {
     if (!showSearchResults || !hasNextPage) return;
     if (isFetchingNextPage) return;
-    void fetchNextPage();
+    void fetchNextPage({ cancelRefetch: false });
   }, [
     fetchNextPage,
     hasNextPage,
@@ -117,6 +145,7 @@ export function useSearchTitlesQuery(
       results: EMPTY_RESULTS,
       totalCount: 0,
       servedBy: null,
+      decisionReason: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -133,6 +162,7 @@ export function useSearchTitlesQuery(
       results: EMPTY_RESULTS,
       totalCount: 0,
       servedBy: null,
+      decisionReason: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -149,6 +179,7 @@ export function useSearchTitlesQuery(
       results: EMPTY_RESULTS,
       totalCount: 0,
       servedBy: null,
+      decisionReason: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -165,6 +196,7 @@ export function useSearchTitlesQuery(
       results: EMPTY_RESULTS,
       totalCount: 0,
       servedBy: null,
+      decisionReason: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -184,6 +216,7 @@ export function useSearchTitlesQuery(
       results: EMPTY_RESULTS,
       totalCount: 0,
       servedBy: null,
+      decisionReason: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -200,6 +233,7 @@ export function useSearchTitlesQuery(
       results: EMPTY_RESULTS,
       totalCount: 0,
       servedBy: null,
+      decisionReason: null,
       hasMoreResults: false,
       isLoadingMore: false,
       loadMoreErrorMessage: null,
@@ -216,6 +250,7 @@ export function useSearchTitlesQuery(
       results,
       totalCount,
       servedBy,
+      decisionReason,
       hasMoreResults: false,
       isLoadingMore,
       loadMoreErrorMessage,
@@ -231,6 +266,7 @@ export function useSearchTitlesQuery(
     results,
     totalCount,
     servedBy,
+    decisionReason,
     hasMoreResults,
     isLoadingMore,
     loadMoreErrorMessage,

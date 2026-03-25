@@ -42,6 +42,7 @@ export default function SearchTabScreen() {
           onRetryLoadMore={searchState.loadMoreResults}
           results={searchState.results}
           servedBy={searchState.servedBy}
+          decisionReason={searchState.decisionReason}
           showSourceBadge={showSourceBadge}
           onEndReached={searchState.loadMoreResults}
         />

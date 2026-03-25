@@ -5,6 +5,7 @@ import type {
   TitleDetails,
   TitleSummary,
 } from "../types.ts";
+import type { SearchLocalCountMode } from "../config.ts";
 import {
   mapCachedRowToTitleSummary,
   mapDetailToUpsertRow,
@@ -13,6 +14,7 @@ import {
 
 export interface LocalResultsPage {
   results: LocalSearchResult[];
+  candidateSize: number;
 }
 
 export async function findLocalResultsPage(
@@ -48,15 +50,17 @@ export async function findLocalResultsPage(
       summary: mapCachedRowToTitleSummary(row),
       searchUpdatedAt: row.search_updated_at,
     })),
+    candidateSize,
   };
 }
 
 export async function countLocalResults(
   client: AdminClient,
   queries: string[],
+  countMode: SearchLocalCountMode = "exact",
 ): Promise<number> {
   const searchQuery = buildNameSearchQuery(
-    client.from("titles").select("id", { count: "exact", head: true }),
+    client.from("titles").select("id", { count: countMode, head: true }),
     queries,
   );
   const { error, count } = await searchQuery;
@@ -71,13 +75,15 @@ export async function countLocalResults(
 function buildNameSearchQuery<TQuery>(queryBuilder: TQuery, queries: string[]) {
   const normalizedQueries = queries
     .map((query) => query.trim())
-    .filter(
-      (query, index, allQueries) =>
-        query.length > 0 &&
-        allQueries.findIndex(
-          (candidate) => candidate.toLowerCase() === query.toLowerCase(),
-        ) === index,
-    );
+    .filter((query, index, allQueries) => {
+      if (query.length === 0) {
+        return false;
+      }
+
+      return allQueries.findIndex((candidate) =>
+        candidate.toLowerCase() === query.toLowerCase()
+      ) === index;
+    });
 
   if (normalizedQueries.length <= 1) {
     const query = normalizedQueries[0] ?? "";

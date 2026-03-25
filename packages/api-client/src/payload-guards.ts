@@ -3,6 +3,17 @@ import type { TitleSearchResult } from "@repo/types";
 import type { WatchlistItem } from "@repo/types";
 import type { WatchlistListResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
+import {
+  searchDecisionReasonValues,
+  searchProviderUsedTriggerValues,
+  searchServedByValues,
+} from "@repo/types";
+
+const SEARCH_SERVED_BY_SET = new Set<string>(searchServedByValues);
+const SEARCH_DECISION_REASON_SET = new Set<string>(searchDecisionReasonValues);
+const SEARCH_PROVIDER_USED_TRIGGER_SET = new Set<string>(
+  searchProviderUsedTriggerValues,
+);
 
 export function isTitleSearchResult(value: unknown): value is TitleSearchResult {
   if (!isRecord(value)) {
@@ -25,17 +36,18 @@ export function isTitleSearchResult(value: unknown): value is TitleSearchResult 
     value.results.every(isTitleSummary) &&
     (
       value.servedBy === undefined ||
-      value.servedBy === "local-cache" ||
-      value.servedBy === "rawg-refresh"
+      (typeof value.servedBy === "string" &&
+        SEARCH_SERVED_BY_SET.has(value.servedBy))
     ) &&
     (
       value.decisionReason === undefined ||
-      value.decisionReason === "local_sufficient" ||
-      value.decisionReason === "sparse_broad_local" ||
-      value.decisionReason === "forced_refresh" ||
-      value.decisionReason === "provider_missing_key" ||
-      value.decisionReason === "provider_fetch_failed" ||
-      value.decisionReason === "provider_used"
+      (typeof value.decisionReason === "string" &&
+        SEARCH_DECISION_REASON_SET.has(value.decisionReason))
+    ) &&
+    (
+      value.providerUsedTrigger === undefined ||
+      (typeof value.providerUsedTrigger === "string" &&
+        SEARCH_PROVIDER_USED_TRIGGER_SET.has(value.providerUsedTrigger))
     )
   );
 }

@@ -14,6 +14,7 @@ import { SearchResultRow } from "./search-result-row";
 interface SearchResultsListProps {
   results: TitleSummary[];
   servedBy: TitleSearchResult["servedBy"] | null;
+  decisionReason: TitleSearchResult["decisionReason"] | null;
   showSourceBadge: boolean;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
@@ -25,6 +26,7 @@ interface SearchResultsListProps {
 export function SearchResultsList({
   results,
   servedBy,
+  decisionReason,
   showSourceBadge,
   hasMoreResults,
   isLoadingMore,
@@ -59,6 +61,7 @@ export function SearchResultsList({
       ListHeaderComponent={
         <SearchResultsHeader
           servedBy={servedBy}
+          decisionReason={decisionReason}
           showSourceBadge={showSourceBadge}
         />
       }

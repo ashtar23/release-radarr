@@ -1,4 +1,4 @@
-import { RAWG_BASE_URL } from "../config.ts";
+import { getRawgSearchTimeoutMs, RAWG_BASE_URL } from "../config.ts";
 import {
   mapNamedList,
   mapRawgSearchGameToSummary,
@@ -31,7 +31,13 @@ export async function fetchRawgSearchResults(
     searchUrl.searchParams.set("search_exact", "true");
   }
 
-  const response = await fetch(searchUrl);
+  const searchTimeoutMs = getRawgSearchTimeoutMs();
+  const response = await fetch(
+    searchUrl,
+    searchTimeoutMs > 0
+      ? { signal: AbortSignal.timeout(searchTimeoutMs) }
+      : undefined,
+  );
   if (!response.ok) {
     throw new Error(`RAWG search failed with status ${response.status}.`);
   }
@@ -40,8 +46,8 @@ export async function fetchRawgSearchResults(
   const games = payload.results ?? [];
   const totalCount =
     typeof payload.count === "number" &&
-      Number.isFinite(payload.count) &&
-      payload.count >= 0
+    Number.isFinite(payload.count) &&
+    payload.count >= 0
       ? payload.count
       : null;
 

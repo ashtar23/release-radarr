@@ -6,15 +6,20 @@ import { StyleSheet, View } from "react-native";
 
 type SearchResultsHeaderProps = {
   servedBy: TitleSearchResult["servedBy"] | null;
+  decisionReason: TitleSearchResult["decisionReason"] | null;
   showSourceBadge: boolean;
 };
 
 function SearchResultsHeader({
   servedBy,
+  decisionReason,
   showSourceBadge,
 }: SearchResultsHeaderProps) {
   const theme = useTheme();
-  const sourceSummary = servedBy === "rawg-refresh" ? "RAWG refresh" : "Cache";
+  const sourceSummary =
+    servedBy === "rawg-refresh"
+      ? getRawgSourceSummary(decisionReason)
+      : "Cache";
 
   if (!showSourceBadge) {
     return null;
@@ -23,7 +28,9 @@ function SearchResultsHeader({
   return (
     <View style={styles.resultsHeader}>
       <View style={styles.summaryRow}>
-        <View style={[styles.sourceBadge, { borderColor: theme.card.search.meta }]}>
+        <View
+          style={[styles.sourceBadge, { borderColor: theme.card.search.meta }]}
+        >
           <ThemedText type="small" style={{ color: theme.card.search.meta }}>
             {sourceSummary}
           </ThemedText>
@@ -51,3 +58,17 @@ const styles = StyleSheet.create({
 });
 
 export { SearchResultsHeader };
+
+function getRawgSourceSummary(
+  decisionReason: TitleSearchResult["decisionReason"] | null,
+) {
+  if (decisionReason === "forced_refresh") {
+    return "RAWG forced";
+  }
+
+  if (decisionReason === "sparse_broad_local") {
+    return "RAWG sparse";
+  }
+
+  return "RAWG refresh";
+}

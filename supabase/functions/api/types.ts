@@ -1,6 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "../_shared/database.types.ts";
+import type {
+  SearchDecisionReason as SearchDecisionReasonLiteral,
+  SearchProviderUsedTrigger,
+  SearchServedBy,
+} from "./contracts/search.ts";
 
 export type AdminClient = SupabaseClient<Database>;
 export type TitleInsertRow = Database["public"]["Tables"]["titles"]["Insert"];
@@ -50,17 +55,12 @@ export interface TitleSearchResult {
   page: number;
   limit: number;
   hasMore: boolean;
-  servedBy: "local-cache" | "rawg-refresh";
-  decisionReason?: SearchDecisionReason;
+  servedBy: SearchServedBy;
+  decisionReason?: SearchDecisionReasonLiteral;
+  providerUsedTrigger?: SearchProviderUsedTrigger;
 }
 
-export type SearchDecisionReason =
-  | "local_sufficient"
-  | "sparse_broad_local"
-  | "forced_refresh"
-  | "provider_missing_key"
-  | "provider_fetch_failed"
-  | "provider_used";
+export type SearchDecisionReason = SearchDecisionReasonLiteral;
 
 export interface WatchlistItem {
   id: string;

@@ -27,6 +27,17 @@ export type {
   TitleSummary,
 } from "./titles";
 export { titleSearchQuerySchema } from "./titles";
+export type {
+  SearchIntentMode,
+  SearchProviderUsedTrigger,
+  SearchServedBy,
+} from "./search-contract";
+export {
+  searchDecisionReasonValues,
+  searchIntentModeValues,
+  searchProviderUsedTriggerValues,
+  searchServedByValues,
+} from "./search-contract";
 
 export type {
   AddWatchlistItemInput,

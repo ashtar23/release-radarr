@@ -1,7 +1,13 @@
+import type { QueryIntentMode } from "../contracts/search.ts";
 import type { TitleSummary } from "../types.ts";
 
-export type QueryIntentMode = "broad" | "specific";
-export type LexicalConfidence = "high" | "medium" | "low";
+export const LEXICAL_CONFIDENCE_VALUES = ["high", "medium", "low"] as const;
+export type LexicalConfidence = (typeof LEXICAL_CONFIDENCE_VALUES)[number];
+export const LEXICAL_CONFIDENCE = {
+  HIGH: "high",
+  MEDIUM: "medium",
+  LOW: "low",
+} as const satisfies Record<Uppercase<LexicalConfidence>, LexicalConfidence>;
 
 const QUALITY_BASE_POINTS: Record<QueryIntentMode, number> = {
   specific: 380,
@@ -64,7 +70,9 @@ export function computeProviderQualityAdjustmentV2(
   }
 
   const fullPoints = Math.round(QUALITY_BASE_POINTS[intentMode] * qualityScore);
-  const adjusted = Math.round(fullPoints * V2_CONFIDENCE_MULTIPLIER[lexicalConfidence]);
+  const adjusted = Math.round(
+    fullPoints * V2_CONFIDENCE_MULTIPLIER[lexicalConfidence],
+  );
   return Math.min(adjusted, V2_CONFIDENCE_CAP[lexicalConfidence]);
 }
 
@@ -80,7 +88,7 @@ export function computeProviderQualityComposite(result: TitleSummary) {
   return clamp(
     metacriticNorm * 0.34 +
       ratingNorm * 0.26 +
-      ratingsCountNorm * 0.20 +
+      ratingsCountNorm * 0.2 +
       addedNorm * 0.12 +
       reviewsNorm * 0.05 +
       suggestionsNorm * 0.02 +
