@@ -1,6 +1,6 @@
 # Mobile Navigation Structure (Recommended)
 
-This document confirms the currently recommended navigation structure for the mobile app and why we use it.
+This document captures the current Expo Router structure for the mobile app.
 
 ## Current structure in this repo
 
@@ -14,6 +14,9 @@ apps/mobile/src/app/
     home/
       _layout.tsx                # stack for Home tab branch
       index.tsx                  # home screen
+    search/
+      _layout.tsx                # stack for search tab branch
+      index.tsx                  # search screen
     watchlist/
       _layout.tsx                # stack for Watchlist tab branch
       index.tsx                  # watchlist screen
@@ -22,11 +25,11 @@ apps/mobile/src/app/
       index.tsx                  # settings screen
 ```
 
-## Why this is recommended
+## Why this shape exists
 
 1. **Native tabs + stack per tab branch**
 - Expo docs for Native Tabs explicitly recommend nesting a native `Stack` inside tabs when you need headers and push navigation.
-- This is exactly what `home/_layout.tsx` and `explore/_layout.tsx` do.
+- This repo follows that pattern for home, search, watchlist, and settings.
 
 2. **Do not create one layout per page**
 - The target pattern is one navigator per branch/flow (for example, one stack for Home, one stack for Explore), not a separate layout for every single screen file.
@@ -42,9 +45,9 @@ apps/mobile/src/app/
 - Use screen-level `<Stack.Screen options={...} />` only for dynamic values (for example title from fetched game data).
 - Avoid splitting full header config across multiple nested layouts/screens for the same route, which can cause overlap or double-header behavior.
 
-5. **iOS large-title behavior**
-- Native stack large-title collapse requires a scrollable screen (`ScrollView`/`FlatList`) and `contentInsetAdjustmentBehavior="automatic"`.
-- This is why tab screens that use large titles are implemented with a top-level scroll view pattern.
+5. **Search and watchlist are separate flows**
+- Search is its own tab branch because it has infinite scroll and query-driven state.
+- Watchlist is its own tab branch because it is auth-gated and uses a different state model.
 
 6. **`(tabs)/index.tsx` redirect is valid**
 - Expo Router officially supports using `<Redirect />` from an index route.

@@ -2,68 +2,53 @@
 
 ## Provider model
 
-The primary external provider is RAWG.
+RAWG is the only external metadata provider. The backend fetches, normalizes, caches, and serves game data so clients never talk to RAWG directly.
 
-The backend is responsible for fetching, normalizing, caching, and serving game metadata so that clients do not consume RAWG directly.
+## Edge API boundary
+
+The client-facing backend is the Supabase Edge Function namespace:
+- `/functions/v1/api/titles`
+- `/functions/v1/api/titles/:id`
+- `/functions/v1/api/watchlist`
+
+Web and mobile call those routes through `@repo/api-client` only.
 
 ## Search flow
 
-1. client sends a search query
-2. backend searches the local database first
-3. if cached results are sufficient and fresh, return them
-4. if cached results are weak or stale:
+1. client sends a search query with page and limit
+2. backend checks the local database first
+3. if the local page is sufficient and fresh, return it
+4. if the local page is weak or stale:
    - fetch from RAWG
-   - normalize the results
-   - upsert them into the database
-   - return the normalized results
+   - normalize results into internal title summaries
+   - upsert them into the local cache
+   - return the merged ranked page
+
+Search responses include pagination metadata so the client can drive infinite scroll without guessing.
 
 ## Title details flow
 
 1. client requests a title detail view
 2. backend checks cached title and release data
-3. if missing or stale:
-   - fetch details from RAWG
-   - normalize and upsert title metadata
-   - normalize and upsert release/platform data
-4. compare previous and new release data
-5. create change events when meaningful differences are detected
-
-## Freshness rules
-
-Initial recommended defaults:
-
-- search results: 7 days
-- title details: 24 hours
-- watched titles: refreshed daily
-
-These values may be tuned later.
+3. if missing or stale, fetch RAWG detail data
+4. normalize and upsert title metadata plus release/platform data
+5. compare previous and new release data
+6. create change events when meaningful differences are detected
 
 ## Watchlist model
 
 - guests can search and browse
 - authenticated users can add/remove titles from watchlist
 - watchlist is tracked at the title level
-- platform-specific releases are shown underneath each title
+- watchlist entries return the title summary plus platform releases
 
-## Notification model
+## Notifications
 
-Notification event types:
-
+Current MVP notification event types:
 - `release_date_changed`
 - `release_approaching`
 
-Notification records should exist in-app first.
-Push delivery is added immediately after the in-app pipeline is working.
-
-## Initial backend priorities
-
-1. auth
-2. title cache/search flow
-3. title detail refresh flow
-4. watchlist persistence
-5. notification preferences
-6. notification event generation
-7. push delivery
+Notification records are in-app first. Push delivery follows after the in-app pipeline is stable.
 
 ## Client auth keys
 
