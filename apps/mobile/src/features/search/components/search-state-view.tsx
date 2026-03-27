@@ -3,7 +3,7 @@ import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import type { SearchStateMode } from "../hooks/use-search-titles-query";
+import type { SearchStateMode } from "../hooks/use-search-screen-state";
 
 interface SearchStateViewProps {
   mode: SearchStateMode;

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 
-import type { TitleSearchResult, TitleSummary } from "@repo/types";
+import type { TitleSummary } from "@repo/types";
 import { StyleSheet, View } from "react-native";
 
 import { capabilities } from "@/constants/capabilities";
@@ -10,27 +10,25 @@ import { Spacing } from "@/constants/theme";
 import { SearchResultsFooter } from "./search-results.footer";
 import { SearchResultsHeader } from "./search-results-header";
 import { TitleCardRow } from "@/features/titles/components/title-card-row";
+import type { SearchScreenState } from "../hooks/use-search-screen-state";
 
 interface SearchResultsListProps {
-  results: TitleSummary[];
-  servedBy: TitleSearchResult["servedBy"] | null;
-  decisionReason: TitleSearchResult["decisionReason"] | null;
-  showSourceBadge: boolean;
-  hasMoreResults: boolean;
-  isLoadingMore: boolean;
-  loadMoreErrorMessage: string | null;
+  searchState: Pick<
+    SearchScreenState,
+    | "results"
+    | "servedBy"
+    | "decisionReason"
+    | "showSourceBadge"
+    | "hasMoreResults"
+    | "isLoadingMore"
+    | "loadMoreErrorMessage"
+  >;
   onRetryLoadMore: () => void;
   onEndReached: () => void;
 }
 
 export function SearchResultsList({
-  results,
-  servedBy,
-  decisionReason,
-  showSourceBadge,
-  hasMoreResults,
-  isLoadingMore,
-  loadMoreErrorMessage,
+  searchState,
   onRetryLoadMore,
   onEndReached,
 }: SearchResultsListProps) {
@@ -45,7 +43,7 @@ export function SearchResultsList({
   return (
     <FlashList
       style={styles.list}
-      data={results}
+      data={searchState.results}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       maintainVisibleContentPosition={{ disabled: true }}
@@ -60,18 +58,18 @@ export function SearchResultsList({
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
         <SearchResultsHeader
-          servedBy={servedBy}
-          decisionReason={decisionReason}
-          showSourceBadge={showSourceBadge}
+          servedBy={searchState.servedBy}
+          decisionReason={searchState.decisionReason}
+          showSourceBadge={searchState.showSourceBadge}
         />
       }
       ItemSeparatorComponent={ResultSeparator}
       ListFooterComponent={
         <SearchResultsFooter
-          hasMoreResults={hasMoreResults}
-          loadedCount={results.length}
-          isLoadingMore={isLoadingMore}
-          loadMoreErrorMessage={loadMoreErrorMessage}
+          hasMoreResults={searchState.hasMoreResults}
+          loadedCount={searchState.results.length}
+          isLoadingMore={searchState.isLoadingMore}
+          loadMoreErrorMessage={searchState.loadMoreErrorMessage}
           onRetryLoadMore={onRetryLoadMore}
         />
       }
