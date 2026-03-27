@@ -6,6 +6,14 @@ import {
   watchlistConfigError,
 } from "../data-access/watchlist";
 import { useAuth } from "@/auth/auth-provider";
+import {
+  buildOptimisticWatchlistItem,
+  getWatchlistSnapshot,
+  removeWatchlistItemByTitleId,
+  setWatchlistSnapshot,
+  upsertWatchlistItem,
+} from "./watchlist-cache";
+import { getWatchlistQueryKey } from "./watchlist-query-key";
 
 type AddToWatchlistVariables = {
   title: TitleDetails;
@@ -23,7 +31,7 @@ function useWatchlistMutation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id ?? null;
-  const watchlistQueryKey = ["watchlist", userId] as const;
+  const watchlistQueryKey = getWatchlistQueryKey(userId);
   const invalidateWatchlist = () => {
     if (!userId) {
       return;
@@ -48,17 +56,11 @@ function useWatchlistMutation() {
       }
 
       await queryClient.cancelQueries({ queryKey: watchlistQueryKey });
-      const previousWatchlist =
-        queryClient.getQueryData<WatchlistListResult>(watchlistQueryKey);
+      const previousWatchlist = getWatchlistSnapshot(queryClient, userId);
 
-      const optimisticItem = {
-        id: `${userId}:${title.id}`,
-        title,
-        releases: title.releases,
-        addedAt: new Date().toISOString(),
-      };
+      const optimisticItem = buildOptimisticWatchlistItem(userId, title);
 
-      queryClient.setQueryData<WatchlistListResult>(watchlistQueryKey, {
+      setWatchlistSnapshot(queryClient, userId, {
         items: upsertWatchlistItem(
           previousWatchlist?.items ?? [],
           optimisticItem,
@@ -73,7 +75,7 @@ function useWatchlistMutation() {
       }
 
       if (context?.previousWatchlist) {
-        queryClient.setQueryData(watchlistQueryKey, context.previousWatchlist);
+        setWatchlistSnapshot(queryClient, userId, context.previousWatchlist);
       }
     },
     onSuccess: (payload) => {
@@ -107,12 +109,12 @@ function useWatchlistMutation() {
       }
 
       await queryClient.cancelQueries({ queryKey: watchlistQueryKey });
-      const previousWatchlist =
-        queryClient.getQueryData<WatchlistListResult>(watchlistQueryKey);
+      const previousWatchlist = getWatchlistSnapshot(queryClient, userId);
 
-      queryClient.setQueryData<WatchlistListResult>(watchlistQueryKey, {
-        items: (previousWatchlist?.items ?? []).filter(
-          (item) => item.title.id !== titleId,
+      setWatchlistSnapshot(queryClient, userId, {
+        items: removeWatchlistItemByTitleId(
+          previousWatchlist?.items ?? [],
+          titleId,
         ),
       });
 
@@ -124,7 +126,7 @@ function useWatchlistMutation() {
       }
 
       if (context?.previousWatchlist) {
-        queryClient.setQueryData(watchlistQueryKey, context.previousWatchlist);
+        setWatchlistSnapshot(queryClient, userId, context.previousWatchlist);
       }
     },
     onSuccess: () => {
@@ -142,13 +144,3 @@ function useWatchlistMutation() {
 }
 
 export { useWatchlistMutation };
-
-function upsertWatchlistItem(
-  items: WatchlistListResult["items"],
-  item: WatchlistListResult["items"][number],
-) {
-  const filteredItems = items.filter(
-    (existingItem) => existingItem.id !== item.id,
-  );
-  return [item, ...filteredItems];
-}

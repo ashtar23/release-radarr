@@ -12,15 +12,16 @@ interface WatchlistJoinedRow extends WatchlistRow {
   titles: CachedTitleRow | null;
 }
 
+const WATCHLIST_WITH_TITLE_SELECT =
+  "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top)";
+
 export async function listWatchlistItems(
   client: AdminClient,
   userId: string,
 ): Promise<WatchlistItem[]> {
   const { data, error } = await client
     .from("watchlists")
-    .select(
-      "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top)",
-    )
+    .select(WATCHLIST_WITH_TITLE_SELECT)
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -63,9 +64,7 @@ export async function findWatchlistItem(
 ): Promise<WatchlistItem | null> {
   const { data, error } = await client
     .from("watchlists")
-    .select(
-      "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top)",
-    )
+    .select(WATCHLIST_WITH_TITLE_SELECT)
     .eq("user_id", userId)
     .eq("title_id", titleId)
     .maybeSingle();

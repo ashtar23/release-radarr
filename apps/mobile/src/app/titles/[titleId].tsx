@@ -5,8 +5,7 @@ import { HeaderIconButton } from "@/components/header-icon-button";
 import { useTitleDetailsQuery } from "@/features/title-details/data-access/queries/use-title-details-query";
 import { TitleDetailsStateView } from "@/features/title-details/components";
 import { useTheme } from "@/hooks/use-theme";
-import { useWatchlistMutation } from "@/features/watchlist/queries/use-watchlist-mutation";
-import { useIsTitleInWatchlist } from "@/features/watchlist/queries/use-is-title-in-watchlist";
+import { useTitleWatchlist } from "@/features/watchlist/hooks/use-title-watchlist";
 
 type TitleDetailsScreenProps = {
   titleId?: string | string[];
@@ -29,11 +28,9 @@ export default function TitleDetailsScreen() {
     error,
   } = useTitleDetailsQuery({ titleId });
 
-  const { addMutation, removeMutation } = useWatchlistMutation();
-  const { isInWatchlist } = useIsTitleInWatchlist(titleId);
-  const isMutationInFlight = addMutation.isPending || removeMutation.isPending;
+  const { isInWatchlist, canToggleWatchlist, isMutating, toggleWatchlist } =
+    useTitleWatchlist(titleId, titleDetails);
   const isBookmarkActive = isInWatchlist;
-  const canToggleWatchlist = isBookmarkActive || Boolean(titleDetails);
   const bookmarkTintColor = isBookmarkActive
     ? theme.accent.watchlist
     : theme.textSecondary;
@@ -49,16 +46,7 @@ export default function TitleDetailsScreen() {
           headerLargeTitleEnabled: false,
           headerRight: () => (
             <HeaderIconButton
-              onPress={() => {
-                if (isBookmarkActive) {
-                  removeMutation.mutate({ titleId });
-                  return;
-                }
-
-                if (titleDetails) {
-                  addMutation.mutate({ title: titleDetails });
-                }
-              }}
+              onPress={toggleWatchlist}
               accessibilityLabel={bookmarkAccessibilityLabel}
               tintColor={bookmarkTintColor}
               iconProps={
@@ -66,7 +54,7 @@ export default function TitleDetailsScreen() {
                   ? ({ ios: "bookmark.fill", android: "bookmark" } as const)
                   : ({ ios: "bookmark", android: "bookmark_add" } as const)
               }
-              disabled={isMutationInFlight || !canToggleWatchlist}
+              disabled={isMutating || !canToggleWatchlist}
             />
           ),
         }}

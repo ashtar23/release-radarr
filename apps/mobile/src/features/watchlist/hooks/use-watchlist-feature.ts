@@ -1,0 +1,88 @@
+import { useCallback, useState } from "react";
+import { P, match } from "ts-pattern";
+import type { TitleDetails } from "@repo/types";
+
+import { useAuth } from "@/auth/auth-provider";
+
+import { useWatchlistMutation } from "../queries/use-watchlist-mutation";
+import { useWatchlistQuery } from "../queries/use-watchlist-query";
+
+export type WatchlistScreenMode =
+  | "checking-session"
+  | "signed-out"
+  | "loading"
+  | "refreshing"
+  | "empty";
+
+export function useWatchlistFeature() {
+  const { user, isReady } = useAuth();
+  const watchlistQuery = useWatchlistQuery();
+  const { addMutation, removeMutation } = useWatchlistMutation();
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const { refetch } = watchlistQuery;
+
+  const items = watchlistQuery.data?.items ?? [];
+  const hasWatchlistData = watchlistQuery.data !== undefined;
+  const canRefresh = isReady && Boolean(user);
+  const isInitialLoading =
+    watchlistQuery.isPending && !hasWatchlistData && !isManualRefreshing;
+  const isMutating = addMutation.isPending || removeMutation.isPending;
+
+  const refreshWatchlist = useCallback(async () => {
+    if (isManualRefreshing) {
+      return;
+    }
+
+    setIsManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsManualRefreshing(false);
+    }
+  }, [isManualRefreshing, refetch]);
+
+  const mode: WatchlistScreenMode = match({
+    isReady,
+    user,
+    isManualRefreshing,
+    hasWatchlistData,
+    isInitialLoading,
+  })
+    .returnType<WatchlistScreenMode>()
+    .with({ isReady: false }, () => "checking-session")
+    .with({ user: P.nullish }, () => "signed-out")
+    .with(
+      { isManualRefreshing: true, hasWatchlistData: false },
+      () => "refreshing",
+    )
+    .with({ isInitialLoading: true }, () => "loading")
+    .otherwise(() => "empty");
+
+  const isInWatchlist = (titleId: string) => {
+    const normalizedTitleId = titleId.trim();
+    if (!normalizedTitleId) {
+      return false;
+    }
+
+    return items.some((item) => item.title.id === normalizedTitleId);
+  };
+
+  const addToWatchlist = (title: TitleDetails) => {
+    addMutation.mutate({ title });
+  };
+
+  const removeFromWatchlist = (titleId: string) => {
+    removeMutation.mutate({ titleId });
+  };
+
+  return {
+    items,
+    mode,
+    refreshing: isManualRefreshing && canRefresh,
+    onRefresh: canRefresh ? refreshWatchlist : undefined,
+    isMutating,
+    isInWatchlist,
+    addToWatchlist,
+    removeFromWatchlist,
+  };
+}

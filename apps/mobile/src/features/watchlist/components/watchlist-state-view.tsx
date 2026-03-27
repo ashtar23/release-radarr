@@ -6,14 +6,17 @@ import { AppButton } from "@/components/ui/button";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
-import type { WatchlistScreenMode } from "../hooks/use-watchlist-screen-state";
+import type { WatchlistScreenMode } from "../hooks/use-watchlist-feature";
 
 type WatchlistStateViewProps = {
   mode: WatchlistScreenMode;
   onSignIn: () => void;
 };
 
-export function WatchlistStateView({ mode, onSignIn }: WatchlistStateViewProps) {
+export function WatchlistStateView({
+  mode,
+  onSignIn,
+}: WatchlistStateViewProps) {
   const theme = useTheme();
 
   if (mode === "checking-session") {

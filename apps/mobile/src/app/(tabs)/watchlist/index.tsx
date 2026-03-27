@@ -2,25 +2,25 @@ import { useRouter } from "expo-router";
 
 import { WatchlistList } from "@/features/watchlist/components/watchlist-list";
 import { WatchlistStateView } from "@/features/watchlist/components/watchlist-state-view";
-import { useWatchlistScreenState } from "@/features/watchlist/hooks/use-watchlist-screen-state";
+import { useWatchlistFeature } from "@/features/watchlist/hooks/use-watchlist-feature";
 
 export default function WatchlistScreen() {
   const router = useRouter();
-  const watchlistScreenState = useWatchlistScreenState();
+  const watchlistFeature = useWatchlistFeature();
 
-  if (watchlistScreenState.items.length > 0) {
+  if (watchlistFeature.items.length > 0) {
     return (
       <WatchlistList
-        items={watchlistScreenState.items}
-        refreshing={watchlistScreenState.refreshing}
-        onRefresh={watchlistScreenState.onRefresh}
+        items={watchlistFeature.items}
+        refreshing={watchlistFeature.refreshing}
+        onRefresh={watchlistFeature.onRefresh}
       />
     );
   }
 
   return (
     <WatchlistStateView
-      mode={watchlistScreenState.mode}
+      mode={watchlistFeature.mode}
       onSignIn={() => router.push("/profile")}
     />
   );
