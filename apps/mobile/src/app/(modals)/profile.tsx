@@ -5,7 +5,7 @@ import {
   type AuthCredentialsInput,
 } from "@repo/types/auth";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -13,10 +13,11 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  Button,
+  Platform,
 } from "react-native";
 
 import { useAuth } from "@/auth/auth-provider";
+import { HeaderIconButton } from "@/components/header-icon-button";
 import { AppButton } from "@/components/ui/button";
 import { AppInput } from "@/components/ui/input";
 import { ThemedText } from "@/components/themed-text";
@@ -80,109 +81,136 @@ export default function ProfileModalScreen() {
     : theme.background;
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: pageBackgroundColor }]}
-      contentInsetAdjustmentBehavior={
-        capabilities.autoContentInsets ? "automatic" : "never"
-      }
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <ThemedView style={[styles.card, {}]}>
-        {!isReady && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator />
-            <ThemedText themeColor="textSecondary">
-              Checking session...
+    <>
+      <Stack.Screen
+        options={{
+          headerRight:
+            Platform.OS === "ios"
+              ? undefined
+              : () => (
+                  <HeaderIconButton
+                    onPress={() => router.back()}
+                    accessibilityLabel="Close profile"
+                    iconProps={{ ios: "xmark", android: "close" }}
+                  />
+                ),
+        }}
+      />
+
+      {Platform.OS === "ios" ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            icon="xmark"
+            onPress={() => router.back()}
+            accessibilityLabel="Close profile"
+          />
+        </Stack.Toolbar>
+      ) : null}
+
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: pageBackgroundColor }]}
+        contentInsetAdjustmentBehavior={
+          capabilities.autoContentInsets ? "automatic" : "never"
+        }
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ThemedView style={[styles.card, {}]}>
+          {!isReady && (
+            <View style={styles.loadingRow}>
+              <ActivityIndicator />
+              <ThemedText themeColor="textSecondary">
+                Checking session...
+              </ThemedText>
+            </View>
+          )}
+
+          {configError ? (
+            <ThemedText style={errorTextStyle}>{configError}</ThemedText>
+          ) : null}
+
+          {feedback ? (
+            <ThemedText
+              style={user ? successTextStyle : errorTextStyle}
+              themeColor={user ? undefined : "textSecondary"}
+            >
+              {feedback}
             </ThemedText>
-          </View>
-        )}
+          ) : null}
 
-        {configError ? (
-          <ThemedText style={errorTextStyle}>{configError}</ThemedText>
-        ) : null}
+          {user ? (
+            <>
+              <ThemedText themeColor="textSecondary">
+                Signed in as {user.email ?? "unknown user"}.
+              </ThemedText>
+              <AppButton
+                label="Sign out"
+                onPress={() => signOutMutation.mutate()}
+                disabled={!canSubmit}
+                variant="primary"
+                useGlass
+              />
+            </>
+          ) : (
+            <>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <AppInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    placeholder="Email"
+                    placeholderTextColor={theme.input.placeholder}
+                    disabled={Boolean(configError)}
+                    errorMessage={formState.errors.email?.message}
+                    containerStyle={styles.inputContainer}
+                  />
+                )}
+              />
 
-        {feedback ? (
-          <ThemedText
-            style={user ? successTextStyle : errorTextStyle}
-            themeColor={user ? undefined : "textSecondary"}
-          >
-            {feedback}
-          </ThemedText>
-        ) : null}
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <AppInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="password"
+                    secureTextEntry
+                    placeholder="Password"
+                    placeholderTextColor={theme.input.placeholder}
+                    disabled={Boolean(configError)}
+                    errorMessage={formState.errors.password?.message}
+                    containerStyle={styles.inputContainer}
+                  />
+                )}
+              />
 
-        {user ? (
-          <>
-            <ThemedText themeColor="textSecondary">
-              Signed in as {user.email ?? "unknown user"}.
-            </ThemedText>
-            <AppButton
-              label="Sign out"
-              onPress={() => signOutMutation.mutate()}
-              disabled={!canSubmit}
-              variant="primary"
-              useGlass
-            />
-          </>
-        ) : (
-          <>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <AppInput
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  keyboardType="email-address"
-                  placeholder="Email"
-                  placeholderTextColor={theme.input.placeholder}
-                  disabled={Boolean(configError)}
-                  errorMessage={formState.errors.email?.message}
-                  containerStyle={styles.inputContainer}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <AppInput
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password"
-                  secureTextEntry
-                  placeholder="Password"
-                  placeholderTextColor={theme.input.placeholder}
-                  disabled={Boolean(configError)}
-                  errorMessage={formState.errors.password?.message}
-                  containerStyle={styles.inputContainer}
-                />
-              )}
-            />
-
-            <AppButton
-              label={signInMutation.isPending ? "Signing in..." : "Sign in"}
-              onPress={handleSubmit((values) => {
-                setFeedback(null);
-                signInMutation.mutate(values);
-              })}
-              disabled={!canSubmit}
-              loading={signInMutation.isPending}
-              variant="primary"
-              useGlass
-            />
-          </>
-        )}
-      </ThemedView>
-    </ScrollView>
+              <AppButton
+                label={signInMutation.isPending ? "Signing in..." : "Sign in"}
+                onPress={handleSubmit((values) => {
+                  setFeedback(null);
+                  signInMutation.mutate(values);
+                })}
+                disabled={!canSubmit}
+                loading={signInMutation.isPending}
+                variant="primary"
+                useGlass
+              />
+            </>
+          )}
+        </ThemedView>
+      </ScrollView>
+    </>
   );
 }
 

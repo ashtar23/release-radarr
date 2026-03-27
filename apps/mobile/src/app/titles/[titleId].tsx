@@ -1,5 +1,6 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
+import { Platform } from "react-native";
 
 import { HeaderIconButton } from "@/components/header-icon-button";
 import { useTitleDetailsQuery } from "@/features/title-details/data-access/queries/use-title-details-query";
@@ -37,6 +38,7 @@ export default function TitleDetailsScreen() {
   const bookmarkAccessibilityLabel = isBookmarkActive
     ? "Remove from watchlist"
     : "Add to watchlist";
+  const toolbarIcon = isBookmarkActive ? "bookmark.fill" : "bookmark";
 
   return (
     <>
@@ -44,21 +46,42 @@ export default function TitleDetailsScreen() {
         options={{
           title: titleDetails?.name?.trim() || headerTitle,
           headerLargeTitleEnabled: false,
-          headerRight: () => (
-            <HeaderIconButton
-              onPress={toggleWatchlist}
-              accessibilityLabel={bookmarkAccessibilityLabel}
-              tintColor={bookmarkTintColor}
-              iconProps={
-                isBookmarkActive
-                  ? ({ ios: "bookmark.fill", android: "bookmark" } as const)
-                  : ({ ios: "bookmark", android: "bookmark_add" } as const)
-              }
-              disabled={isMutating || !canToggleWatchlist}
-            />
-          ),
+          headerRight:
+            Platform.OS !== "ios"
+              ? undefined
+              : () => (
+                  <HeaderIconButton
+                    onPress={toggleWatchlist}
+                    accessibilityLabel={bookmarkAccessibilityLabel}
+                    tintColor={bookmarkTintColor}
+                    iconProps={
+                      isBookmarkActive
+                        ? {
+                            ios: "bookmark.fill",
+                            android: "bookmark",
+                          }
+                        : {
+                            ios: "bookmark",
+                            android: "bookmark_add",
+                          }
+                    }
+                    disabled={isMutating || !canToggleWatchlist}
+                  />
+                ),
         }}
       />
+
+      {Platform.OS === "ios" ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            tintColor={bookmarkTintColor}
+            icon={toolbarIcon}
+            onPress={toggleWatchlist}
+            accessibilityLabel={bookmarkAccessibilityLabel}
+            hidden={!canToggleWatchlist && isMutating}
+          />
+        </Stack.Toolbar>
+      ) : null}
 
       <TitleDetailsStateView
         titleId={titleId}

@@ -155,6 +155,7 @@ export default function HomeScreen() {
   const clearSearch = () => {
     setSearchQuery("");
   };
+
   const errorTextStyle = { color: theme.status.error };
   const successTextStyle = { color: theme.status.success };
 
@@ -167,252 +168,256 @@ export default function HomeScreen() {
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
     >
-      <ThemedView type="backgroundElement" style={styles.panel}>
-        <ThemedText themeColor="textSecondary">
-          Guest browsing stays open. Watchlist and notifications require auth.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView type="backgroundElement" style={styles.panel}>
-        <ThemedText type="subtitle">Search</ThemedText>
-        <ThemedText themeColor="textSecondary">
-          Search is live as you type.
-        </ThemedText>
-
-        {apiClientConfigError && (
-          <ThemedText style={errorTextStyle}>
-            {apiClientConfigError}
-          </ThemedText>
-        )}
-
-        <AppInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="Search games..."
-          placeholderTextColor={theme.input.placeholder}
-          editable={!apiClientConfigError}
-        />
-
-        <View style={styles.buttonRow}>
-          <Pressable
-            onPress={clearSearch}
-            disabled={!hasSearchInput}
-            style={[
-              styles.button,
-              {
-                borderColor: theme.textSecondary,
-                backgroundColor: theme.backgroundElement,
-              },
-              !hasSearchInput && styles.buttonDisabled,
-            ]}
-          >
-            <ThemedText type="smallBold">Clear</ThemedText>
-          </Pressable>
-        </View>
-
-        {searchQuery.trim().length > 0 && searchQuery.trim().length < 2 && (
+        <ThemedView type="backgroundElement" style={styles.panel}>
           <ThemedText themeColor="textSecondary">
-            Enter at least 2 characters.
+            Guest browsing stays open. Watchlist and notifications require auth.
           </ThemedText>
-        )}
+        </ThemedView>
 
-        {showSearchResults && (
-          <>
-            {titlesQuery.isFetching && !titlesQuery.data && (
-              <View style={styles.loadingRow}>
-                <ActivityIndicator />
-                <ThemedText themeColor="textSecondary">Searching...</ThemedText>
-              </View>
-            )}
+        <ThemedView type="backgroundElement" style={styles.panel}>
+          <ThemedText type="subtitle">Search</ThemedText>
+          <ThemedText themeColor="textSecondary">
+            Search is live as you type.
+          </ThemedText>
 
-            {titlesQuery.isError && (
-              <ThemedText style={errorTextStyle}>
-                {toErrorMessage(titlesQuery.error)}
-              </ThemedText>
-            )}
-
-            {titlesQuery.data?.results.length === 0 && (
-              <ThemedText themeColor="textSecondary">
-                No games found for {titlesQuery.data.query}.
-              </ThemedText>
-            )}
-
-            {titlesQuery.data?.results.length ? (
-              <View style={styles.searchResultsList}>
-                {titlesQuery.data.results.map((result) => (
-                  <Link
-                    key={result.id}
-                    href={{
-                      pathname: "/titles/[titleId]",
-                      params: { titleId: result.id, titleName: result.name },
-                    }}
-                    asChild
-                  >
-                    <Pressable>
-                      <ThemedView
-                        type="background"
-                        style={[
-                          styles.searchResultItem,
-                          { borderColor: theme.textSecondary },
-                        ]}
-                      >
-                        <ThemedText type="smallBold">{result.name}</ThemedText>
-                        <ThemedText themeColor="textSecondary">
-                          {formatReleaseDate(result.earliestReleaseDate)}
-                        </ThemedText>
-                        <ThemedText themeColor="textSecondary">
-                          Platforms: {formatPlatforms(result)}
-                        </ThemedText>
-                      </ThemedView>
-                    </Pressable>
-                  </Link>
-                ))}
-              </View>
-            ) : null}
-          </>
-        )}
-      </ThemedView>
-
-      <ThemedView type="backgroundElement" style={styles.panel}>
-        <ThemedText type="subtitle">Auth</ThemedText>
-
-        {!isReady && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator />
-            <ThemedText themeColor="textSecondary">
-              Checking session...
+          {apiClientConfigError && (
+            <ThemedText style={errorTextStyle}>
+              {apiClientConfigError}
             </ThemedText>
-          </View>
-        )}
+          )}
 
-        {configError && (
-          <ThemedText style={errorTextStyle}>{configError}</ThemedText>
-        )}
+          <AppInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder="Search games..."
+            placeholderTextColor={theme.input.placeholder}
+            editable={!apiClientConfigError}
+          />
 
-        {user ? (
-          <>
-            <ThemedText themeColor="textSecondary">
-              Signed in as {user.email ?? "unknown user"}.
-            </ThemedText>
+          <View style={styles.buttonRow}>
             <Pressable
-              onPress={onSignOut}
-              disabled={!canSubmit}
+              onPress={clearSearch}
+              disabled={!hasSearchInput}
               style={[
                 styles.button,
                 {
                   borderColor: theme.textSecondary,
                   backgroundColor: theme.backgroundElement,
                 },
-                !canSubmit && styles.buttonDisabled,
+                !hasSearchInput && styles.buttonDisabled,
               ]}
             >
-              <ThemedText type="smallBold">Sign out</ThemedText>
+              <ThemedText type="smallBold">Clear</ThemedText>
             </Pressable>
-          </>
-        ) : (
-          <>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  keyboardType="email-address"
-                  placeholder="Email"
-                  placeholderTextColor={theme.input.placeholder}
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: theme.input.fallbackBorder,
-                      color: theme.text,
-                      backgroundColor: theme.background,
-                    },
-                  ]}
-                />
-              )}
-            />
-            {formState.errors.email?.message && (
-              <ThemedText style={errorTextStyle}>
-                {formState.errors.email.message}
-              </ThemedText>
-            )}
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <TextInput
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="password"
-                  placeholder="Password"
-                  placeholderTextColor={theme.input.placeholder}
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: theme.input.fallbackBorder,
-                      color: theme.text,
-                      backgroundColor: theme.background,
-                    },
-                  ]}
-                />
-              )}
-            />
-            {formState.errors.password?.message && (
-              <ThemedText style={errorTextStyle}>
-                {formState.errors.password.message}
-              </ThemedText>
-            )}
-            <View style={styles.buttonRow}>
-              <Pressable
-                onPress={onSignIn}
-                disabled={!canSubmit}
-                style={[
-                  styles.button,
-                  {
-                    borderColor: theme.textSecondary,
-                    backgroundColor: theme.backgroundElement,
-                  },
-                  !canSubmit && styles.buttonDisabled,
-                ]}
-              >
-                <ThemedText type="smallBold">Sign in</ThemedText>
-              </Pressable>
-              <Pressable
-                onPress={onSignUp}
-                disabled={!canSubmit}
-                style={[
-                  styles.button,
-                  {
-                    borderColor: theme.textSecondary,
-                    backgroundColor: theme.backgroundElement,
-                  },
-                  !canSubmit && styles.buttonDisabled,
-                ]}
-              >
-                <ThemedText type="smallBold">Sign up</ThemedText>
-              </Pressable>
-            </View>
-          </>
-        )}
+          </View>
 
-        {feedback?.kind === "success" && (
-          <ThemedText style={successTextStyle}>{feedback.message}</ThemedText>
-        )}
-        {feedback?.kind === "error" && (
-          <ThemedText style={errorTextStyle}>{feedback.message}</ThemedText>
-        )}
-      </ThemedView>
+          {searchQuery.trim().length > 0 && searchQuery.trim().length < 2 && (
+            <ThemedText themeColor="textSecondary">
+              Enter at least 2 characters.
+            </ThemedText>
+          )}
+
+          {showSearchResults && (
+            <>
+              {titlesQuery.isFetching && !titlesQuery.data && (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator />
+                  <ThemedText themeColor="textSecondary">
+                    Searching...
+                  </ThemedText>
+                </View>
+              )}
+
+              {titlesQuery.isError && (
+                <ThemedText style={errorTextStyle}>
+                  {toErrorMessage(titlesQuery.error)}
+                </ThemedText>
+              )}
+
+              {titlesQuery.data?.results.length === 0 && (
+                <ThemedText themeColor="textSecondary">
+                  No games found for {titlesQuery.data.query}.
+                </ThemedText>
+              )}
+
+              {titlesQuery.data?.results.length ? (
+                <View style={styles.searchResultsList}>
+                  {titlesQuery.data.results.map((result) => (
+                    <Link
+                      key={result.id}
+                      href={{
+                        pathname: "/titles/[titleId]",
+                        params: { titleId: result.id, titleName: result.name },
+                      }}
+                      asChild
+                    >
+                      <Pressable>
+                        <ThemedView
+                          type="background"
+                          style={[
+                            styles.searchResultItem,
+                            { borderColor: theme.textSecondary },
+                          ]}
+                        >
+                          <ThemedText type="smallBold">
+                            {result.name}
+                          </ThemedText>
+                          <ThemedText themeColor="textSecondary">
+                            {formatReleaseDate(result.earliestReleaseDate)}
+                          </ThemedText>
+                          <ThemedText themeColor="textSecondary">
+                            Platforms: {formatPlatforms(result)}
+                          </ThemedText>
+                        </ThemedView>
+                      </Pressable>
+                    </Link>
+                  ))}
+                </View>
+              ) : null}
+            </>
+          )}
+        </ThemedView>
+
+        <ThemedView type="backgroundElement" style={styles.panel}>
+          <ThemedText type="subtitle">Auth</ThemedText>
+
+          {!isReady && (
+            <View style={styles.loadingRow}>
+              <ActivityIndicator />
+              <ThemedText themeColor="textSecondary">
+                Checking session...
+              </ThemedText>
+            </View>
+          )}
+
+          {configError && (
+            <ThemedText style={errorTextStyle}>{configError}</ThemedText>
+          )}
+
+          {user ? (
+            <>
+              <ThemedText themeColor="textSecondary">
+                Signed in as {user.email ?? "unknown user"}.
+              </ThemedText>
+              <Pressable
+                onPress={onSignOut}
+                disabled={!canSubmit}
+                style={[
+                  styles.button,
+                  {
+                    borderColor: theme.textSecondary,
+                    backgroundColor: theme.backgroundElement,
+                  },
+                  !canSubmit && styles.buttonDisabled,
+                ]}
+              >
+                <ThemedText type="smallBold">Sign out</ThemedText>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    placeholder="Email"
+                    placeholderTextColor={theme.input.placeholder}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: theme.input.fallbackBorder,
+                        color: theme.text,
+                        backgroundColor: theme.background,
+                      },
+                    ]}
+                  />
+                )}
+              />
+              {formState.errors.email?.message && (
+                <ThemedText style={errorTextStyle}>
+                  {formState.errors.email.message}
+                </ThemedText>
+              )}
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="password"
+                    placeholder="Password"
+                    placeholderTextColor={theme.input.placeholder}
+                    style={[
+                      styles.input,
+                      {
+                        borderColor: theme.input.fallbackBorder,
+                        color: theme.text,
+                        backgroundColor: theme.background,
+                      },
+                    ]}
+                  />
+                )}
+              />
+              {formState.errors.password?.message && (
+                <ThemedText style={errorTextStyle}>
+                  {formState.errors.password.message}
+                </ThemedText>
+              )}
+              <View style={styles.buttonRow}>
+                <Pressable
+                  onPress={onSignIn}
+                  disabled={!canSubmit}
+                  style={[
+                    styles.button,
+                    {
+                      borderColor: theme.textSecondary,
+                      backgroundColor: theme.backgroundElement,
+                    },
+                    !canSubmit && styles.buttonDisabled,
+                  ]}
+                >
+                  <ThemedText type="smallBold">Sign in</ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={onSignUp}
+                  disabled={!canSubmit}
+                  style={[
+                    styles.button,
+                    {
+                      borderColor: theme.textSecondary,
+                      backgroundColor: theme.backgroundElement,
+                    },
+                    !canSubmit && styles.buttonDisabled,
+                  ]}
+                >
+                  <ThemedText type="smallBold">Sign up</ThemedText>
+                </Pressable>
+              </View>
+            </>
+          )}
+
+          {feedback?.kind === "success" && (
+            <ThemedText style={successTextStyle}>{feedback.message}</ThemedText>
+          )}
+          {feedback?.kind === "error" && (
+            <ThemedText style={errorTextStyle}>{feedback.message}</ThemedText>
+          )}
+        </ThemedView>
     </ScrollView>
   );
 }
