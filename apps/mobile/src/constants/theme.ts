@@ -48,6 +48,11 @@ export type AppTheme = {
   interactive: {
     linkPrimary: string;
     focusRing: string;
+    press: {
+      iosRowBackground: string;
+      androidRipple: string;
+      buttonOverlay: string;
+    };
   };
   accent: {
     watchlist: string;
@@ -100,6 +105,9 @@ export const THEME_TOKEN_ROLE_MATRIX = {
   "status/info": "status.info",
   "interactive/link-primary": "interactive.linkPrimary",
   "interactive/focus-ring": "interactive.focusRing",
+  "interactive/press-ios-row-background": "interactive.press.iosRowBackground",
+  "interactive/press-android-ripple": "interactive.press.androidRipple",
+  "interactive/press-button-overlay": "interactive.press.buttonOverlay",
   "accent/watchlist": "accent.watchlist",
   "input/placeholder": "input.placeholder",
   "input/fallback-border-default": "input.fallbackBorder",
@@ -151,6 +159,18 @@ export const THEME_PLATFORM_BASELINE = {
   "status/info": { ios: "systemBlue", android: "primary" },
   "interactive/link-primary": { ios: "link", android: "primary" },
   "interactive/focus-ring": { ios: "tintColor", android: "primary" },
+  "interactive/press-ios-row-background": {
+    ios: "tertiarySystemFill",
+    android: "n/a",
+  },
+  "interactive/press-android-ripple": {
+    ios: "n/a",
+    android: "onSurface with low alpha",
+  },
+  "interactive/press-button-overlay": {
+    ios: "pressed content overlay",
+    android: "onSurface with low alpha",
+  },
   "accent/watchlist": { ios: "systemOrange", android: "secondaryContainer" },
   "input/placeholder": { ios: "placeholderText", android: "onSurfaceVariant" },
   "input/fallback-border-default": { ios: "separator", android: "outline" },
@@ -240,6 +260,11 @@ export const Colors = {
     interactive: {
       linkPrimary: "#2b6fe0",
       focusRing: "#2b6fe0",
+      press: {
+        iosRowBackground: "#E0E1E6",
+        androidRipple: "rgba(15,23,42,0.06)",
+        buttonOverlay: "rgba(15,23,42,0.08)",
+      },
     },
     accent: {
       watchlist: "#A86D1C",
@@ -320,6 +345,11 @@ export const Colors = {
     interactive: {
       linkPrimary: "#74aeff",
       focusRing: "#74aeff",
+      press: {
+        iosRowBackground: "#2E3135",
+        androidRipple: "rgba(255,255,255,0.10)",
+        buttonOverlay: "rgba(255,255,255,0.10)",
+      },
     },
     accent: {
       watchlist: "#E5B24A",

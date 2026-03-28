@@ -1,8 +1,10 @@
 import React from "react";
+import { SymbolView } from "expo-symbols";
 import { ScrollView, StyleSheet } from "react-native";
 
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
+import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
 import {
   AppSymbol,
@@ -12,6 +14,7 @@ import {
 import { Href } from "expo-router";
 import { AppLink } from "@/components/app-link";
 import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/search/debug/search-debug-settings";
+import { useTheme } from "@/hooks/use-theme";
 
 type SettingsItem = {
   href: Href;
@@ -21,7 +24,7 @@ type SettingsItem = {
 };
 
 const DEVELOPER_SETTINGS_ITEM: SettingsItem = {
-  href: "/settings/developer",
+  href: "/profile/settings/developer",
   label: "Developer",
   iosSymbol: "hammer",
   androidSymbol: "build",
@@ -29,23 +32,23 @@ const DEVELOPER_SETTINGS_ITEM: SettingsItem = {
 
 const SETTINGS_ITEMS: SettingsItem[] = [
   {
-    href: "/settings/general",
+    href: "/profile/settings/general",
     label: "General",
     iosSymbol: "gearshape",
     androidSymbol: "settings",
   },
   {
-    href: "/settings/theme",
+    href: "/profile/settings/theme",
     label: "Theme",
     iosSymbol: "paintbrush",
     androidSymbol: "palette",
   },
-  ...(SEARCH_DEBUG_MODE_ENABLED
-    ? [DEVELOPER_SETTINGS_ITEM]
-    : []),
+  ...(SEARCH_DEBUG_MODE_ENABLED ? [DEVELOPER_SETTINGS_ITEM] : []),
 ];
 
 export default function SettingsScreen() {
+  const theme = useTheme();
+
   return (
     <ScrollView
       contentInsetAdjustmentBehavior={
@@ -55,12 +58,21 @@ export default function SettingsScreen() {
     >
       <ListSection>
         {SETTINGS_ITEMS.map(({ href, label, iosSymbol, androidSymbol }) => (
-          <AppLink
-            key={label}
-            href={href}
-            label={label}
-            leadingIcon={<AppSymbol ios={iosSymbol} android={androidSymbol} />}
-          />
+          <AppLink key={label} href={href}>
+            <ListRow
+              label={label}
+              leadingIcon={<AppSymbol ios={iosSymbol} android={androidSymbol} />}
+              trailingIcon={
+                <SymbolView
+                  name={{ ios: "chevron.right" }}
+                  fallback={null}
+                  size={12}
+                  weight="regular"
+                  tintColor={theme.textSecondary}
+                />
+              }
+            />
+          </AppLink>
         ))}
       </ListSection>
     </ScrollView>

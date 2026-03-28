@@ -3,32 +3,44 @@ import React from "react";
 
 import { defaultStackScreenOptions } from "@/constants/navigation";
 
-export default function SettingsLayout() {
+export default function ProfileLayout() {
   return (
-    <Stack screenOptions={defaultStackScreenOptions}>
+    <Stack
+      screenOptions={{
+        ...defaultStackScreenOptions,
+        headerLargeTitleEnabled: false,
+      }}
+    >
       <Stack.Screen
         name="index"
+        options={{
+          title: "",
+        }}
+      />
+
+      <Stack.Screen
+        name="settings/index"
         options={{
           title: "Settings",
         }}
       />
 
       <Stack.Screen
-        name="general"
+        name="settings/general"
         options={{
           title: "General",
         }}
       />
 
       <Stack.Screen
-        name="theme"
+        name="settings/theme"
         options={{
           title: "Theme",
         }}
       />
 
       <Stack.Screen
-        name="developer"
+        name="settings/developer"
         options={{
           title: "Developer",
         }}

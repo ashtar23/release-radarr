@@ -6,23 +6,21 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, View, useColorScheme } from "react-native";
+import { StyleSheet, View, useColorScheme } from "react-native";
 
 import { AuthProvider } from "@/auth/auth-provider";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { AppSheetProvider } from "@/components/sheets";
 import { defaultStackScreenOptions } from "@/constants/navigation";
 import { Colors } from "@/constants/theme";
-import { AppSymbol } from "@/components/app-symbol";
 import { SearchDebugSettingsProvider } from "@/features/search/debug/search-debug-settings";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
   const scheme = colorScheme === "dark" ? "dark" : "light";
   const appThemeColors = Colors[scheme];
 
@@ -57,25 +55,6 @@ export default function RootLayout() {
                       options={{
                         ...defaultStackScreenOptions,
                         title: "Title",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/profile"
-                      options={{
-                        sheetGrabberVisible: false,
-                        presentation: "modal",
-                        headerTitle: "Profile",
-                        headerBackButtonDisplayMode: "minimal",
-                        headerLargeTitleEnabled: true,
-                        headerRight: () => (
-                          <Pressable onPress={() => router.back()}>
-                            <AppSymbol
-                              ios="xmark"
-                              size={18}
-                              tintColor={Colors[scheme].text}
-                            />
-                          </Pressable>
-                        ),
                       }}
                     />
                   </Stack>

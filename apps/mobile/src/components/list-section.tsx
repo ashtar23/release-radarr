@@ -18,6 +18,10 @@ function androidItemRadius(isFirst: boolean, isLast: boolean) {
   };
 }
 
+/**
+ * Groups multiple list rows into a single visually connected section with
+ * platform-appropriate background, separators, and corner treatment.
+ */
 export function ListSection({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const isDark = useColorScheme() === "dark";

@@ -2,12 +2,10 @@ import { Stack } from "expo-router";
 import React from "react";
 
 import { defaultStackScreenOptions } from "@/constants/navigation";
-import { useTopLevelProfileHeaderOptions } from "@/features/navigation/header-actions";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function SearchLayout() {
   const theme = useTheme();
-  const profileHeaderOptions = useTopLevelProfileHeaderOptions();
 
   return (
     <Stack
@@ -21,7 +19,6 @@ export default function SearchLayout() {
         name="index"
         options={{
           title: "Search",
-          ...profileHeaderOptions,
         }}
       />
     </Stack>

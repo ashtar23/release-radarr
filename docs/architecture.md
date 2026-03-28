@@ -11,7 +11,8 @@ Current route groups:
 - `(tabs)/home` - entry/home surface
 - `(tabs)/search` - guest search and browsing
 - `(tabs)/watchlist` - authenticated watchlist
-- `(tabs)/settings` - account, theme, and developer tools
+- `(tabs)/profile` - guest and signed-in account hub
+- `(tabs)/profile/settings` - settings, theme, and developer tools
 - `titles/[titleId]` - shared title details screen from any tab
 
 ### `apps/web`

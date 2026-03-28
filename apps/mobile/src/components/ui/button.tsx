@@ -49,9 +49,7 @@ export function AppButton({
   const glassTintColor = theme.glassInput.tintIdle;
   const glassBackgroundColor = theme.glassInput.bgIdle;
   const glassBorderColor = theme.glassInput.borderIdle;
-  const pressedOverlayColor = darkTheme
-    ? "rgba(255,255,255,0.10)"
-    : "rgba(15,23,42,0.08)";
+  const pressedOverlayColor = theme.interactive.press.buttonOverlay;
 
   const backgroundColor =
     variant === "primary"
