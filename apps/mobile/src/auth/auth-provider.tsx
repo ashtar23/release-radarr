@@ -57,6 +57,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return supabase;
   };
 
+  const normalizeEmail = (email: string) => email.trim();
+
   const value: AuthContextValue = {
     user: session?.user ?? null,
     session,
@@ -65,14 +67,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
     async signInWithPassword(email, password) {
       const client = ensureClient();
       const { error } = await client.auth.signInWithPassword({
-        email,
+        email: normalizeEmail(email),
         password,
       });
       if (error) throw error;
     },
     async signUpWithPassword(email, password) {
       const client = ensureClient();
-      const { error } = await client.auth.signUp({ email, password });
+      const { error } = await client.auth.signUp({
+        email: normalizeEmail(email),
+        password,
+      });
       if (error) throw error;
     },
     async signOut() {

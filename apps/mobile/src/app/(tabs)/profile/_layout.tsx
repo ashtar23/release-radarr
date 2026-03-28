@@ -8,13 +8,12 @@ export default function ProfileLayout() {
     <Stack
       screenOptions={{
         ...defaultStackScreenOptions,
-        headerLargeTitleEnabled: false,
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          title: "",
+          title: "Profile",
         }}
       />
 
