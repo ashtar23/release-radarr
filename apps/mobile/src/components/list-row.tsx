@@ -33,7 +33,7 @@ export type ListRowProps = ListRowLabelProps | ListRowChildrenProps;
  * A presentational list row that renders label, subtitle, and optional leading
  * or trailing content using the platform list styling for the app.
  *
- * This component is intentionally non-interactive. Wrap it with `AppLink` for
+ * This component is intentionally non-interactive. Wrap it with `LinkRow` for
  * navigation or `ActionRow` for non-navigation actions when press feedback is
  * needed.
  */

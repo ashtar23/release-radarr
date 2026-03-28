@@ -4,7 +4,7 @@ import type { PressableProps } from "react-native";
 
 import { ActionRow } from "@/components/action-row";
 
-export type AppLinkProps = Omit<PressableProps, "onPress" | "children"> & {
+export type LinkRowProps = Omit<PressableProps, "onPress" | "children"> & {
   href: Href;
   replace?: boolean;
   children: ReactNode;
@@ -16,12 +16,12 @@ export type AppLinkProps = Omit<PressableProps, "onPress" | "children"> & {
  * Compose this around a `ListRow` when tapping the row should navigate to a new
  * screen while preserving the platform press feedback from `Link` + `Pressable`.
  */
-export function AppLink({
+export function LinkRow({
   href,
   replace = false,
   children,
   ...rest
-}: AppLinkProps) {
+}: LinkRowProps) {
   return (
     <Link href={href} replace={replace} asChild>
       <ActionRow {...rest}>

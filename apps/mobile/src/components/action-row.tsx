@@ -18,11 +18,7 @@ export type ActionRowProps = Omit<PressableProps, "children"> & {
  * Compose this around a `ListRow` when the row should trigger behavior such as
  * sign out, opening a sheet, or toggling a preference without routing away.
  */
-export function ActionRow({
-  children,
-  style,
-  ...rest
-}: ActionRowProps) {
+export function ActionRow({ children, style, ...rest }: ActionRowProps) {
   const theme = useTheme();
 
   return (

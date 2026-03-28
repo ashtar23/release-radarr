@@ -3,11 +3,9 @@ import React, {
   useImperativeHandle,
   useRef,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 import {
-  AccessibilityInfo,
   Platform,
   Pressable,
   StyleSheet,
@@ -124,7 +122,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(
       //   : null,
       {
         borderColor: shouldUseGlass ? glassBorderColor : fallbackBorderColor,
-        borderWidth: shouldUseGlass ? 0 : Platform.OS === "android" ? 0.5 : 0,
+        borderWidth: shouldUseGlass ? 0 : 1,
         backgroundColor: shouldUseGlass
           ? glassBackgroundColor
           : theme.background,

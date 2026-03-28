@@ -6,13 +6,13 @@ import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
+import { LinkRow } from "@/components/link-row";
 
 import {
   AppSymbol,
   type AndroidSymbolName,
   type IOSSymbolName,
 } from "@/components/app-symbol";
-import { AppLink } from "@/components/app-link";
 import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/search/debug/search-debug-settings";
 
 type SettingsItem = {
@@ -54,25 +54,34 @@ export default function SettingsScreen() {
       contentContainerStyle={styles.content}
     >
       <ListSection>
-        {SETTINGS_ITEMS.map(({ href, label, iosSymbol, androidSymbol }) => (
-          <AppLink key={label} href={href}>
-            <ListRow
-              label={label}
-              trailingIcon={
-                <AppSymbol
-                  ios="chevron.right"
-                  android="chevron_right"
-                  size={Platform.OS === "ios" ? 13 : 18}
-                />
-              }
-              leadingIcon={
-                <AppSymbol ios={iosSymbol} android={androidSymbol} />
-              }
-            />
-          </AppLink>
+        {SETTINGS_ITEMS.map((item) => (
+          <SettingsLinkRow key={item.label} item={item} />
         ))}
       </ListSection>
     </ScrollView>
+  );
+}
+
+function SettingsLinkRow({ item }: { item: SettingsItem }) {
+  return (
+    <LinkRow href={item.href}>
+      <ListRow
+        label={item.label}
+        trailingIcon={
+          <AppSymbol
+            ios="chevron.right"
+            android="chevron_right"
+            size={Platform.OS === "ios" ? 13 : 18}
+          />
+        }
+        leadingIcon={
+          <AppSymbol
+            ios={item.iosSymbol}
+            android={item.androidSymbol}
+          />
+        }
+      />
+    </LinkRow>
   );
 }
 
