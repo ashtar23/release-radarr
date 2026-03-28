@@ -3,7 +3,6 @@ import {
   authCredentialsSchema,
   type AuthCredentialsInput,
 } from "@repo/types/auth";
-import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -24,6 +23,7 @@ import { ListSection } from "@/components/list-section";
 import { ThemedText } from "@/components/themed-text";
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
+import { useSignInMutation, useSignOutMutation } from "@/features/auth/queries";
 import {
   HeaderActions,
   type HeaderAction,
@@ -43,8 +43,7 @@ const PROFILE_HEADER_ACTIONS: HeaderAction[] = [
 
 export default function ProfileScreen() {
   const theme = useTheme();
-  const { user, isReady, configError, signInWithPassword, signOut } = useAuth();
-  const [authError, setAuthError] = React.useState<string | null>(null);
+  const { user, isReady, configError } = useAuth();
 
   const { control, handleSubmit, formState, reset } =
     useForm<AuthCredentialsInput>({
@@ -55,32 +54,22 @@ export default function ProfileScreen() {
       },
     });
 
-  const signInMutation = useMutation({
-    mutationFn: async (values: AuthCredentialsInput) => {
-      await signInWithPassword(values.email, values.password);
-    },
+  const signInMutation = useSignInMutation({
     onSuccess: () => {
-      setAuthError(null);
       reset({ email: "", password: "" });
-    },
-    onError: (error: unknown) => {
-      setAuthError(toAuthErrorMessage(error));
     },
   });
 
-  const signOutMutation = useMutation({
-    mutationFn: async () => {
-      await signOut();
-    },
+  const signOutMutation = useSignOutMutation({
     onSuccess: () => {
       reset({ email: "", password: "" });
     },
-    onError: (error: unknown) => {},
   });
 
   const isBusy = signInMutation.isPending || signOutMutation.isPending;
   const canSubmit = isReady && !isBusy && !configError;
   const errorTextStyle = { color: theme.status.error };
+  const authError = signInMutation.errorMessage;
 
   return (
     <>
@@ -173,7 +162,7 @@ export default function ProfileScreen() {
                       onBlur={onBlur}
                       onChangeText={(nextValue) => {
                         if (authError) {
-                          setAuthError(null);
+                          signInMutation.resetErrorState();
                         }
                         onChange(nextValue);
                       }}
@@ -197,7 +186,7 @@ export default function ProfileScreen() {
                       onBlur={onBlur}
                       onChangeText={(nextValue) => {
                         if (authError) {
-                          setAuthError(null);
+                          signInMutation.resetErrorState();
                         }
                         onChange(nextValue);
                       }}
@@ -246,20 +235,6 @@ export default function ProfileScreen() {
       </KeyboardAvoidingView>
     </>
   );
-}
-
-function toAuthErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    if (
-      error.message.trim().toLowerCase().includes("invalid login credentials")
-    ) {
-      return "Wrong email or password.";
-    }
-
-    return error.message;
-  }
-
-  return "Something went wrong while signing in.";
 }
 
 const styles = StyleSheet.create({

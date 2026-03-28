@@ -74,7 +74,7 @@ export function ListRow({
         </ThemedText>
 
         {subtitle && (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
             {subtitle}
           </ThemedText>
         )}
