@@ -4,21 +4,13 @@ import {
   type AuthCredentialsInput,
 } from "@repo/types/auth";
 import { useMutation } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
-import React, { useMemo } from "react";
+import React from "react";
 import { Controller, useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/auth/auth-provider";
 import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
-import { HeaderIconButton } from "@/components/header-icon-button";
 import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
 import { ThemedText } from "@/components/themed-text";
@@ -27,13 +19,23 @@ import { AppInput } from "@/components/ui/input";
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import {
+  HeaderActions,
   type HeaderAction,
-  useHeaderActions,
 } from "@/features/navigation/header-actions";
 import { useTheme } from "@/hooks/use-theme";
 
+const PROFILE_HEADER_ACTIONS: HeaderAction[] = [
+  {
+    kind: "button",
+    id: "profile-settings",
+    label: "Open settings",
+    iosIcon: "gear",
+    androidIcon: "settings",
+    href: "/profile/settings",
+  },
+];
+
 export default function ProfileScreen() {
-  const router = useRouter();
   const theme = useTheme();
   const { user, isReady, configError, signInWithPassword, signOut } = useAuth();
 
@@ -66,41 +68,13 @@ export default function ProfileScreen() {
     onError: (error: unknown) => {},
   });
 
-  const headerActions = useMemo<HeaderAction[]>(
-    () => [
-      {
-        kind: "button",
-        id: "profile-settings",
-        label: "Open settings",
-        iosIcon: "gearshape",
-        onPress: () => router.push("/profile/settings"),
-      },
-    ],
-    [router],
-  );
-  const iosHeaderRightItems = useHeaderActions(headerActions);
-
   const isBusy = signInMutation.isPending || signOutMutation.isPending;
   const canSubmit = isReady && !isBusy && !configError;
   const errorTextStyle = { color: theme.status.error };
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          unstable_headerRightItems: iosHeaderRightItems,
-          headerRight:
-            Platform.OS === "ios"
-              ? undefined
-              : () => (
-                  <HeaderIconButton
-                    onPress={() => router.push("/profile/settings")}
-                    accessibilityLabel="Open settings"
-                    iconProps={{ ios: "gearshape", android: "settings" }}
-                  />
-                ),
-        }}
-      />
+      <HeaderActions actions={PROFILE_HEADER_ACTIONS} />
 
       <ScrollView
         style={styles.scrollView}
@@ -110,7 +84,6 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* <ThemedView type="background" style={[]}> */}
         {!isReady ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator />
@@ -132,6 +105,7 @@ export default function ProfileScreen() {
                 subtitle={user.email ?? "No email available"}
                 trailingIcon={<AppSymbol ios="envelope" android="mail" />}
               />
+
               <ListRow
                 label="Account status"
                 subtitle="Signed in"
@@ -147,7 +121,9 @@ export default function ProfileScreen() {
                 disabled={!canSubmit}
               >
                 <ListRow
-                  label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
+                  label={
+                    signOutMutation.isPending ? "Signing out..." : "Sign out"
+                  }
                   tone="destructive"
                   leadingIcon={
                     <AppSymbol
@@ -224,7 +200,6 @@ export default function ProfileScreen() {
             />
           </>
         )}
-        {/* </ThemedView> */}
       </ScrollView>
     </>
   );

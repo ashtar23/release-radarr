@@ -4,4 +4,4 @@ export type {
   HeaderMenuAction,
   HeaderMenuItem,
 } from "@/features/navigation/header-actions/types";
-export { useHeaderActions } from "@/features/navigation/header-actions/use-header-actions";
+export { HeaderActions } from "@/features/navigation/header-actions/header-actions";

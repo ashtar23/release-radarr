@@ -1,4 +1,5 @@
-import type { IOSSymbolName } from "@/components/app-symbol";
+import type { AndroidSymbolName, IOSSymbolName } from "@/components/app-symbol";
+import type { Href } from "expo-router";
 
 type HeaderActionVisibilityState = {
   /** Hides the action entirely when false. */
@@ -17,14 +18,15 @@ export type HeaderMenuItem = HeaderActionVisibilityState & {
   label: string;
   /** Optional SF Symbol used for iOS menu rendering. */
   iosIcon?: IOSSymbolName;
+  /** Marks the menu item as destructive when true. */
+  destructive?: boolean;
+  /** Displays the menu item in the "on" state when true. */
+  isOn?: boolean;
   /** Called when the user selects the menu item. */
   onPress: () => void;
 };
 
-/**
- * A single visible local header action rendered as a button on iOS.
- */
-export type HeaderButtonAction = HeaderActionVisibilityState & {
+type HeaderButtonActionBase = HeaderActionVisibilityState & {
   /** Marks this action as a visible header button. */
   kind: "button";
   /** Stable identifier for the action. */
@@ -33,9 +35,34 @@ export type HeaderButtonAction = HeaderActionVisibilityState & {
   label: string;
   /** SF Symbol used for the native iOS header button. */
   iosIcon: IOSSymbolName;
-  /** Called when the user presses the button. */
-  onPress: () => void;
+  /** Optional Android symbol used for the Android header button fallback. */
+  androidIcon?: AndroidSymbolName;
+  /** Optional tint color used when the action should stand out visually. */
+  tintColor?: string;
+  /** Optional size for the header button icon. Defaults to 26. */
+  iconSize?: number;
 };
+
+type HeaderButtonNavigationAction = HeaderButtonActionBase & {
+  /** Declarative route target for navigation-style header buttons. */
+  href: Href;
+  /** Command handlers are not used for navigation actions. */
+  onPress?: never;
+};
+
+type HeaderButtonCommandAction = HeaderButtonActionBase & {
+  /** Called when the user presses a command-style button. */
+  onPress: () => void;
+  /** Navigation targets are not used for command-style actions. */
+  href?: never;
+};
+
+/**
+ * A single visible local header action rendered as a button on iOS.
+ */
+export type HeaderButtonAction =
+  | HeaderButtonNavigationAction
+  | HeaderButtonCommandAction;
 
 /**
  * A grouped local header action rendered as a native menu on iOS.

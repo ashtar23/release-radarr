@@ -1,12 +1,12 @@
 import React, { useMemo } from "react";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 import { WatchlistList } from "@/features/watchlist/components/watchlist-list";
 import { WatchlistStateView } from "@/features/watchlist/components/watchlist-state-view";
 import { useWatchlistFeature } from "@/features/watchlist/hooks/use-watchlist-feature";
 import {
+  HeaderActions,
   type HeaderAction,
-  useHeaderActions,
 } from "@/features/navigation/header-actions";
 
 export default function WatchlistScreen() {
@@ -26,6 +26,7 @@ export default function WatchlistScreen() {
             id: "watchlist-demo-sort",
             label: "Sort by release date",
             iosIcon: "arrow.up.arrow.down.circle",
+
             onPress: () => {},
           },
           {
@@ -36,40 +37,12 @@ export default function WatchlistScreen() {
           },
         ],
       },
-      {
-        kind: "menu",
-        visible: watchlistFeature.items.length > 0,
-        id: "watchlist-demo-menu-2",
-        label: "Watchlist actions",
-        iosIcon: "ellipsis",
-        menuTitle: "Watchlist actions",
-        items: [
-          {
-            id: "watchlist-demo-sort-2",
-            label: "Sort by release date 2",
-            iosIcon: "arrow.up.arrow.down.circle",
-            onPress: () => {},
-          },
-          {
-            id: "watchlist-demo-coming-soon-2",
-            label: "Filter coming soon 2",
-            iosIcon: "line.3.horizontal.decrease.circle",
-            onPress: () => {},
-          },
-        ],
-      },
     ],
     [watchlistFeature.items.length],
   );
-  const iosHeaderRightItems = useHeaderActions(headerActions);
-
   return (
     <>
-      <Stack.Screen
-        options={{
-          unstable_headerRightItems: iosHeaderRightItems,
-        }}
-      />
+      <HeaderActions actions={headerActions} />
 
       {watchlistFeature.items.length > 0 ? (
         <WatchlistList

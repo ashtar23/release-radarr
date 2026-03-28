@@ -34,7 +34,7 @@ const SETTINGS_ITEMS: SettingsItem[] = [
   {
     href: "/profile/settings/general",
     label: "General",
-    iosSymbol: "gearshape",
+    iosSymbol: "gear",
     androidSymbol: "settings",
   },
   {
@@ -61,7 +61,9 @@ export default function SettingsScreen() {
           <AppLink key={label} href={href}>
             <ListRow
               label={label}
-              leadingIcon={<AppSymbol ios={iosSymbol} android={androidSymbol} />}
+              leadingIcon={
+                <AppSymbol ios={iosSymbol} android={androidSymbol} />
+              }
               trailingIcon={
                 <SymbolView
                   name={{ ios: "chevron.right" }}
