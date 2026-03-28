@@ -147,3 +147,67 @@ export async function upsertDetailResult(
 
   return error?.message ?? null;
 }
+
+const TITLE_LIST_SELECT =
+  "id, kind, source, external_id, slug, name, search_name, cover_image_url, earliest_release_date, platforms, search_updated_at, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top";
+
+export async function listUpcomingTitles(
+  client: AdminClient,
+  todayIsoDate: string,
+  limit: number,
+): Promise<TitleSummary[]> {
+  const { data, error } = await client
+    .from("titles")
+    .select(TITLE_LIST_SELECT)
+    .gte("earliest_release_date", todayIsoDate)
+    .order("earliest_release_date", { ascending: true, nullsFirst: false })
+    .order("rawg_added", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data ?? []) as CachedTitleRow[]).map(mapCachedRowToTitleSummary);
+}
+
+export async function listLatestTitles(
+  client: AdminClient,
+  earliestIsoDate: string,
+  latestIsoDate: string,
+  limit: number,
+): Promise<TitleSummary[]> {
+  const { data, error } = await client
+    .from("titles")
+    .select(TITLE_LIST_SELECT)
+    .gte("earliest_release_date", earliestIsoDate)
+    .lte("earliest_release_date", latestIsoDate)
+    .order("earliest_release_date", { ascending: false, nullsFirst: false })
+    .order("rawg_added", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data ?? []) as CachedTitleRow[]).map(mapCachedRowToTitleSummary);
+}
+
+export async function listPopularTitles(
+  client: AdminClient,
+  limit: number,
+): Promise<TitleSummary[]> {
+  const { data, error } = await client
+    .from("titles")
+    .select(TITLE_LIST_SELECT)
+    .order("rawg_added", { ascending: false, nullsFirst: false })
+    .order("rawg_ratings_count", { ascending: false, nullsFirst: false })
+    .order("rawg_metacritic", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data ?? []) as CachedTitleRow[]).map(mapCachedRowToTitleSummary);
+}

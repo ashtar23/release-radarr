@@ -60,6 +60,12 @@ export interface TitleSearchResult {
   providerUsedTrigger?: SearchProviderUsedTrigger;
 }
 
+export interface HomeDiscoveryResult {
+  upcoming: TitleSummary[];
+  latest: TitleSummary[];
+  popular: TitleSummary[];
+}
+
 export type SearchDecisionReason = SearchDecisionReasonLiteral;
 
 export interface WatchlistItem {

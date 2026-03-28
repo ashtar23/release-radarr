@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../_shared/database.types.ts";
 import { corsHeaders } from "./config.ts";
 import { handleDetailRequest } from "./handlers/detail.ts";
+import { handleHomeDiscoveryRequest } from "./handlers/home-discovery.ts";
 import { handleSearchRequest } from "./handlers/search.ts";
 import {
   handleWatchlistAddRequest,
@@ -23,7 +24,10 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "Not found." }, 404);
     }
 
-    const isTitleRoute = route.kind === "search" || route.kind === "detail";
+    const isTitleRoute =
+      route.kind === "home-discovery" ||
+      route.kind === "search" ||
+      route.kind === "detail";
     const isWatchlistRoute =
       route.kind === "watchlist-list" || route.kind === "watchlist-item";
     if (
@@ -47,6 +51,10 @@ Deno.serve(async (request) => {
 
     const admin = createClient<Database>(supabaseUrl, serviceRoleKey);
     const url = new URL(request.url);
+    if (route.kind === "home-discovery") {
+      return handleHomeDiscoveryRequest(admin);
+    }
+
     if (route.kind === "search") {
       return handleSearchRequest(admin, url);
     }

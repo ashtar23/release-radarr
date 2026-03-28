@@ -10,6 +10,7 @@ export {
   type AccessTokenProvider,
 } from "./auth";
 export { type RequestContext, requestJson, requestVoid } from "./request";
+export { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
 export { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 export { searchTitles, type SearchTitlesParams } from "./search";
 export {

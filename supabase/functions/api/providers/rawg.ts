@@ -9,6 +9,7 @@ import type {
   RawgSearchPage,
   RawgSearchResponse,
   TitleDetails,
+  TitleSummary,
 } from "../types.ts";
 
 export async function fetchRawgSearchResults(
@@ -85,4 +86,31 @@ export async function fetchRawgDetail(
         : null,
     releases,
   };
+}
+
+export async function fetchRawgDiscoveryResults(params: {
+  rawgApiKey: string;
+  pageSize: number;
+  ordering?: string;
+  dates?: string;
+}): Promise<TitleSummary[]> {
+  const url = new URL(RAWG_BASE_URL);
+  url.searchParams.set("key", params.rawgApiKey);
+  url.searchParams.set("page_size", String(params.pageSize));
+
+  if (params.ordering) {
+    url.searchParams.set("ordering", params.ordering);
+  }
+
+  if (params.dates) {
+    url.searchParams.set("dates", params.dates);
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`RAWG discovery failed with status ${response.status}.`);
+  }
+
+  const payload = (await response.json()) as RawgSearchResponse;
+  return (payload.results ?? []).map(mapRawgSearchGameToSummary);
 }

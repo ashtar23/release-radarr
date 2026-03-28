@@ -1,9 +1,12 @@
+import type { HomeDiscoveryResult } from "@repo/types";
 import type { HealthStatus } from "@repo/types";
 import type { TitleDetails } from "@repo/types";
 import type { TitleSearchResult } from "@repo/types";
+import type { TitleSummary } from "@repo/types";
 import type { WatchlistListResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
 
+import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
 import { searchTitles, type SearchTitlesParams } from "./search";
 import { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 import {
@@ -25,6 +28,9 @@ export interface ReleaseRadarApiClientOptions {
 
 export interface ReleaseRadarApiClient {
   health(): Promise<HealthStatus>;
+  getHomeDiscovery(
+    params?: GetHomeDiscoveryParams,
+  ): Promise<HomeDiscoveryResult<TitleSummary>>;
   searchTitles(params: SearchTitlesParams): Promise<TitleSearchResult>;
   getTitleDetails(params: GetTitleDetailsParams): Promise<TitleDetails>;
   listWatchlist(params?: ListWatchlistParams): Promise<WatchlistListResult>;
@@ -48,6 +54,12 @@ export function createReleaseRadarApiClient(
   return {
     async health() {
       throw new Error("API endpoints are not scaffolded yet.");
+    },
+    async getHomeDiscovery(params = {}) {
+      return getHomeDiscovery({
+        context,
+        params,
+      });
     },
     async searchTitles(params) {
       return searchTitles({

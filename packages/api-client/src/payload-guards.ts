@@ -1,5 +1,7 @@
+import type { HomeDiscoveryResult } from "@repo/types";
 import type { TitleDetails } from "@repo/types";
 import type { TitleSearchResult } from "@repo/types";
+import type { TitleSummary } from "@repo/types";
 import type { WatchlistItem } from "@repo/types";
 import type { WatchlistListResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
@@ -88,6 +90,23 @@ export function isWatchlistUpsertResult(
   return isWatchlistItem(value.item);
 }
 
+export function isHomeDiscoveryResult(
+  value: unknown,
+): value is HomeDiscoveryResult<TitleSummary> {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    Array.isArray(value.upcoming) &&
+    Array.isArray(value.latest) &&
+    Array.isArray(value.popular) &&
+    value.upcoming.every(isTitleSummary) &&
+    value.latest.every(isTitleSummary) &&
+    value.popular.every(isTitleSummary)
+  );
+}
+
 function isWatchlistItem(value: unknown): value is WatchlistItem {
   if (!isRecord(value)) {
     return false;
@@ -101,14 +120,21 @@ function isWatchlistItem(value: unknown): value is WatchlistItem {
   );
 }
 
-function isTitleSummary(value: unknown): boolean {
+function isTitleSummary(value: unknown): value is TitleSummary {
   if (!isRecord(value)) {
     return false;
   }
 
   return (
     typeof value.id === "string" &&
+    typeof value.kind === "string" &&
+    typeof value.source === "string" &&
+    typeof value.externalId === "string" &&
+    typeof value.slug === "string" &&
     typeof value.name === "string" &&
+    (value.coverImageUrl === null || typeof value.coverImageUrl === "string") &&
+    (value.earliestReleaseDate === null ||
+      typeof value.earliestReleaseDate === "string") &&
     Array.isArray(value.platforms) &&
     hasValidRawgRichMetadata(value)
   );

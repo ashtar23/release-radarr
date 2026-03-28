@@ -15,6 +15,7 @@ export type {
   NotificationPreferences,
   NotificationTimingPreset,
 } from "./notifications";
+export type { HomeDiscoveryResult } from "./home";
 
 export type {
   PlatformRelease,

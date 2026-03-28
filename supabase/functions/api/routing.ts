@@ -1,4 +1,5 @@
 export type Route =
+  | { kind: "home-discovery" }
   | { kind: "search" }
   | { kind: "detail"; id: string }
   | { kind: "watchlist-list" }
@@ -17,6 +18,14 @@ export function resolveRoute(pathname: string): Route | null {
   }
 
   const maybeId = segments[apiIndex + 2];
+
+  if (resource === "home") {
+    if (maybeId === "discovery" && segments.length === apiIndex + 3) {
+      return { kind: "home-discovery" };
+    }
+
+    return null;
+  }
 
   if (resource === "titles") {
     if (!maybeId) {

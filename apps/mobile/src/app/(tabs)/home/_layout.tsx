@@ -9,7 +9,7 @@ export default function HomeStackLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Release Radarr",
+          title: "Discover",
         }}
       />
     </Stack>
