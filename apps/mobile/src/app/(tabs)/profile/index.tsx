@@ -101,7 +101,7 @@ export default function ProfileScreen() {
           <>
             <ListSection>
               <ListRow
-                label="sddsfsfsdf"
+                label="Email"
                 subtitle={user.email ?? "No email available"}
                 trailingIcon={<AppSymbol ios="envelope" android="mail" />}
               />
