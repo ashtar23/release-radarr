@@ -23,7 +23,7 @@ type SettingsItem = {
 };
 
 const DEVELOPER_SETTINGS_ITEM: SettingsItem = {
-  href: "/profile/settings/developer",
+  href: "/account/settings/developer",
   label: "Developer",
   iosSymbol: "hammer",
   androidSymbol: "build",
@@ -31,13 +31,13 @@ const DEVELOPER_SETTINGS_ITEM: SettingsItem = {
 
 const SETTINGS_ITEMS: SettingsItem[] = [
   {
-    href: "/profile/settings/general",
+    href: "/account/settings/general",
     label: "General",
     iosSymbol: "gear",
     androidSymbol: "settings",
   },
   {
-    href: "/profile/settings/theme",
+    href: "/account/settings/theme",
     label: "Theme",
     iosSymbol: "paintbrush",
     androidSymbol: "palette",
@@ -75,10 +75,7 @@ function SettingsLinkRow({ item }: { item: SettingsItem }) {
           />
         }
         leadingIcon={
-          <AppSymbol
-            ios={item.iosSymbol}
-            android={item.androidSymbol}
-          />
+          <AppSymbol ios={item.iosSymbol} android={item.androidSymbol} />
         }
       />
     </LinkRow>

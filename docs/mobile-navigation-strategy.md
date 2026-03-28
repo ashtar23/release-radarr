@@ -44,13 +44,13 @@ Settings is no longer intended to be a top-level tab.
 
 Instead:
 
-- Profile is the top-level destination
+- Account is the top-level destination
 - Settings is pushed from Profile through a header action
-- the current routed path lives under the Profile stack (`/profile/settings`)
+- the current routed path lives under the Profile stack (`/account/settings`)
 
 This matches the intended GitHub-like pattern:
 
-- Profile as the user hub
+- Account as the user hub
 - Settings as a secondary routed screen
 
 ## Header Actions

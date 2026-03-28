@@ -14,10 +14,10 @@ import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
-import { ProfileSignedIn } from "./profile-signed-in";
-import { ProfileSignedOut } from "./profile-signed-out";
+import { AccountSignedIn } from "./account-signed-in";
+import { AccountSignedOut } from "./account-signed-out";
 
-export function ProfileScreen() {
+export function AccountScreen() {
   const theme = useTheme();
   const { user, isReady, configError } = useAuth();
 
@@ -52,13 +52,13 @@ export function ProfileScreen() {
         ) : null}
 
         {user ? (
-          <ProfileSignedIn
+          <AccountSignedIn
             canSubmit={canSubmit}
             email={user.email}
             onSignedOut={() => {}}
           />
         ) : (
-          <ProfileSignedOut canSubmit={canSubmit} configError={configError} />
+          <AccountSignedOut canSubmit={canSubmit} configError={configError} />
         )}
       </ScrollView>
     </KeyboardAvoidingView>

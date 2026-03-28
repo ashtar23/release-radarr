@@ -7,17 +7,17 @@ import { ListSection } from "@/components/list-section";
 import { useSignOutMutation } from "@/features/auth/queries";
 import { useTheme } from "@/hooks/use-theme";
 
-type ProfileSignedInProps = {
+type AccountSignedInProps = {
   canSubmit: boolean;
   email: string | null | undefined;
   onSignedOut: () => void;
 };
 
-export function ProfileSignedIn({
+export function AccountSignedIn({
   canSubmit,
   email,
   onSignedOut,
-}: ProfileSignedInProps) {
+}: AccountSignedInProps) {
   const theme = useTheme();
 
   const signOutMutation = useSignOutMutation({

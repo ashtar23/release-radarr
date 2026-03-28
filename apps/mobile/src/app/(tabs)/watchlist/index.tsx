@@ -19,7 +19,7 @@ export default function WatchlistScreen() {
       ) : (
         <WatchlistStateView
           mode={watchlistFeature.mode}
-          onSignIn={() => router.push("/profile")}
+          onSignIn={() => router.push("/account")}
         />
       )}
     </>

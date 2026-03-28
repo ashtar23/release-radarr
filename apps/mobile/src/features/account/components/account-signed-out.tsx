@@ -17,15 +17,15 @@ import { Spacing } from "@/constants/theme";
 import { useSignInMutation } from "@/features/auth/queries";
 import { useTheme } from "@/hooks/use-theme";
 
-type ProfileSignedOutProps = {
+type AccountSignedOutProps = {
   canSubmit: boolean;
   configError: string | null;
 };
 
-export function ProfileSignedOut({
+export function AccountSignedOut({
   canSubmit,
   configError,
-}: ProfileSignedOutProps) {
+}: AccountSignedOutProps) {
   const theme = useTheme();
 
   const { control, handleSubmit, formState, reset } =
@@ -48,7 +48,12 @@ export function ProfileSignedOut({
   return (
     <>
       <View style={styles.sectionIntro}>
-        <ThemedText type="title">Sign in to Release Radar</ThemedText>
+        <AppSymbol
+          ios="person.crop.circle"
+          android="account_circle"
+          size={48}
+        />
+        <ThemedText type="title">Account</ThemedText>
         <ThemedText themeColor="textSecondary">
           Create an account to manage your watchlist and notification
           preferences.
@@ -107,7 +112,9 @@ export function ProfileSignedOut({
       </ListSection>
 
       {authError ? (
-        <ThemedText style={{ color: theme.status.error }}>{authError}</ThemedText>
+        <ThemedText style={{ color: theme.status.error }}>
+          {authError}
+        </ThemedText>
       ) : null}
 
       <ListSection>
@@ -139,5 +146,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
     paddingBottom: Spacing.four,
     gap: Spacing.one,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

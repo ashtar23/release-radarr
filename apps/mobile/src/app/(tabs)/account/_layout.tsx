@@ -3,7 +3,7 @@ import React from "react";
 
 import { defaultStackScreenOptions } from "@/constants/navigation";
 
-export default function ProfileLayout() {
+export default function AccountLayout() {
   return (
     <Stack
       screenOptions={{
@@ -13,7 +13,8 @@ export default function ProfileLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Profile",
+          title: "",
+          headerLargeTitleEnabled: false,
         }}
       />
 

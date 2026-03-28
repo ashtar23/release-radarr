@@ -5,37 +5,44 @@
 Release Radar is a Turborepo monorepo with two apps, shared packages, and a Supabase backend.
 
 ### `apps/mobile`
+
 Expo Router app for the phone experience.
 
 Current route groups:
+
 - `(tabs)/home` - entry/home surface
 - `(tabs)/search` - guest search and browsing
 - `(tabs)/watchlist` - authenticated watchlist
 - `(tabs)/profile` - guest and signed-in account hub
-- `(tabs)/profile/settings` - settings, theme, and developer tools
+- `(tabs)/account/settings` - settings, theme, and developer tools
 - `titles/[titleId]` - shared title details screen from any tab
 
 ### `apps/web`
+
 Vite + React app for browser usage.
 
 Current responsibilities:
+
 - guest search
 - title details
 - auth entry points
 - watchlist access where supported
 
 ### Shared packages
+
 - `packages/types` - canonical DTOs and shared domain types
 - `packages/api-client` - typed client for Supabase edge endpoints
 - `packages/config` - shared constants and environment wiring
 
 ### `supabase`
+
 Database schema, migrations, edge functions, and backend implementation notes.
 
 ## Ownership model
 
 Clients own presentation and interaction only.
 Supabase owns:
+
 - cached title data
 - release/platform metadata
 - watchlists
