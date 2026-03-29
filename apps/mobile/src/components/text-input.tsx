@@ -2,9 +2,9 @@ import React, { type ReactNode } from "react";
 import {
   Pressable,
   StyleSheet,
-  TextInput,
+  TextInput as RNTextInput,
   View,
-  type TextInputProps,
+  type TextInputProps as RNTextInputProps,
 } from "react-native";
 
 import { AppSymbol } from "@/components/app-symbol";
@@ -12,8 +12,8 @@ import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
-export type EmbeddedTextInputProps = Omit<
-  TextInputProps,
+export type TextInputProps = Omit<
+  RNTextInputProps,
   "style" | "placeholderTextColor" | "selectionColor" | "cursorColor"
 > & {
   errorMessage?: string;
@@ -24,10 +24,12 @@ export type EmbeddedTextInputProps = Omit<
 };
 
 /**
- * A grouped-section text input that relies on the surrounding surface for its
- * container styling instead of rendering standalone input chrome.
+ * TextInput is the grouped-surface input primitive for the mobile app.
+ *
+ * It relies on the surrounding surface for most of its chrome, which keeps it
+ * visually aligned with list sections and auth forms.
  */
-export function EmbeddedTextInput({
+export function TextInput({
   errorMessage,
   disabled = false,
   leadingSlot,
@@ -35,17 +37,31 @@ export function EmbeddedTextInput({
   allowPasswordToggle = false,
   secureTextEntry = false,
   editable,
+  onChangeText,
+  value,
+  defaultValue,
+  placeholder,
   ...textInputProps
-}: EmbeddedTextInputProps) {
+}: TextInputProps) {
   const theme = useTheme();
   const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
-  const inputRef = React.useRef<TextInput>(null);
+  const [uncontrolledValue, setUncontrolledValue] = React.useState(
+    value ?? defaultValue ?? "",
+  );
+  const inputRef = React.useRef<RNTextInput>(null);
 
   const isEditable = !disabled && editable !== false;
   const canTogglePassword = secureTextEntry && allowPasswordToggle;
   const resolvedSecureTextEntry = canTogglePassword
     ? !isPasswordVisible
     : secureTextEntry;
+  const resolvedValue = value ?? uncontrolledValue;
+
+  React.useEffect(() => {
+    if (value !== undefined) {
+      setUncontrolledValue(value);
+    }
+  }, [value]);
 
   const handlePasswordToggle = React.useCallback(() => {
     setIsPasswordVisible((current) => !current);
@@ -54,6 +70,17 @@ export function EmbeddedTextInput({
       inputRef.current?.focus();
     });
   }, []);
+
+  const handleChangeText = React.useCallback(
+    (nextValue: string) => {
+      if (value === undefined) {
+        setUncontrolledValue(nextValue);
+      }
+
+      onChangeText?.(nextValue);
+    },
+    [onChangeText, value],
+  );
 
   const resolvedTrailingSlot = canTogglePassword ? (
     <Pressable
@@ -66,7 +93,7 @@ export function EmbeddedTextInput({
       <AppSymbol
         ios={isPasswordVisible ? "eye.slash" : "eye"}
         android={isPasswordVisible ? "visibility_off" : "visibility"}
-        size={18}
+        size={20}
         tintColor={theme.textSecondary}
       />
     </Pressable>
@@ -79,13 +106,16 @@ export function EmbeddedTextInput({
       <View style={styles.fieldRow}>
         {leadingSlot ? <View style={styles.slot}>{leadingSlot}</View> : null}
 
-        <TextInput
+        <RNTextInput
           ref={inputRef}
           editable={isEditable}
           secureTextEntry={resolvedSecureTextEntry}
+          placeholder={placeholder}
           placeholderTextColor={theme.input.placeholder}
           selectionColor={theme.interactive.linkPrimary}
           cursorColor={theme.interactive.linkPrimary}
+          onChangeText={handleChangeText}
+          value={resolvedValue}
           style={[styles.input, { color: theme.text }]}
           {...textInputProps}
         />
@@ -106,8 +136,7 @@ export function EmbeddedTextInput({
 
 const styles = StyleSheet.create({
   root: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
+    padding: Spacing.three,
     gap: Spacing.half,
   },
   fieldRow: {
@@ -117,16 +146,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 18,
     paddingHorizontal: 0,
-    paddingVertical: 0,
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: "500",
+    paddingVertical: Spacing.one,
   },
   slot: {
     alignItems: "center",
     justifyContent: "center",
+    padding: 0,
   },
   slotButton: {
     alignItems: "center",
@@ -134,6 +160,5 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: 13,
-    lineHeight: 18,
   },
 });

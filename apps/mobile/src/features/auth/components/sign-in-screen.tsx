@@ -22,7 +22,7 @@ import {
   type SignInCredentialsInput,
 } from "@repo/types/auth";
 import { useSignInMutation } from "../queries";
-import { EmbeddedTextInput } from "@/components/embedded-text-input";
+import { TextInput } from "@/components/text-input";
 import { useAuth } from "@/auth/auth-provider";
 import { router } from "expo-router";
 
@@ -77,9 +77,17 @@ export function SignInScreen() {
             control={control}
             name="email"
             render={({ field: { onBlur, onChange, value } }) => (
-              <EmbeddedTextInput
+              <TextInput
                 value={value}
                 onBlur={onBlur}
+                leadingSlot={
+                  <AppSymbol
+                    ios="envelope"
+                    android="email"
+                    size={20}
+                    tintColor={theme.textSecondary}
+                  />
+                }
                 onChangeText={(nextValue) => {
                   if (authError) {
                     signInMutation.resetErrorState();
@@ -101,8 +109,16 @@ export function SignInScreen() {
             control={control}
             name="password"
             render={({ field: { onBlur, onChange, value } }) => (
-              <EmbeddedTextInput
+              <TextInput
                 value={value}
+                leadingSlot={
+                  <AppSymbol
+                    ios="lock"
+                    android="lock"
+                    size={20}
+                    tintColor={theme.textSecondary}
+                  />
+                }
                 onBlur={onBlur}
                 onChangeText={(nextValue) => {
                   if (authError) {
@@ -138,6 +154,12 @@ export function SignInScreen() {
           }
         />
 
+        {authError ? (
+          <ThemedText style={[styles.message, { color: theme.status.error }]}>
+            {authError}
+          </ThemedText>
+        ) : null}
+
         <Pressable
           onPress={() => router.replace("/auth/sign-up")}
           style={styles.bottomLink}
@@ -164,6 +186,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
     paddingBottom: Spacing.three,
     gap: Spacing.three,
+  },
+  message: {
+    paddingHorizontal: Spacing.three,
   },
   bottomLink: {
     alignSelf: "center",

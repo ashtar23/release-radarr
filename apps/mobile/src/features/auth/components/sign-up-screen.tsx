@@ -19,7 +19,7 @@ import {
 } from "react-native";
 
 import { useSignUpMutation } from "../queries";
-import { EmbeddedTextInput } from "@/components/embedded-text-input";
+import { TextInput } from "@/components/text-input";
 import { useAuth } from "@/auth/auth-provider";
 import { router } from "expo-router";
 import {
@@ -79,9 +79,17 @@ export function SignUpScreen() {
             control={control}
             name="email"
             render={({ field: { onBlur, onChange, value } }) => (
-              <EmbeddedTextInput
+              <TextInput
                 value={value}
                 onBlur={onBlur}
+                leadingSlot={
+                  <AppSymbol
+                    ios="envelope"
+                    android="email"
+                    size={20}
+                    tintColor={theme.textSecondary}
+                  />
+                }
                 onChangeText={(nextValue) => {
                   if (authError) {
                     signUpMutation.resetErrorState();
@@ -103,9 +111,17 @@ export function SignUpScreen() {
             control={control}
             name="password"
             render={({ field: { onBlur, onChange, value } }) => (
-              <EmbeddedTextInput
+              <TextInput
                 value={value}
                 onBlur={onBlur}
+                leadingSlot={
+                  <AppSymbol
+                    ios="lock"
+                    android="lock"
+                    size={20}
+                    tintColor={theme.textSecondary}
+                  />
+                }
                 onChangeText={(nextValue) => {
                   if (authError) {
                     signUpMutation.resetErrorState();
@@ -128,9 +144,17 @@ export function SignUpScreen() {
             control={control}
             name="repeatedPassword"
             render={({ field: { onBlur, onChange, value } }) => (
-              <EmbeddedTextInput
+              <TextInput
                 value={value}
                 onBlur={onBlur}
+                leadingSlot={
+                  <AppSymbol
+                    ios="lock"
+                    android="lock"
+                    size={20}
+                    tintColor={theme.textSecondary}
+                  />
+                }
                 onChangeText={(nextValue) => {
                   if (authError) {
                     signUpMutation.resetErrorState();
