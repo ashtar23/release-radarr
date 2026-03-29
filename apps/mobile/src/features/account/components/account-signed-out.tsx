@@ -38,7 +38,7 @@ export function AccountSignedOut() {
             tone="accent"
             leadingIcon={
               <AppSymbol
-                ios="rectangle.portrait.and.arrow.right"
+                ios="arrow.right.circle"
                 android="login"
                 tintColor={theme.interactive.linkPrimary}
               />

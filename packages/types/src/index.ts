@@ -49,3 +49,5 @@ export type {
 } from "./watchlist";
 export { authCredentialsSchema } from "./auth";
 export type { AuthCredentialsInput } from "./auth";
+export { signInCredentialsSchema } from "./auth";
+export type { SignInCredentialsInput } from "./auth";

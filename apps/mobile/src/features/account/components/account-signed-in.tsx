@@ -1,4 +1,5 @@
 import React from "react";
+import { ActivityIndicator } from "react-native";
 
 import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
@@ -51,11 +52,15 @@ export function AccountSignedIn({
             label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
             tone="destructive"
             leadingIcon={
-              <AppSymbol
-                ios="rectangle.portrait.and.arrow.right"
-                android="logout"
-                tintColor={theme.status.error}
-              />
+              signOutMutation.isPending ? (
+                <ActivityIndicator size="small" color={theme.status.error} />
+              ) : (
+                <AppSymbol
+                  ios="rectangle.portrait.and.arrow.forward"
+                  android="logout"
+                  tintColor={theme.status.error}
+                />
+              )
             }
           />
         </ActionRow>

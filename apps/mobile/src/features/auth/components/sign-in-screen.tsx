@@ -19,7 +19,10 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
-import { type AuthCredentialsInput, authCredentialsSchema } from "@repo/types";
+import {
+  signInCredentialsSchema,
+  type SignInCredentialsInput,
+} from "@repo/types/auth";
 import { useSignInMutation } from "../queries";
 import { EmbeddedTextInput } from "@/components/embedded-text-input";
 import { useAuth } from "@/auth/auth-provider";
@@ -35,8 +38,8 @@ export function SignInScreen() {
   const canSubmit = isReady && !configError;
 
   const { control, handleSubmit, formState, reset } =
-    useForm<AuthCredentialsInput>({
-      resolver: zodResolver(authCredentialsSchema),
+    useForm<SignInCredentialsInput>({
+      resolver: zodResolver(signInCredentialsSchema),
       defaultValues: {
         email: "",
         password: "",
@@ -116,7 +119,6 @@ export function SignInScreen() {
                 allowPasswordToggle
                 placeholder="Password"
                 disabled={Boolean(configError)}
-                errorMessage={formState.errors.password?.message}
               />
             )}
           />
@@ -140,7 +142,7 @@ export function SignInScreen() {
                   />
                 ) : (
                   <AppSymbol
-                    ios="rectangle.portrait.and.arrow.right"
+                    ios="arrow.right.circle"
                     android="login"
                     tintColor={theme.interactive.linkPrimary}
                   />

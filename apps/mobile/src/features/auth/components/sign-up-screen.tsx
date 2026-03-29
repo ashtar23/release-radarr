@@ -177,7 +177,7 @@ export function SignUpScreen() {
                   />
                 ) : (
                   <AppSymbol
-                    ios="rectangle.portrait.and.arrow.right"
+                    ios="person.crop.circle.badge.plus"
                     android="app_registration"
                     tintColor={theme.interactive.linkPrimary}
                   />
