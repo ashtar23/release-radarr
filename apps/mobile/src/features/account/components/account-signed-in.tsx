@@ -1,8 +1,7 @@
 import React from "react";
-import { ActivityIndicator } from "react-native";
 
-import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
+import { Button } from "@/components/button";
 import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
 import { useSignOutMutation } from "@/features/auth/queries";
@@ -43,28 +42,20 @@ export function AccountSignedIn({
         />
       </ListSection>
 
-      <ListSection>
-        <ActionRow
-          onPress={() => signOutMutation.mutate()}
-          disabled={!canSubmit || signOutMutation.isPending}
-        >
-          <ListRow
-            label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
-            tone="destructive"
-            leadingIcon={
-              signOutMutation.isPending ? (
-                <ActivityIndicator size="small" color={theme.status.error} />
-              ) : (
-                <AppSymbol
-                  ios="rectangle.portrait.and.arrow.forward"
-                  android="logout"
-                  tintColor={theme.status.error}
-                />
-              )
-            }
+      <Button
+        label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
+        tone="danger"
+        loading={signOutMutation.isPending}
+        onPress={() => signOutMutation.mutate()}
+        disabled={!canSubmit || signOutMutation.isPending}
+        leadingIcon={
+          <AppSymbol
+            ios="rectangle.portrait.and.arrow.forward"
+            android="logout"
+            tintColor={theme.status.error}
           />
-        </ActionRow>
-      </ListSection>
+        }
+      />
     </>
   );
 }

@@ -2,16 +2,17 @@ import { router } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
-import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
-import { ListRow } from "@/components/list-row";
+import { Button } from "@/components/button";
 import { ListSection } from "@/components/list-section";
 import { ThemedText } from "@/components/themed-text";
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTheme } from "@/hooks/use-theme";
 
 export function SignUpSuccessScreen() {
+  const theme = useTheme();
   const colorScheme = useColorScheme();
   const modalBackgroundColor = colorScheme === "dark" ? "#131313" : undefined;
 
@@ -43,16 +44,18 @@ export function SignUpSuccessScreen() {
         </View>
       </ListSection>
 
-      <ListSection>
-        <ActionRow onPress={() => router.dismiss()}>
-          <ListRow
-            label="Done"
-            tone="accent"
-            contentAlignment="center"
-            leadingIcon={<AppSymbol ios="checkmark" android="done" />}
+      <Button
+        label="Done"
+        tone="accent"
+        onPress={() => router.dismiss()}
+        leadingIcon={
+          <AppSymbol
+            ios="checkmark"
+            android="done"
+            tintColor={theme.interactive.linkPrimary}
           />
-        </ActionRow>
-      </ListSection>
+        }
+      />
     </ScrollView>
   );
 }

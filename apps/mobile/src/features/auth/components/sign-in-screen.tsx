@@ -1,6 +1,5 @@
-import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
-import { ListRow } from "@/components/list-row";
+import { Button } from "@/components/button";
 import { ListSection } from "@/components/list-section";
 import { ThemedText } from "@/components/themed-text";
 import { capabilities } from "@/constants/capabilities";
@@ -12,7 +11,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -123,34 +121,22 @@ export function SignInScreen() {
             )}
           />
         </ListSection>
-        <ListSection>
-          <ActionRow
-            onPress={handleSubmit((values) => {
-              signInMutation.mutate(values);
-            })}
-            disabled={!canSubmit || signInMutation.isPending}
-          >
-            <ListRow
-              label={signInMutation.isPending ? "Signing in..." : "Sign In"}
-              tone="accent"
-              contentAlignment="center"
-              leadingIcon={
-                signInMutation.isPending ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={theme.interactive.linkPrimary}
-                  />
-                ) : (
-                  <AppSymbol
-                    ios="arrow.right.circle"
-                    android="login"
-                    tintColor={theme.interactive.linkPrimary}
-                  />
-                )
-              }
+        <Button
+          label={signInMutation.isPending ? "Signing in..." : "Sign In"}
+          tone="accent"
+          loading={signInMutation.isPending}
+          onPress={handleSubmit((values) => {
+            signInMutation.mutate(values);
+          })}
+          disabled={!canSubmit || signInMutation.isPending}
+          leadingIcon={
+            <AppSymbol
+              ios="arrow.right.circle"
+              android="login"
+              tintColor={theme.interactive.linkPrimary}
             />
-          </ActionRow>
-        </ListSection>
+          }
+        />
 
         <Pressable
           onPress={() => router.replace("/auth/sign-up")}

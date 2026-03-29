@@ -262,7 +262,7 @@ export const Colors = {
       focusRing: "#2b6fe0",
       press: {
         iosRowBackground: "#E0E1E6",
-        androidRipple: "rgba(15,23,42,0.06)",
+        androidRipple: "rgba(224,225,230,0.5)",
         buttonOverlay: "rgba(15,23,42,0.08)",
       },
     },
@@ -347,7 +347,7 @@ export const Colors = {
       focusRing: "#74aeff",
       press: {
         iosRowBackground: "#2E3135",
-        androidRipple: "rgba(255,255,255,0.10)",
+        androidRipple: "rgba(46,49,53,0.55)",
         buttonOverlay: "rgba(255,255,255,0.10)",
       },
     },

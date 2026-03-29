@@ -1,6 +1,5 @@
-import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
-import { ListRow } from "@/components/list-row";
+import { Button } from "@/components/button";
 import { ListSection } from "@/components/list-section";
 import { ThemedText } from "@/components/themed-text";
 import { capabilities } from "@/constants/capabilities";
@@ -12,7 +11,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -158,34 +156,22 @@ export function SignUpScreen() {
           </ThemedText>
         ) : null}
 
-        <ListSection>
-          <ActionRow
-            onPress={handleSubmit((values) => {
-              signUpMutation.mutate(values);
-            })}
-            disabled={!canSubmit || signUpMutation.isPending}
-          >
-            <ListRow
-              label={signUpMutation.isPending ? "Creating account..." : "Sign Up"}
-              tone="accent"
-              contentAlignment="center"
-              leadingIcon={
-                signUpMutation.isPending ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={theme.interactive.linkPrimary}
-                  />
-                ) : (
-                  <AppSymbol
-                    ios="person.crop.circle.badge.plus"
-                    android="app_registration"
-                    tintColor={theme.interactive.linkPrimary}
-                  />
-                )
-              }
+        <Button
+          label={signUpMutation.isPending ? "Creating account..." : "Sign Up"}
+          tone="accent"
+          loading={signUpMutation.isPending}
+          onPress={handleSubmit((values) => {
+            signUpMutation.mutate(values);
+          })}
+          disabled={!canSubmit || signUpMutation.isPending}
+          leadingIcon={
+            <AppSymbol
+              ios="person.crop.circle.badge.plus"
+              android="person_add"
+              tintColor={theme.interactive.linkPrimary}
             />
-          </ActionRow>
-        </ListSection>
+          }
+        />
 
         <Pressable
           onPress={() => router.replace("/auth")}
