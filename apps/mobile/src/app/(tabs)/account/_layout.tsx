@@ -2,8 +2,12 @@ import { Stack } from "expo-router";
 import React from "react";
 
 import { defaultStackScreenOptions } from "@/constants/navigation";
+import { useAuth } from "@/auth/auth-provider";
 
 export default function AccountLayout() {
+  const { user, isReady } = useAuth();
+
+  const showAccountHeader = isReady && Boolean(user);
   return (
     <Stack
       screenOptions={{
@@ -13,8 +17,8 @@ export default function AccountLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "",
-          headerLargeTitleEnabled: false,
+          title: showAccountHeader ? "Account" : "",
+          headerLargeTitleEnabled: showAccountHeader,
         }}
       />
 

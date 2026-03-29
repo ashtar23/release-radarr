@@ -3,6 +3,7 @@ import {
   HeaderActions,
   type HeaderAction,
 } from "@/features/navigation/header-actions";
+
 import { AccountScreen } from "@/features/account/components";
 
 const ACCOUNT_HEADER_ACTIONS: HeaderAction[] = [

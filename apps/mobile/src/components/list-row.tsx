@@ -9,24 +9,83 @@ const ROW_PADDING_HORIZONTAL = 16;
 const ROW_PADDING_VERTICAL = 14;
 
 type BaseListRowProps = {
+  /**
+   * The tone of the row, which applies platform-appropriate styling to indicate
+   * the nature of the row. "accent" is used for primary actions, "destructive"
+   * is used for destructive actions, and "default" is used for neutral rows.
+   * Note that tone is only applied to the label text, and not to any leading or
+   * trailing icons or custom children.
+   */
   tone?: "default" | "accent" | "destructive";
+  /**
+   * An optional icon to display at the start of the row
+   */
   leadingIcon?: ReactNode;
+  /**
+   * An optional icon to display at the end of the row
+   */
   trailingIcon?: ReactNode;
+  /**
+   * Controls how the row content is aligned inside the available width.
+   * Use "center" for CTA-like rows where the icon and label should read as a
+   * single centered action.
+   */
+  contentAlignment?: "start" | "center";
+  /**
+   * Additional styles to apply to the row container
+   */
   style?: ViewStyle;
 };
 
+/**
+ * Standard text-based list row content.
+ *
+ * Use this shape for the common settings/list case where the row renders a
+ * primary `label`, an optional `subtitle`, and optional leading/trailing
+ * icons.
+ */
 type ListRowLabelProps = BaseListRowProps & {
+  /**
+   * Primary row text. This is the main visible title for the row.
+   */
   label: string;
+  /**
+   * Optional secondary text rendered below the label.
+   */
   subtitle?: string;
+  /**
+   * Prevents mixing text props with fully custom row content.
+   */
   children?: never;
 };
 
+/**
+ * Fully custom list row content.
+ *
+ * Use this shape when the row body should be rendered manually instead of
+ * using the built-in label/subtitle layout.
+ */
 type ListRowChildrenProps = BaseListRowProps & {
+  /**
+   * Custom row content rendered as-is inside the standard row container.
+   */
   children: ReactNode;
+  /**
+   * Prevents mixing custom row content with the built-in label layout.
+   */
   label?: never;
+  /**
+   * Prevents mixing custom row content with the built-in subtitle layout.
+   */
   subtitle?: never;
 };
 
+/**
+ * Supported prop shapes for `ListRow`.
+ *
+ * Either provide `label`/`subtitle` for the standard text layout, or provide
+ * `children` for a fully custom row body.
+ */
 export type ListRowProps = ListRowLabelProps | ListRowChildrenProps;
 
 /**
@@ -44,12 +103,18 @@ export function ListRow({
   leadingIcon,
   trailingIcon,
   children,
+  contentAlignment = "start",
   style,
 }: ListRowProps) {
   const theme = useTheme();
+  const isCentered = contentAlignment === "center";
 
   if (children != null) {
-    return <View style={[styles.row, style]}>{children}</View>;
+    return (
+      <View style={[styles.row, isCentered && styles.rowCentered, style]}>
+        {children}
+      </View>
+    );
   }
 
   const labelColor =
@@ -60,14 +125,18 @@ export function ListRow({
         : undefined;
 
   return (
-    <View style={[styles.row, style]}>
+    <View style={[styles.row, isCentered && styles.rowCentered, style]}>
       {leadingIcon != null ? (
         <View style={styles.leading}>{leadingIcon}</View>
       ) : null}
 
-      <View style={styles.subtitle}>
+      <View style={[styles.subtitle, isCentered && styles.subtitleCentered]}>
         <ThemedText
-          style={[styles.label, labelColor ? { color: labelColor } : undefined]}
+          style={[
+            styles.label,
+            isCentered && styles.labelCentered,
+            labelColor ? { color: labelColor } : undefined,
+          ]}
           numberOfLines={1}
         >
           {label}
@@ -94,12 +163,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: ROW_PADDING_HORIZONTAL,
     paddingVertical: ROW_PADDING_VERTICAL,
   },
+  rowCentered: {
+    justifyContent: "center",
+  },
   label: {
     flex: 1,
+  },
+  labelCentered: {
+    flex: 0,
+    textAlign: "center",
   },
   subtitle: {
     flex: 1,
     gap: Spacing.half,
+  },
+  subtitleCentered: {
+    flex: 0,
+    alignItems: "center",
   },
   leading: {
     marginRight: 8,

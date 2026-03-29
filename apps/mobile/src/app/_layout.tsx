@@ -42,6 +42,7 @@ export default function RootLayout() {
                   ]}
                 >
                   <AnimatedSplashOverlay />
+
                   <Stack>
                     <Stack.Screen
                       name="(tabs)"
@@ -50,11 +51,20 @@ export default function RootLayout() {
                         title: "Home",
                       }}
                     />
+
                     <Stack.Screen
                       name="titles/[titleId]"
                       options={{
                         ...defaultStackScreenOptions,
                         title: "Title",
+                      }}
+                    />
+
+                    <Stack.Screen
+                      name="auth"
+                      options={{
+                        presentation: "modal",
+                        headerShown: false,
                       }}
                     />
                   </Stack>

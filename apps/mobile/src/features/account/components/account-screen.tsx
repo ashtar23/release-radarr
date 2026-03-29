@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/auth/auth-provider";
 import { ThemedText } from "@/components/themed-text";
@@ -25,50 +18,40 @@ export function AccountScreen() {
   const errorTextStyle = { color: theme.status.error };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardAvoidingView}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <ScrollView
+      style={styles.scrollView}
+      contentInsetAdjustmentBehavior={
+        capabilities.autoContentInsets ? "automatic" : "never"
+      }
+      contentContainerStyle={styles.content}
     >
-      <ScrollView
-        style={styles.scrollView}
-        contentInsetAdjustmentBehavior={
-          capabilities.autoContentInsets ? "automatic" : "never"
-        }
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        {!isReady ? (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator />
-            <ThemedText themeColor="textSecondary">
-              Checking session...
-            </ThemedText>
-          </View>
-        ) : null}
+      {!isReady ? (
+        <View style={styles.loadingRow}>
+          <ActivityIndicator />
+          <ThemedText themeColor="textSecondary">
+            Checking session...
+          </ThemedText>
+        </View>
+      ) : null}
 
-        {configError ? (
-          <ThemedText style={errorTextStyle}>{configError}</ThemedText>
-        ) : null}
+      {configError ? (
+        <ThemedText style={errorTextStyle}>{configError}</ThemedText>
+      ) : null}
 
-        {user ? (
-          <AccountSignedIn
-            canSubmit={canSubmit}
-            email={user.email}
-            onSignedOut={() => {}}
-          />
-        ) : (
-          <AccountSignedOut canSubmit={canSubmit} configError={configError} />
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {user ? (
+        <AccountSignedIn
+          canSubmit={canSubmit}
+          email={user.email}
+          onSignedOut={() => {}}
+        />
+      ) : (
+        <AccountSignedOut />
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoidingView: {
-    flex: 1,
-  },
   scrollView: {
     flex: 1,
   },
