@@ -13,7 +13,6 @@ export type WatchlistScreenMode =
   | "loading"
   | "refreshing"
   | "empty";
-
 export function useWatchlistFeature() {
   const { user, isReady } = useAuth();
   const watchlistQuery = useWatchlistQuery();
@@ -78,6 +77,7 @@ export function useWatchlistFeature() {
   return {
     items,
     mode,
+    canUseWatchlist: Boolean(user),
     refreshing: isManualRefreshing && canRefresh,
     onRefresh: canRefresh ? refreshWatchlist : undefined,
     isMutating,

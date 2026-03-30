@@ -15,7 +15,8 @@ import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { AppSheetProvider } from "@/components/sheets";
 import { defaultStackScreenOptions } from "@/constants/navigation";
 import { Colors } from "@/constants/theme";
-import { SearchDebugSettingsProvider } from "@/features/search/debug/search-debug-settings";
+import { SearchDebugSettingsProvider } from "@/features/settings/providers/search-debug-settings";
+import { AppPreferencesProvider } from "@/features/settings/providers/app-preferences";
 
 const queryClient = new QueryClient();
 
@@ -26,54 +27,56 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SearchDebugSettingsProvider>
-        <AuthProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <GestureHandlerRootView style={styles.gestureHandlerRoot}>
-              <AppSheetProvider>
-                <View
-                  style={[
-                    styles.root,
-                    {
-                      backgroundColor: appThemeColors.background,
-                    },
-                  ]}
-                >
-                  <AnimatedSplashOverlay />
+      <AppPreferencesProvider>
+        <SearchDebugSettingsProvider>
+          <AuthProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <GestureHandlerRootView style={styles.gestureHandlerRoot}>
+                <AppSheetProvider>
+                  <View
+                    style={[
+                      styles.root,
+                      {
+                        backgroundColor: appThemeColors.background,
+                      },
+                    ]}
+                  >
+                    <AnimatedSplashOverlay />
 
-                  <Stack>
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{
-                        headerShown: false,
-                        title: "Home",
-                      }}
-                    />
+                    <Stack>
+                      <Stack.Screen
+                        name="(tabs)"
+                        options={{
+                          headerShown: false,
+                          title: "Home",
+                        }}
+                      />
 
-                    <Stack.Screen
-                      name="titles/[titleId]"
-                      options={{
-                        ...defaultStackScreenOptions,
-                        title: "Title",
-                      }}
-                    />
+                      <Stack.Screen
+                        name="titles/[titleId]"
+                        options={{
+                          ...defaultStackScreenOptions,
+                          title: "Title",
+                        }}
+                      />
 
-                    <Stack.Screen
-                      name="auth"
-                      options={{
-                        presentation: "modal",
-                        headerShown: false,
-                      }}
-                    />
-                  </Stack>
-                </View>
-              </AppSheetProvider>
-            </GestureHandlerRootView>
-          </ThemeProvider>
-        </AuthProvider>
-      </SearchDebugSettingsProvider>
+                      <Stack.Screen
+                        name="auth"
+                        options={{
+                          presentation: "modal",
+                          headerShown: false,
+                        }}
+                      />
+                    </Stack>
+                  </View>
+                </AppSheetProvider>
+              </GestureHandlerRootView>
+            </ThemeProvider>
+          </AuthProvider>
+        </SearchDebugSettingsProvider>
+      </AppPreferencesProvider>
     </QueryClientProvider>
   );
 }

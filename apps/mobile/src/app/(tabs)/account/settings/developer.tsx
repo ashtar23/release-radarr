@@ -6,7 +6,7 @@ import { Spacing } from "@/constants/theme";
 import {
   SEARCH_DEBUG_MODE_ENABLED,
   useSearchDebugSettings,
-} from "@/features/search/debug/search-debug-settings";
+} from "@/features/settings/providers/search-debug-settings";
 import { useTheme } from "@/hooks/use-theme";
 import { ScrollView, StyleSheet, Switch, View } from "react-native";
 

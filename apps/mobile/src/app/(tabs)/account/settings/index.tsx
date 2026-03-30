@@ -13,7 +13,7 @@ import {
   type AndroidSymbolName,
   type IOSSymbolName,
 } from "@/components/app-symbol";
-import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/search/debug/search-debug-settings";
+import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/settings/providers/search-debug-settings";
 
 type SettingsItem = {
   href: Href;

@@ -2,7 +2,7 @@ import type { TitleSearchResult, TitleSummary } from "@repo/types";
 
 import {
   useSearchDebugSettings,
-} from "@/features/search/debug/search-debug-settings";
+} from "@/features/settings/providers/search-debug-settings";
 
 import {
   SEARCH_MIN_QUERY_LENGTH,

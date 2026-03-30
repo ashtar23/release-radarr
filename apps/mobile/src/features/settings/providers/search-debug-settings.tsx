@@ -1,13 +1,10 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  useCallback,
   createContext,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type PropsWithChildren,
 } from "react";
+import { usePersistedSettingsState } from "@/features/settings/hooks/use-persisted-settings-state";
 
 const STORAGE_KEY = "release-radarr:search-debug-settings:v1";
 
@@ -16,7 +13,6 @@ const DEFAULT_SETTINGS = {
   showSourceBadge: true,
 };
 type SearchDebugSettings = typeof DEFAULT_SETTINGS;
-type SettingsUpdater = (current: SearchDebugSettings) => SearchDebugSettings;
 
 export const SEARCH_DEBUG_MODE_ENABLED =
   __DEV__ || process.env.EXPO_PUBLIC_SEARCH_DEBUG === "1";
@@ -35,59 +31,13 @@ const SearchDebugSettingsContext =
   createContext<SearchDebugSettingsContextValue | null>(null);
 
 export function SearchDebugSettingsProvider({ children }: PropsWithChildren) {
-  const [settings, setSettings] = useState<SearchDebugSettings>(DEFAULT_SETTINGS);
-  const [isHydrated, setIsHydrated] = useState(!SEARCH_DEBUG_MODE_ENABLED);
-
-  useEffect(() => {
-    if (!SEARCH_DEBUG_MODE_ENABLED) {
-      setIsHydrated(true);
-      return;
-    }
-
-    const abortController = new AbortController();
-    const hydrateSettings = async () => {
-      try {
-        const rawValue = await AsyncStorage.getItem(STORAGE_KEY);
-        if (abortController.signal.aborted || !rawValue) {
-          return;
-        }
-
-        const parsed = parseStoredSettings(rawValue);
-        if (parsed) {
-          setSettings(parsed);
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsHydrated(true);
-        }
-      }
-    };
-    void hydrateSettings();
-
-    return () => {
-      abortController.abort();
-    };
-  }, []);
-
-  const persistSettings = useCallback((nextSettings: SearchDebugSettings) => {
-    if (!SEARCH_DEBUG_MODE_ENABLED || !isHydrated) {
-      return;
-    }
-
-    void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nextSettings));
-  }, [isHydrated]);
-
-  const updateSettings = useCallback((updater: SettingsUpdater) => {
-    if (!SEARCH_DEBUG_MODE_ENABLED) {
-      return;
-    }
-
-    setSettings((current) => {
-      const nextSettings = updater(current);
-      persistSettings(nextSettings);
-      return nextSettings;
+  const { value: settings, isHydrated, updateValue: updateSettings, resetValue } =
+    usePersistedSettingsState<SearchDebugSettings>({
+      storageKey: STORAGE_KEY,
+      defaultValue: DEFAULT_SETTINGS,
+      parseStoredValue: parseStoredSettings,
+      enabled: SEARCH_DEBUG_MODE_ENABLED,
     });
-  }, [persistSettings]);
 
   const value = useMemo<SearchDebugSettingsContextValue>(() => {
     const forceRawgRefresh = SEARCH_DEBUG_MODE_ENABLED
@@ -108,11 +58,9 @@ export function SearchDebugSettingsProvider({ children }: PropsWithChildren) {
       setShowSourceBadge: (nextValue) => {
         updateSettings((current) => ({ ...current, showSourceBadge: nextValue }));
       },
-      resetSearchDebugSettings: () => {
-        updateSettings(() => DEFAULT_SETTINGS);
-      },
+      resetSearchDebugSettings: resetValue,
     };
-  }, [isHydrated, settings, updateSettings]);
+  }, [isHydrated, resetValue, settings, updateSettings]);
 
   return (
     <SearchDebugSettingsContext.Provider value={value}>
