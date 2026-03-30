@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 0,
     paddingVertical: Spacing.one,
+    fontSize: 16,
   },
   slot: {
     alignItems: "center",
