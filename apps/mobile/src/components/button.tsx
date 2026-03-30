@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from "react-native";
 
+import { IOS_LIST_SECTION_RADIUS } from "@/components/list-tokens";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing, isDarkTheme } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -91,6 +92,10 @@ export function Button({
   const theme = useTheme();
   const isDisabled = disabled || loading;
   const darkTheme = isDarkTheme(theme);
+  const borderRadius =
+    Platform.OS === "ios"
+      ? IOS_LIST_SECTION_RADIUS
+      : theme.control.radius.md;
 
   const toneColor =
     tone === "accent"
@@ -103,8 +108,10 @@ export function Button({
     tone === "accent"
       ? withAlpha(theme.interactive.linkPrimary, darkTheme ? 0.2 : 0.18)
       : tone === "danger"
-        ? withAlpha(theme.status.error, darkTheme ? 0.24 : 0.2)
-        : withAlpha(theme.text, 0.06);
+        ? withAlpha(theme.status.error, darkTheme ? 0.24 : 0.14)
+        : darkTheme
+          ? theme.backgroundElement
+          : withAlpha(theme.text, 0.06);
 
   const pressedBackgroundColor =
     tone === "accent"
@@ -135,7 +142,7 @@ export function Button({
         styles.root,
         {
           minHeight: theme.control.input.height,
-          borderRadius: theme.control.radius.md,
+          borderRadius,
           backgroundColor:
             pressed && Platform.OS === "ios" && !isDisabled
               ? pressedBackgroundColor

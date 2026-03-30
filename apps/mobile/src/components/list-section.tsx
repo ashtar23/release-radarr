@@ -1,15 +1,17 @@
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 
-import { capabilities } from "@/constants/capabilities";
+import {
+  ANDROID_LIST_SECTION_RADIUS,
+  IOS_LIST_SECTION_RADIUS,
+  LIST_ROW_PADDING_HORIZONTAL,
+} from "@/components/list-tokens";
+import { ThemedText } from "@/components/themed-text";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useTheme } from "@/hooks/use-theme";
 
-const iosRadius = capabilities.liquidGlass ? 22 : 10;
-const androidRadius = capabilities.expressiveShape ? 16 : 12;
-
 function androidItemRadius(isFirst: boolean, isLast: boolean) {
-  const r = androidRadius;
+  const r = ANDROID_LIST_SECTION_RADIUS;
   return {
     borderTopLeftRadius: isFirst ? r : 0,
     borderTopRightRadius: isFirst ? r : 0,
@@ -22,7 +24,13 @@ function androidItemRadius(isFirst: boolean, isLast: boolean) {
  * Groups multiple list rows into a single visually connected section with
  * platform-appropriate background, separators, and corner treatment.
  */
-export function ListSection({ children }: { children: React.ReactNode }) {
+export function ListSection({
+  title,
+  children,
+}: {
+  title?: string;
+  children: React.ReactNode;
+}) {
   const theme = useTheme();
   const isDark = useColorScheme() === "dark";
   const bg = isDark ? theme.backgroundElement : theme.background;
@@ -30,8 +38,8 @@ export function ListSection({ children }: { children: React.ReactNode }) {
   const childArray = React.Children.toArray(children);
   const last = childArray.length - 1;
 
-  if (Platform.OS === "android") {
-    return (
+  const sectionContent =
+    Platform.OS === "android" ? (
       <View style={styles.androidContainer}>
         {childArray.map((child, index) => (
           <View
@@ -46,28 +54,51 @@ export function ListSection({ children }: { children: React.ReactNode }) {
           </View>
         ))}
       </View>
+    ) : (
+      <View style={[styles.iosSection, { backgroundColor: bg }]}>
+        {childArray.map((child, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && (
+              <View
+                style={[styles.separator, { backgroundColor: theme.separator }]}
+              />
+            )}
+            {child}
+          </React.Fragment>
+        ))}
+      </View>
     );
-  }
 
   return (
-    <View style={[styles.iosSection, { backgroundColor: bg }]}>
-      {childArray.map((child, index) => (
-        <React.Fragment key={index}>
-          {index > 0 && (
-            <View
-              style={[styles.separator, { backgroundColor: theme.separator }]}
-            />
-          )}
-          {child}
-        </React.Fragment>
-      ))}
+    <View style={styles.root}>
+      {title ? (
+        <ThemedText
+          type="smallBold"
+          themeColor="textSecondary"
+          style={styles.title}
+        >
+          {title}
+        </ThemedText>
+      ) : null}
+
+      {sectionContent}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    gap: 0,
+  },
+  title: {
+    paddingHorizontal: LIST_ROW_PADDING_HORIZONTAL,
+    paddingBottom: 10,
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: "600",
+  },
   iosSection: {
-    borderRadius: iosRadius,
+    borderRadius: IOS_LIST_SECTION_RADIUS,
     overflow: "hidden",
   },
   androidContainer: {

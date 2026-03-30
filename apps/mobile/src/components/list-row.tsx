@@ -2,11 +2,12 @@ import type { ReactNode } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
+import {
+  LIST_ROW_PADDING_HORIZONTAL,
+  LIST_ROW_PADDING_VERTICAL,
+} from "@/components/list-tokens";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-
-const ROW_PADDING_HORIZONTAL = 16;
-const ROW_PADDING_VERTICAL = 14;
 
 type BaseListRowProps = {
   /**
@@ -160,8 +161,8 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: ROW_PADDING_HORIZONTAL,
-    paddingVertical: ROW_PADDING_VERTICAL,
+    paddingHorizontal: LIST_ROW_PADDING_HORIZONTAL,
+    paddingVertical: LIST_ROW_PADDING_VERTICAL,
   },
   rowCentered: {
     justifyContent: "center",

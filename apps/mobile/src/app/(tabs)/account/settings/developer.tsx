@@ -41,7 +41,7 @@ export default function DeveloperSettingsScreen() {
       }
       contentContainerStyle={styles.content}
     >
-      <ListSection>
+      <ListSection title="Search">
         <ListRow>
           <View style={styles.rowContent}>
             <View style={styles.rowText}>
