@@ -20,17 +20,25 @@ function androidItemRadius(isFirst: boolean, isLast: boolean) {
   };
 }
 
-/**
- * Groups multiple list rows into a single visually connected section with
- * platform-appropriate background, separators, and corner treatment.
- */
-export function ListSection({
-  title,
-  children,
-}: {
+type ListSectionProps = {
+  /**
+   * Optional subtle section label rendered above the grouped surface.
+   */
   title?: string;
+  /**
+   * One or more row items composed inside the grouped section surface.
+   */
   children: React.ReactNode;
-}) {
+};
+
+/**
+ * Owns the grouped list surface for one or more row items.
+ *
+ * `ListSection` is responsible for section background, separators, and corner
+ * treatment. Compose `ListRow` inside it, then wrap individual rows with
+ * `LinkRow` or `ActionRow` when they need interaction.
+ */
+export function ListSection({ title, children }: ListSectionProps) {
   const theme = useTheme();
   const isDark = useColorScheme() === "dark";
   const bg = isDark ? theme.backgroundElement : theme.background;

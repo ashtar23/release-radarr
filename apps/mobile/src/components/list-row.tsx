@@ -37,7 +37,7 @@ type BaseListRowProps = {
  *
  * Use this shape for the common settings/list case where the row renders a
  * primary `label`, an optional `subtitle`, and optional leading/trailing
- * icons.
+ * icons inside a `ListSection`.
  */
 type ListRowLabelProps = BaseListRowProps & {
   /**
@@ -57,8 +57,8 @@ type ListRowLabelProps = BaseListRowProps & {
 /**
  * Fully custom list row content.
  *
- * Use this shape when the row body should be rendered manually instead of
- * using the built-in label/subtitle layout.
+ * Use this shape when the row body should be rendered manually inside a
+ * `ListSection` instead of using the built-in label/subtitle layout.
  */
 type ListRowChildrenProps = BaseListRowProps & {
   /**
@@ -76,20 +76,21 @@ type ListRowChildrenProps = BaseListRowProps & {
 };
 
 /**
- * Supported prop shapes for `ListRow`.
+ * Supported prop shapes for `ListRow` content.
  *
  * Either provide `label`/`subtitle` for the standard text layout, or provide
- * `children` for a fully custom row body.
+ * `children` for a fully custom row body. `ListRow` does not own grouped
+ * background, separators, or corner treatment.
  */
 export type ListRowProps = ListRowLabelProps | ListRowChildrenProps;
 
 /**
  * A presentational list row that renders label, subtitle, and optional leading
- * or trailing content using the platform list styling for the app.
+ * or trailing content for grouped list surfaces.
  *
- * This component is intentionally non-interactive. Wrap it with `LinkRow` for
- * navigation or `ActionRow` for non-navigation actions when press feedback is
- * needed.
+ * `ListRow` is intentionally non-interactive and content-only. Compose it
+ * inside `ListSection`, then wrap individual rows with `LinkRow` or
+ * `ActionRow` when navigation or press feedback is needed.
  */
 export function ListRow({
   tone = "default",
