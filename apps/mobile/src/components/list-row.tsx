@@ -27,12 +27,6 @@ type BaseListRowProps = {
    */
   trailingIcon?: ReactNode;
   /**
-   * Controls how the row content is aligned inside the available width.
-   * Use "center" for CTA-like rows where the icon and label should read as a
-   * single centered action.
-   */
-  contentAlignment?: "start" | "center";
-  /**
    * Additional styles to apply to the row container
    */
   style?: ViewStyle;
@@ -104,18 +98,12 @@ export function ListRow({
   leadingIcon,
   trailingIcon,
   children,
-  contentAlignment = "start",
   style,
 }: ListRowProps) {
   const theme = useTheme();
-  const isCentered = contentAlignment === "center";
 
   if (children != null) {
-    return (
-      <View style={[styles.row, isCentered && styles.rowCentered, style]}>
-        {children}
-      </View>
-    );
+    return <View style={[styles.row, style]}>{children}</View>;
   }
 
   const labelColor =
@@ -126,18 +114,14 @@ export function ListRow({
         : undefined;
 
   return (
-    <View style={[styles.row, isCentered && styles.rowCentered, style]}>
+    <View style={[styles.row, style]}>
       {leadingIcon != null ? (
         <View style={styles.leading}>{leadingIcon}</View>
       ) : null}
 
-      <View style={[styles.subtitle, isCentered && styles.subtitleCentered]}>
+      <View style={styles.subtitle}>
         <ThemedText
-          style={[
-            styles.label,
-            isCentered && styles.labelCentered,
-            labelColor ? { color: labelColor } : undefined,
-          ]}
+          style={[styles.label, labelColor ? { color: labelColor } : undefined]}
           numberOfLines={1}
         >
           {label}
@@ -164,23 +148,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: LIST_ROW_PADDING_HORIZONTAL,
     paddingVertical: LIST_ROW_PADDING_VERTICAL,
   },
-  rowCentered: {
-    justifyContent: "center",
-  },
   label: {
     flex: 1,
-  },
-  labelCentered: {
-    flex: 0,
-    textAlign: "center",
   },
   subtitle: {
     flex: 1,
     gap: Spacing.half,
-  },
-  subtitleCentered: {
-    flex: 0,
-    alignItems: "center",
   },
   leading: {
     marginRight: 8,

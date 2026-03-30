@@ -9,7 +9,6 @@ import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { LinkRow } from "@/components/link-row";
 import { router } from "expo-router";
-import { Button } from "@/components/button";
 
 export function AccountSignedOut() {
   const theme = useTheme();
