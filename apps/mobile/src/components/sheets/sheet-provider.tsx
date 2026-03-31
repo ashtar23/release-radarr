@@ -20,6 +20,7 @@ import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 type SheetComponentProps = {
   close: () => void;
@@ -73,6 +74,7 @@ function normalizeConfig(config: SheetOpenConfig): Required<SheetOpenConfig> {
 }
 
 export function AppSheetProvider({ children }: { children: ReactNode }) {
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const modalRef = useRef<BottomSheetModal>(null);
   const activeConfigRef = useRef<Required<SheetOpenConfig> | null>(null);
@@ -153,12 +155,21 @@ export function AppSheetProvider({ children }: { children: ReactNode }) {
             maxDynamicContentSize={sheetConfig.maxDynamicContentSize}
             enablePanDownToClose={sheetConfig.enablePanDownToClose}
             backdropComponent={renderBackdrop}
+            backgroundStyle={{
+              backgroundColor: theme.backgroundElement,
+            }}
+            handleIndicatorStyle={{
+              backgroundColor: theme.separator,
+            }}
             onDismiss={handleDismiss}
           >
             <BottomSheetView
               style={[
                 styles.contentContainer,
-                { paddingBottom: insets.bottom },
+                {
+                  paddingBottom: insets.bottom,
+                  backgroundColor: theme.backgroundElement,
+                },
               ]}
             >
               <sheetConfig.component close={controllerValue.closeSheet} />
