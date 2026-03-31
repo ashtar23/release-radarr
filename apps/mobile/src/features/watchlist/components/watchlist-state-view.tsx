@@ -1,22 +1,19 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+import { SignInLinkRow } from "@/components/sign-in-link-row";
 import { EmptyState } from "@/components/empty-state";
-import { AppButton } from "@/components/ui/button";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 import type { WatchlistScreenMode } from "../hooks/use-watchlist-feature";
+import { ListSection } from "@/components/list-section";
 
 type WatchlistStateViewProps = {
   mode: WatchlistScreenMode;
-  onSignIn: () => void;
 };
 
-export function WatchlistStateView({
-  mode,
-  onSignIn,
-}: WatchlistStateViewProps) {
+export function WatchlistStateView({ mode }: WatchlistStateViewProps) {
   const theme = useTheme();
 
   if (mode === "checking-session") {
@@ -38,13 +35,9 @@ export function WatchlistStateView({
           title="Sign in to use your watchlist"
           description="Save games here, then come back anytime from any device."
           action={
-            <AppButton
-              label="Sign in"
-              onPress={onSignIn}
-              variant="primary"
-              useGlass
-              style={styles.signInButton}
-            />
+            <ListSection>
+              <SignInLinkRow />
+            </ListSection>
           }
         />
       </WatchlistStateFrame>
@@ -86,8 +79,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     paddingTop: Spacing.three,
-  },
-  signInButton: {
-    width: "100%",
   },
 });

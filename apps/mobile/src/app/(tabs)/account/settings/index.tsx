@@ -14,6 +14,7 @@ import {
   type IOSSymbolName,
 } from "@/components/app-symbol";
 import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/settings/providers/search-debug-settings";
+import { useTheme } from "@/hooks/use-theme";
 
 type SettingsItem = {
   href: Href;
@@ -63,16 +64,20 @@ export default function SettingsScreen() {
 }
 
 function SettingsLinkRow({ item }: { item: SettingsItem }) {
+  const theme = useTheme();
+
   return (
     <LinkRow href={item.href}>
       <ListRow
         label={item.label}
         trailingIcon={
-          <AppSymbol
-            ios="chevron.right"
-            android="chevron_right"
-            size={Platform.OS === "ios" ? 13 : 18}
-          />
+          Platform.OS === "ios" ? (
+            <AppSymbol
+              ios="chevron.right"
+              size={13}
+              tintColor={theme.textSecondary}
+            />
+          ) : undefined
         }
         leadingIcon={
           <AppSymbol ios={item.iosSymbol} android={item.androidSymbol} />

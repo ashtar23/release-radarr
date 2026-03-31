@@ -1,14 +1,13 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { router } from "expo-router";
 
 import { AppSymbol } from "@/components/app-symbol";
-import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
+import { SignInLinkRow } from "@/components/sign-in-link-row";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { LinkRow } from "@/components/link-row";
-import { router } from "expo-router";
 
 export function AccountSignedOut() {
   const theme = useTheme();
@@ -32,19 +31,7 @@ export function AccountSignedOut() {
       </ListSection>
 
       <ListSection>
-        <LinkRow href="/auth">
-          <ListRow
-            label="Sign in"
-            tone="accent"
-            leadingIcon={
-              <AppSymbol
-                ios="arrow.right.circle"
-                android="login"
-                tintColor={theme.interactive.linkPrimary}
-              />
-            }
-          />
-        </LinkRow>
+        <SignInLinkRow />
       </ListSection>
 
       <Pressable

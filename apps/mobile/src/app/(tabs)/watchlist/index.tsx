@@ -1,11 +1,8 @@
-import { useRouter } from "expo-router";
-
 import { WatchlistList } from "@/features/watchlist/components/watchlist-list";
 import { WatchlistStateView } from "@/features/watchlist/components/watchlist-state-view";
 import { useWatchlistFeature } from "@/features/watchlist/hooks/use-watchlist-feature";
 
 export default function WatchlistScreen() {
-  const router = useRouter();
   const watchlistFeature = useWatchlistFeature();
 
   return (
@@ -17,10 +14,7 @@ export default function WatchlistScreen() {
           onRefresh={watchlistFeature.onRefresh}
         />
       ) : (
-        <WatchlistStateView
-          mode={watchlistFeature.mode}
-          onSignIn={() => router.push("/account")}
-        />
+        <WatchlistStateView mode={watchlistFeature.mode} />
       )}
     </>
   );

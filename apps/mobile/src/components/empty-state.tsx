@@ -64,5 +64,6 @@ const styles = StyleSheet.create({
   },
   action: {
     marginTop: Spacing.three,
+    width: "100%",
   },
 });
