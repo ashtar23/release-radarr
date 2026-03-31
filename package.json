@@ -8,6 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "test:backend-contracts": "node supabase/tests/contracts.mjs",
+    "release:mobile:version": "node scripts/bump-mobile-version.mjs",
     "dev:web": "pnpm --filter web dev",
     "dev:mobile": "pnpm --filter mobile start",
     "ios": "pnpm --filter mobile ios",

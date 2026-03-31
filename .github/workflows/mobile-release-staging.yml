@@ -1,0 +1,64 @@
+name: Mobile Release Staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: staging
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_STAGING_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_STAGING_PROJECT_ID }}
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_STAGING_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify mobile lint
+        run: pnpm lint --filter mobile
+
+      - name: Verify mobile typecheck
+        run: pnpm --filter mobile check-types
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link staging Supabase project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Push staging database migrations
+        run: supabase db push
+
+      - name: Deploy staging API function
+        run: supabase functions deploy api
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Start staging mobile build
+        working-directory: apps/mobile
+        run: eas build --platform all --profile staging --non-interactive

@@ -64,6 +64,7 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_PUBLISHABLE_KEY=
 
 # apps/mobile/.env
+APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
@@ -73,6 +74,24 @@ Do not use service role or any other secret key in web or mobile.
 
 Guest search remains available without auth.
 Auth is required for watchlist and notification features.
+
+## Mobile environments
+
+The mobile app now uses explicit build/runtime environments:
+
+- `development`
+- `staging`
+- `production`
+
+`APP_ENV` controls the app identity, while `EXPO_PUBLIC_SUPABASE_*` values control which Supabase backend the build talks to.
+
+Default hosted mapping:
+
+- development app -> staging backend
+- staging app -> staging backend
+- production app -> production backend
+
+See [docs/mobile-environments.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/mobile-environments.md) for the full environment, EAS, and release workflow contract.
 
 ## Local Supabase Verification
 
