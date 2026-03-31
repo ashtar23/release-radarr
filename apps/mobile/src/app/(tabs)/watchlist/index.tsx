@@ -12,7 +12,7 @@ import {
 } from "@/features/watchlist/watchlist-sort";
 import { useSheetController } from "@/components/sheets";
 import { Stack } from "expo-router";
-import { Platform } from "react-native";
+import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useCallback, useMemo } from "react";
 
 export default function WatchlistScreen() {
@@ -78,7 +78,10 @@ export default function WatchlistScreen() {
   }, [itemCount, openSheet, setSort, sort]);
 
   return (
-    <>
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingView}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       {itemCount > 0 ? (
         <Stack.SearchBar
           placeholder="Search watchlist"
@@ -100,6 +103,12 @@ export default function WatchlistScreen() {
           searchQuery={searchQuery}
         />
       )}
-    </>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+});

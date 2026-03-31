@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+import { AppSymbol } from "@/components/app-symbol";
 import { SignInLinkRow } from "@/components/sign-in-link-row";
 import { EmptyState } from "@/components/empty-state";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { LinkRow } from "@/components/link-row";
+import { ListRow } from "@/components/list-row";
 
 import type { WatchlistScreenMode } from "../hooks/use-watchlist-feature";
 import { ListSection } from "@/components/list-section";
@@ -66,11 +69,35 @@ export function WatchlistStateView({
   }
 
   if (hasSearchQuery) {
+    const trimmedSearchQuery = searchQuery?.trim() ?? "";
+
     return (
       <WatchlistStateFrame>
         <EmptyState
           title="No matches in your watchlist"
-          description={`Try a different title name than "${searchQuery?.trim()}".`}
+          description={`Try a different title name than "${trimmedSearchQuery}".`}
+          action={
+            <ListSection>
+              <LinkRow
+                href={{
+                  pathname: "/search",
+                  params: { query: trimmedSearchQuery },
+                }}
+              >
+                <ListRow
+                  tone="accent"
+                  label={`Search for "${trimmedSearchQuery}"`}
+                  leadingIcon={
+                    <AppSymbol
+                      ios="magnifyingglass"
+                      android="search"
+                      tintColor={theme.interactive.linkPrimary}
+                    />
+                  }
+                />
+              </LinkRow>
+            </ListSection>
+          }
         />
       </WatchlistStateFrame>
     );

@@ -9,8 +9,8 @@ export const WATCHLIST_SORT_OPTIONS: readonly {
   value: WatchlistSort;
   label: string;
 }[] = [
-  { value: "name-asc", label: "Title (A-Z)" },
-  { value: "name-desc", label: "Title (Z-A)" },
+  { value: "name-asc", label: "Name (A-Z)" },
+  { value: "name-desc", label: "Name (Z-A)" },
   { value: "added-desc", label: "Date added (newest first)" },
   { value: "added-asc", label: "Date added (oldest first)" },
   { value: "release-desc", label: "Release date (latest first)" },

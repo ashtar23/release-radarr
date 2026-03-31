@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { P, match } from "ts-pattern";
 import type { TitleDetails, WatchlistItem, WatchlistSort } from "@repo/types";
 
 import { useAuth } from "@/auth/auth-provider";
+import { useAppPreferences } from "@/features/settings/providers/app-preferences";
 
 import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
 import { useWatchlistMutation } from "../queries/use-watchlist-mutation";
@@ -19,7 +20,10 @@ const EMPTY_WATCHLIST_ITEMS: WatchlistItem[] = [];
 
 export function useWatchlistFeature() {
   const { user, isReady } = useAuth();
+  const { defaultWatchlistSort, isHydrated: arePreferencesHydrated } =
+    useAppPreferences();
   const [sort, setSort] = useState<WatchlistSort>(DEFAULT_WATCHLIST_SORT);
+  const [isFollowingDefaultSort, setIsFollowingDefaultSort] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const watchlistQuery = useWatchlistQuery(sort);
   const { addMutation, removeMutation } = useWatchlistMutation(sort);
@@ -45,6 +49,14 @@ export function useWatchlistFeature() {
       ),
     );
   }, [items, normalizedSearchQuery]);
+
+  useEffect(() => {
+    if (!arePreferencesHydrated || !isFollowingDefaultSort) {
+      return;
+    }
+
+    setSort(defaultWatchlistSort);
+  }, [arePreferencesHydrated, defaultWatchlistSort, isFollowingDefaultSort]);
 
   const refreshWatchlist = useCallback(async () => {
     if (isManualRefreshing) {
@@ -93,11 +105,16 @@ export function useWatchlistFeature() {
     removeMutation.mutate({ titleId });
   };
 
+  const updateSort = useCallback((nextSort: WatchlistSort) => {
+    setIsFollowingDefaultSort(nextSort === defaultWatchlistSort);
+    setSort(nextSort);
+  }, [defaultWatchlistSort]);
+
   return {
     items,
     filteredItems,
     sort,
-    setSort,
+    setSort: updateSort,
     searchQuery,
     setSearchQuery,
     mode,

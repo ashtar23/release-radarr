@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import type { WatchlistItem } from "@repo/types";
 
@@ -38,6 +38,8 @@ export function WatchlistList({
       contentInsetAdjustmentBehavior={
         capabilities.autoContentInsets ? "automatic" : "never"
       }
+      keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.content}
       refreshing={refreshing}
       onRefresh={onRefresh}

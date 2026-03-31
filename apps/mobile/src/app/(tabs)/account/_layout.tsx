@@ -30,9 +30,16 @@ export default function AccountLayout() {
       />
 
       <Stack.Screen
-        name="settings/general"
+        name="settings/general/index"
         options={{
           title: "General",
+        }}
+      />
+
+      <Stack.Screen
+        name="settings/general/watchlist"
+        options={{
+          title: "Watchlist Sorting",
         }}
       />
 
