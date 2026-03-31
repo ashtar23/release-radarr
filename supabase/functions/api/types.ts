@@ -14,6 +14,8 @@ export type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 export type WatchlistInsertRow =
   Database["public"]["Tables"]["watchlists"]["Insert"];
 export type WatchlistRow = Database["public"]["Tables"]["watchlists"]["Row"];
+export type WatchlistViewRow =
+  Database["public"]["Views"]["watchlist_items"]["Row"];
 
 export interface TitlePlatform {
   id: string;

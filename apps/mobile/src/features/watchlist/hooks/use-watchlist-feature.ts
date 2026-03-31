@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
 import { P, match } from "ts-pattern";
-import type { TitleDetails } from "@repo/types";
+import type { TitleDetails, WatchlistSort } from "@repo/types";
 
 import { useAuth } from "@/auth/auth-provider";
 
+import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
 import { useWatchlistMutation } from "../queries/use-watchlist-mutation";
 import { useWatchlistQuery } from "../queries/use-watchlist-query";
 
@@ -15,8 +16,9 @@ export type WatchlistScreenMode =
   | "empty";
 export function useWatchlistFeature() {
   const { user, isReady } = useAuth();
-  const watchlistQuery = useWatchlistQuery();
-  const { addMutation, removeMutation } = useWatchlistMutation();
+  const [sort, setSort] = useState<WatchlistSort>(DEFAULT_WATCHLIST_SORT);
+  const watchlistQuery = useWatchlistQuery(sort);
+  const { addMutation, removeMutation } = useWatchlistMutation(sort);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const { refetch } = watchlistQuery;
 
@@ -76,6 +78,8 @@ export function useWatchlistFeature() {
 
   return {
     items,
+    sort,
+    setSort,
     mode,
     canUseWatchlist: Boolean(user),
     refreshing: isManualRefreshing && canRefresh,

@@ -1,6 +1,7 @@
-import type { TitleDetails, WatchlistListResult } from "@repo/types";
+import type { TitleDetails, WatchlistListResult, WatchlistSort } from "@repo/types";
 import type { QueryClient } from "@tanstack/react-query";
 
+import { sortWatchlistItems } from "../watchlist-sort";
 import { getWatchlistQueryKey } from "./watchlist-query-key";
 
 type WatchlistItems = WatchlistListResult["items"];
@@ -20,11 +21,12 @@ export function buildOptimisticWatchlistItem(
 export function upsertWatchlistItem(
   items: WatchlistItems,
   item: WatchlistItems[number],
+  sort: WatchlistSort,
 ) {
   const filteredItems = items.filter(
     (existingItem) => existingItem.id !== item.id,
   );
-  return [item, ...filteredItems];
+  return sortWatchlistItems([item, ...filteredItems], sort);
 }
 
 export function removeWatchlistItemByTitleId(
@@ -37,16 +39,18 @@ export function removeWatchlistItemByTitleId(
 export function getWatchlistSnapshot(
   queryClient: QueryClient,
   userId: string | null,
+  sort: WatchlistSort,
 ) {
   return queryClient.getQueryData<WatchlistListResult>(
-    getWatchlistQueryKey(userId),
+    getWatchlistQueryKey(userId, sort),
   );
 }
 
 export function setWatchlistSnapshot(
   queryClient: QueryClient,
   userId: string | null,
+  sort: WatchlistSort,
   snapshot: WatchlistListResult,
 ) {
-  queryClient.setQueryData(getWatchlistQueryKey(userId), snapshot);
+  queryClient.setQueryData(getWatchlistQueryKey(userId, sort), snapshot);
 }

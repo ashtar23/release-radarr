@@ -2,6 +2,7 @@ import { API_PATH_PREFIX } from "@repo/config";
 import type {
   AddWatchlistItemInput,
   RemoveWatchlistItemInput,
+  WatchlistSort,
   WatchlistListResult,
   WatchlistUpsertResult,
 } from "@repo/types";
@@ -14,6 +15,7 @@ import { requestJson, requestVoid, type RequestContext } from "./request";
 
 export interface ListWatchlistParams {
   readonly signal?: AbortSignal;
+  readonly sort?: WatchlistSort;
 }
 
 export interface AddWatchlistItemParams extends AddWatchlistItemInput {
@@ -43,10 +45,14 @@ export function listWatchlist({
   context,
   params,
 }: ListWatchlistRequestParams): Promise<WatchlistListResult> {
+  const sortQuery = params?.sort
+    ? `?sort=${encodeURIComponent(params.sort)}`
+    : "";
+
   return requestJson({
     context,
     method: "GET",
-    path: `${API_PATH_PREFIX}/watchlist`,
+    path: `${API_PATH_PREFIX}/watchlist${sortQuery}`,
     signal: params?.signal,
     validate: isWatchlistListResult,
     invalidPayloadMessage: "Watchlist payload is invalid.",

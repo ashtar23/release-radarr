@@ -7,6 +7,7 @@ import type { WatchlistItem } from "@repo/types";
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { TitleCardRow } from "@/features/titles/components/title-card-row";
+import { WatchlistFooter } from "./watchlist-footer";
 
 type WatchlistListProps = {
   items: WatchlistItem[];
@@ -41,6 +42,8 @@ export function WatchlistList({
       refreshing={refreshing}
       onRefresh={onRefresh}
       ItemSeparatorComponent={ItemSeparator}
+      drawDistance={320}
+      ListFooterComponent={<WatchlistFooter itemCount={items.length} />}
     />
   );
 }

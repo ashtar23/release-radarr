@@ -43,10 +43,12 @@ export {
 export type {
   AddWatchlistItemInput,
   RemoveWatchlistItemInput,
+  WatchlistSort,
   WatchlistItem,
   WatchlistListResult,
   WatchlistUpsertResult,
 } from "./watchlist";
+export { watchlistSortValues } from "./watchlist";
 export { authCredentialsSchema } from "./auth";
 export type { AuthCredentialsInput } from "./auth";
 export { signInCredentialsSchema } from "./auth";

@@ -1,5 +1,9 @@
+import type {
+  TitleDetails,
+  WatchlistListResult,
+  WatchlistSort,
+} from "@repo/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { TitleDetails, WatchlistListResult } from "@repo/types";
 import {
   addWatchlistItem,
   removeWatchlistItem,
@@ -13,7 +17,11 @@ import {
   setWatchlistSnapshot,
   upsertWatchlistItem,
 } from "./watchlist-cache";
-import { getWatchlistQueryKey } from "./watchlist-query-key";
+import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
+import {
+  getWatchlistQueryKey,
+  getWatchlistQueryScope,
+} from "./watchlist-query-key";
 
 type AddToWatchlistVariables = {
   title: TitleDetails;
@@ -27,18 +35,18 @@ type WatchlistMutationContext = {
   previousWatchlist?: WatchlistListResult;
 };
 
-function useWatchlistMutation() {
+function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id ?? null;
-  const watchlistQueryKey = getWatchlistQueryKey(userId);
+  const watchlistQueryKey = getWatchlistQueryKey(userId, sort);
   const invalidateWatchlist = () => {
     if (!userId) {
       return;
     }
 
     queryClient
-      .invalidateQueries({ queryKey: watchlistQueryKey })
+      .invalidateQueries({ queryKey: getWatchlistQueryScope(userId) })
       .catch(() => {});
   };
 
@@ -56,14 +64,15 @@ function useWatchlistMutation() {
       }
 
       await queryClient.cancelQueries({ queryKey: watchlistQueryKey });
-      const previousWatchlist = getWatchlistSnapshot(queryClient, userId);
+      const previousWatchlist = getWatchlistSnapshot(queryClient, userId, sort);
 
       const optimisticItem = buildOptimisticWatchlistItem(userId, title);
 
-      setWatchlistSnapshot(queryClient, userId, {
+      setWatchlistSnapshot(queryClient, userId, sort, {
         items: upsertWatchlistItem(
           previousWatchlist?.items ?? [],
           optimisticItem,
+          sort,
         ),
       });
 
@@ -75,7 +84,12 @@ function useWatchlistMutation() {
       }
 
       if (context?.previousWatchlist) {
-        setWatchlistSnapshot(queryClient, userId, context.previousWatchlist);
+        setWatchlistSnapshot(
+          queryClient,
+          userId,
+          sort,
+          context.previousWatchlist,
+        );
       }
     },
     onSuccess: (payload) => {
@@ -86,9 +100,9 @@ function useWatchlistMutation() {
         (current) =>
           current
             ? {
-                items: upsertWatchlistItem(current.items, payload.item),
+                items: upsertWatchlistItem(current.items, payload.item, sort),
               }
-            : { items: [payload.item] },
+            : { items: upsertWatchlistItem([], payload.item, sort) },
       );
       invalidateWatchlist();
     },
@@ -109,9 +123,9 @@ function useWatchlistMutation() {
       }
 
       await queryClient.cancelQueries({ queryKey: watchlistQueryKey });
-      const previousWatchlist = getWatchlistSnapshot(queryClient, userId);
+      const previousWatchlist = getWatchlistSnapshot(queryClient, userId, sort);
 
-      setWatchlistSnapshot(queryClient, userId, {
+      setWatchlistSnapshot(queryClient, userId, sort, {
         items: removeWatchlistItemByTitleId(
           previousWatchlist?.items ?? [],
           titleId,
@@ -126,7 +140,12 @@ function useWatchlistMutation() {
       }
 
       if (context?.previousWatchlist) {
-        setWatchlistSnapshot(queryClient, userId, context.previousWatchlist);
+        setWatchlistSnapshot(
+          queryClient,
+          userId,
+          sort,
+          context.previousWatchlist,
+        );
       }
     },
     onSuccess: () => {

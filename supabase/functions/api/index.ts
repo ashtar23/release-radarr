@@ -78,7 +78,7 @@ Deno.serve(async (request) => {
 
     if (route.kind === "watchlist-list") {
       if (request.method === "GET") {
-        return handleWatchlistListRequest(admin, user.id);
+        return handleWatchlistListRequest(admin, user.id, url);
       }
 
       return handleWatchlistAddRequest(admin, user.id, request);

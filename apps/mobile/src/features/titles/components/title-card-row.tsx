@@ -14,9 +14,13 @@ const COVER_HEIGHT = 90;
 
 type TitleCardRowProps = {
   result: TitleSummary;
+  imageTransition?: number;
 };
 
-const TitleCardRow = memo(function TitleCardRow({ result }: TitleCardRowProps) {
+const TitleCardRow = memo(function TitleCardRow({
+  result,
+  imageTransition = 140,
+}: TitleCardRowProps) {
   const theme = useTheme();
   const rowStyle = StyleSheet.flatten([
     styles.titleCardItem,
@@ -50,10 +54,13 @@ const TitleCardRow = memo(function TitleCardRow({ result }: TitleCardRowProps) {
           {result.coverImageUrl ? (
             <Image
               source={{ uri: result.coverImageUrl }}
+              recyclingKey={result.coverImageUrl ?? result.id}
               style={styles.coverImage}
               contentFit="cover"
-              cachePolicy="memory-disk"
-              transition={140}
+              cachePolicy="disk"
+              priority="low"
+              enforceEarlyResizing
+              transition={imageTransition}
               accessibilityLabel={`${result.name} cover image`}
             />
           ) : (

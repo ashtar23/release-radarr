@@ -3,6 +3,7 @@ import {
   removeWatchlistItem,
   titleExists,
   upsertWatchlistItem,
+  type WatchlistSort,
 } from "../data/watchlist-repository.ts";
 import type { AdminClient } from "../types.ts";
 import { jsonResponse } from "../utils/http.ts";
@@ -10,8 +11,9 @@ import { jsonResponse } from "../utils/http.ts";
 export async function handleWatchlistListRequest(
   client: AdminClient,
   userId: string,
+  url: URL,
 ) {
-  const items = await listWatchlistItems(client, userId);
+  const items = await listWatchlistItems(client, userId, parseWatchlistSort(url));
   return jsonResponse({ items });
 }
 
@@ -76,4 +78,19 @@ async function parseWatchlistMutationBody(
   }
 
   return { titleId: titleId.trim() };
+}
+
+function parseWatchlistSort(url: URL): WatchlistSort {
+  const sort = url.searchParams.get("sort");
+  switch (sort) {
+    case "added-asc":
+    case "added-desc":
+    case "release-asc":
+    case "release-desc":
+    case "name-asc":
+    case "name-desc":
+      return sort;
+    default:
+      return "added-desc";
+  }
 }

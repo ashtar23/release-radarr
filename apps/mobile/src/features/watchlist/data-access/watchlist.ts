@@ -1,13 +1,20 @@
+import type { WatchlistSort } from "@repo/types";
 import { apiClient, apiClientConfigError } from "@/lib/api-client";
 
 export const watchlistConfigError = apiClientConfigError;
 
-function listWatchlist(abortSignal: AbortSignal) {
+function listWatchlist({
+  signal,
+  sort,
+}: {
+  signal: AbortSignal;
+  sort: WatchlistSort;
+}) {
   if (!apiClient) {
     throw new Error(watchlistConfigError ?? "Watchlist API is not configured.");
   }
 
-  return apiClient.listWatchlist({ signal: abortSignal });
+  return apiClient.listWatchlist({ signal, sort });
 }
 
 function addWatchlistItem({

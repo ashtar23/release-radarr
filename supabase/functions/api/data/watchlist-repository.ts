@@ -1,37 +1,66 @@
 import type {
   AdminClient,
-  CachedTitleRow,
   PlatformRelease,
   WatchlistInsertRow,
   WatchlistItem,
   WatchlistRow,
+  WatchlistViewRow,
 } from "../types.ts";
-import { mapCachedRowToTitleSummary } from "../mapping/titles.ts";
 
-interface WatchlistJoinedRow extends WatchlistRow {
-  titles: CachedTitleRow | null;
-}
-
-const WATCHLIST_WITH_TITLE_SELECT =
-  "id, user_id, title_id, created_at, titles!inner(id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, releases, created_at, updated_at, search_updated_at, detail_updated_at, description, genres, developers, publishers, website_url, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top)";
+export type WatchlistSort =
+  | "added-desc"
+  | "added-asc"
+  | "release-desc"
+  | "release-asc"
+  | "name-asc"
+  | "name-desc";
 
 export async function listWatchlistItems(
   client: AdminClient,
   userId: string,
+  sort: WatchlistSort,
 ): Promise<WatchlistItem[]> {
-  const { data, error } = await client
-    .from("watchlists")
-    .select(WATCHLIST_WITH_TITLE_SELECT)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  const baseQuery = client.from("watchlist_items").select("*").eq("user_id", userId);
+
+  const query = (() => {
+    switch (sort) {
+      case "added-asc":
+        return baseQuery
+          .order("added_at", { ascending: true })
+          .order("id", { ascending: true });
+      case "release-asc":
+        return baseQuery.order("earliest_release_date", {
+          ascending: true,
+          nullsFirst: false,
+        });
+      case "release-desc":
+        return baseQuery.order("earliest_release_date", {
+          ascending: false,
+          nullsFirst: false,
+        });
+      case "name-asc":
+        return baseQuery
+          .order("name", { ascending: true })
+          .order("id", { ascending: true });
+      case "name-desc":
+        return baseQuery
+          .order("name", { ascending: false })
+          .order("id", { ascending: true });
+      case "added-desc":
+      default:
+        return baseQuery
+          .order("added_at", { ascending: false })
+          .order("id", { ascending: true });
+    }
+  })();
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as unknown as WatchlistJoinedRow[])
-    .filter((row) => row.titles !== null)
-    .map(mapWatchlistItem);
+  return ((data ?? []) as WatchlistViewRow[]).map(mapWatchlistItem);
 }
 
 export async function upsertWatchlistItem(
@@ -63,8 +92,8 @@ export async function findWatchlistItem(
   titleId: string,
 ): Promise<WatchlistItem | null> {
   const { data, error } = await client
-    .from("watchlists")
-    .select(WATCHLIST_WITH_TITLE_SELECT)
+    .from("watchlist_items")
+    .select("*")
     .eq("user_id", userId)
     .eq("title_id", titleId)
     .maybeSingle();
@@ -73,11 +102,11 @@ export async function findWatchlistItem(
     throw new Error(error.message);
   }
 
-  if (!data || !(data as unknown as WatchlistJoinedRow).titles) {
+  if (!data) {
     return null;
   }
 
-  return mapWatchlistItem(data as unknown as WatchlistJoinedRow);
+  return mapWatchlistItem(data as WatchlistViewRow);
 }
 
 export async function removeWatchlistItem(
@@ -113,17 +142,76 @@ export async function titleExists(
   return Boolean(data);
 }
 
-function mapWatchlistItem(row: WatchlistJoinedRow): WatchlistItem {
-  if (!row.titles) {
-    throw new Error("Watchlist row is missing title.");
-  }
-
+function mapWatchlistItem(row: WatchlistViewRow): WatchlistItem {
+  assertWatchlistViewRow(row);
   return {
     id: row.id,
-    title: mapCachedRowToTitleSummary(row.titles),
-    releases: parseReleases(row.titles.releases),
-    addedAt: row.created_at,
+    title: {
+      id: row.title_id,
+      kind: row.kind,
+      source: row.source,
+      externalId: row.external_id,
+      slug: row.slug,
+      name: row.name,
+      coverImageUrl: row.cover_image_url,
+      earliestReleaseDate: row.earliest_release_date,
+      platforms: parsePlatforms(row.platforms),
+      rawgRating: row.rawg_rating,
+      rawgRatingsCount: row.rawg_ratings_count,
+      rawgMetacritic: row.rawg_metacritic,
+      rawgAdded: row.rawg_added,
+      rawgReviewsCount: row.rawg_reviews_count,
+      rawgSuggestionsCount: row.rawg_suggestions_count,
+      rawgRatingTop: row.rawg_rating_top,
+    },
+    releases: parseReleases(row.releases),
+    addedAt: row.added_at,
   };
+}
+
+function assertWatchlistViewRow(
+  row: WatchlistViewRow,
+): asserts row is WatchlistViewRow & {
+  id: string;
+  title_id: string;
+  kind: "game";
+  source: "rawg";
+  external_id: string;
+  slug: string;
+  name: string;
+  added_at: string;
+} {
+  if (
+    typeof row.id !== "string" ||
+    typeof row.title_id !== "string" ||
+    row.kind !== "game" ||
+    row.source !== "rawg" ||
+    typeof row.external_id !== "string" ||
+    typeof row.slug !== "string" ||
+    typeof row.name !== "string" ||
+    typeof row.added_at !== "string"
+  ) {
+    throw new Error("Watchlist view row is invalid.");
+  }
+}
+
+function parsePlatforms(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const record = item as Record<string, unknown>;
+    if (typeof record.id !== "string" || typeof record.name !== "string") {
+      return [];
+    }
+
+    return [{ id: record.id, name: record.name }];
+  });
 }
 
 function parseReleases(value: unknown): PlatformRelease[] {
