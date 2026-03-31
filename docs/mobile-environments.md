@@ -61,6 +61,15 @@ Profile intent:
 
 `production` uses remote app version management and auto-increments developer-facing build numbers during EAS builds.
 
+The EAS environment mapping is explicit:
+
+- `development` profile -> `development`
+- `staging` profile -> `preview`
+- `production` profile -> `production`
+
+Remote builds read `EXPO_PUBLIC_*` values from EAS environment variables, not from GitHub Actions job env alone.
+GitHub secrets handle workflow authentication and deploy credentials; EAS environment variables handle the app config bundled into the remote build.
+
 ## Supabase separation
 
 Operational model:
@@ -72,8 +81,8 @@ Operational model:
 Recommended GitHub secrets for workflows:
 
 - `SUPABASE_ACCESS_TOKEN`
-- `SUPABASE_STAGING_PROJECT_ID`
-- `SUPABASE_PRODUCTION_PROJECT_ID`
+- `SUPABASE_STAGING_PROJECT_REF`
+- `SUPABASE_PRODUCTION_PROJECT_REF`
 - `SUPABASE_STAGING_DB_PASSWORD`
 - `SUPABASE_PRODUCTION_DB_PASSWORD`
 - `SUPABASE_STAGING_URL`

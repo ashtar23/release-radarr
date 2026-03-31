@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "environment": "development",
       "developmentClient": true,
       "distribution": "internal",
       "env": {
@@ -12,12 +13,14 @@
       }
     },
     "staging": {
+      "environment": "preview",
       "distribution": "internal",
       "env": {
         "APP_ENV": "staging"
       }
     },
     "production": {
+      "environment": "production",
       "autoIncrement": true,
       "env": {
         "APP_ENV": "production"
