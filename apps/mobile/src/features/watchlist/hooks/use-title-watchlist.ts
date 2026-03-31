@@ -1,28 +1,17 @@
 import { router } from "expo-router";
-import * as Haptics from "expo-haptics";
 import type { TitleDetails } from "@repo/types";
 
-import { useAppPreferences } from "@/features/settings/providers/app-preferences";
+import { useAppHaptics } from "@/features/settings/hooks/use-app-haptics";
 import { useWatchlistFeature } from "./use-watchlist-feature";
 
 export function useTitleWatchlist(
   titleId: string,
   titleDetails?: TitleDetails,
 ) {
-  const { hapticsEnabled } = useAppPreferences();
+  const haptics = useAppHaptics();
   const watchlistFeature = useWatchlistFeature();
   const isInWatchlist = watchlistFeature.isInWatchlist(titleId);
   const canToggleWatchlist = isInWatchlist || Boolean(titleDetails);
-
-  const triggerHapticFeedback = () => {
-    if (!hapticsEnabled) {
-      return;
-    }
-
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
-      () => {},
-    );
-  };
 
   const toggleWatchlist = () => {
     if (!watchlistFeature.canUseWatchlist) {
@@ -30,7 +19,7 @@ export function useTitleWatchlist(
       return;
     }
 
-    triggerHapticFeedback();
+    haptics.impact();
 
     if (isInWatchlist) {
       watchlistFeature.removeFromWatchlist(titleId);
