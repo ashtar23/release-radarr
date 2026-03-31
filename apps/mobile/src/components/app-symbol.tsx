@@ -1,8 +1,11 @@
-import { SymbolView, type AndroidSymbol } from "expo-symbols";
+import {
+  SymbolView,
+  type AndroidSymbol,
+  type SymbolViewProps,
+} from "expo-symbols";
 import type { ComponentProps } from "react";
-import type { SFSymbol } from "sf-symbols-typescript";
 
-export type IOSSymbolName = SFSymbol;
+export type IOSSymbolName = Extract<SymbolViewProps["name"], string>;
 export type AndroidSymbolName = AndroidSymbol;
 
 type SymbolProps = Omit<ComponentProps<typeof SymbolView>, "name"> & {

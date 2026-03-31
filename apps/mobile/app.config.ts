@@ -5,9 +5,10 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 
 const PRODUCT_NAME = "Release Radar";
 const PRODUCT_SLUG = "release-radar";
-const mobilePackage = JSON.parse(
-  readFileSync(path.join(__dirname, "package.json"), "utf8"),
-) as { version: string };
+const mobilePackagePath = path.join(process.cwd(), "apps/mobile/package.json");
+const mobilePackage = JSON.parse(readFileSync(mobilePackagePath, "utf8")) as {
+  version: string;
+};
 
 const APP_ENVIRONMENTS = ["development", "staging", "production"] as const;
 
@@ -21,7 +22,11 @@ type EnvironmentConfig = {
 };
 
 function resolveAppEnvironment(value: string | undefined): AppEnvironment {
-  if (value === "development" || value === "staging" || value === "production") {
+  if (
+    value === "development" ||
+    value === "staging" ||
+    value === "production"
+  ) {
     return value;
   }
 
