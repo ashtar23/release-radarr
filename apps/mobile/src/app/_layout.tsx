@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { StyleSheet, View, useColorScheme } from "react-native";
 
@@ -44,6 +45,7 @@ export default function RootLayout() {
                     ]}
                   >
                     <AnimatedSplashOverlay />
+                    <StatusBar style={scheme === "dark" ? "light" : "dark"} />
 
                     <Stack>
                       <Stack.Screen

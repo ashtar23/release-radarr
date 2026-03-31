@@ -6,7 +6,6 @@ import React, {
   type ReactNode,
 } from "react";
 import {
-  Platform,
   Pressable,
   StyleSheet,
   TextInput,
