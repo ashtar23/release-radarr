@@ -1,5 +1,4 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
 
 import { SearchScreenContent } from "@/features/search/components/search-screen-content";
@@ -46,9 +45,3 @@ export default function SearchTabScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-});

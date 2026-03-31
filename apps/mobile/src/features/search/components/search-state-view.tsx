@@ -1,14 +1,7 @@
 import { EmptyState } from "@/components/empty-state";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import type { SearchStateMode } from "../hooks/use-search-screen-state";
 
