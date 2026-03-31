@@ -5,7 +5,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 
 const PRODUCT_NAME = "Release Radar";
 const PRODUCT_SLUG = "release-radar";
-const mobilePackagePath = path.join(process.cwd(), "apps/mobile/package.json");
+const mobilePackagePath = path.join(__dirname, "package.json");
 const mobilePackage = JSON.parse(readFileSync(mobilePackagePath, "utf8")) as {
   version: string;
 };
