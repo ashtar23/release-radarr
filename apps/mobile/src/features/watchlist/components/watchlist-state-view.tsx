@@ -11,10 +11,15 @@ import { ListSection } from "@/components/list-section";
 
 type WatchlistStateViewProps = {
   mode: WatchlistScreenMode;
+  searchQuery?: string;
 };
 
-export function WatchlistStateView({ mode }: WatchlistStateViewProps) {
+export function WatchlistStateView({
+  mode,
+  searchQuery,
+}: WatchlistStateViewProps) {
   const theme = useTheme();
+  const hasSearchQuery = Boolean(searchQuery?.trim());
 
   if (mode === "checking-session") {
     return (
@@ -55,6 +60,17 @@ export function WatchlistStateView({ mode }: WatchlistStateViewProps) {
           title="Loading watchlist..."
           description="Pulling your saved games from the server."
           icon={<ActivityIndicator size="small" color={theme.text} />}
+        />
+      </WatchlistStateFrame>
+    );
+  }
+
+  if (hasSearchQuery) {
+    return (
+      <WatchlistStateFrame>
+        <EmptyState
+          title="No matches in your watchlist"
+          description={`Try a different title name than "${searchQuery?.trim()}".`}
         />
       </WatchlistStateFrame>
     );

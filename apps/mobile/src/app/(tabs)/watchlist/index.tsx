@@ -11,14 +11,22 @@ import {
   WATCHLIST_SORT_TOGGLES,
 } from "@/features/watchlist/watchlist-sort";
 import { useSheetController } from "@/components/sheets";
+import { Stack } from "expo-router";
 import { Platform } from "react-native";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 export default function WatchlistScreen() {
   const watchlistFeature = useWatchlistFeature();
   const { openSheet } = useSheetController();
   const itemCount = watchlistFeature.items.length;
-  const { sort, setSort } = watchlistFeature;
+  const filteredItemCount = watchlistFeature.filteredItems.length;
+  const { sort, setSort, searchQuery, setSearchQuery } = watchlistFeature;
+  const handleSearchChange = useCallback(
+    (event: { nativeEvent: { text: string } }) => {
+      setSearchQuery(event.nativeEvent.text);
+    },
+    [setSearchQuery],
+  );
 
   const headerActions = useMemo<HeaderAction[]>(() => {
     if (itemCount === 0) {
@@ -71,16 +79,26 @@ export default function WatchlistScreen() {
 
   return (
     <>
+      {itemCount > 0 ? (
+        <Stack.SearchBar
+          placeholder="Search watchlist"
+          onChangeText={handleSearchChange}
+        />
+      ) : null}
+
       <HeaderActions actions={headerActions} />
 
-      {watchlistFeature.items.length > 0 ? (
+      {itemCount > 0 && filteredItemCount > 0 ? (
         <WatchlistList
-          items={watchlistFeature.items}
+          items={watchlistFeature.filteredItems}
           refreshing={watchlistFeature.refreshing}
           onRefresh={watchlistFeature.onRefresh}
         />
       ) : (
-        <WatchlistStateView mode={watchlistFeature.mode} />
+        <WatchlistStateView
+          mode={watchlistFeature.mode}
+          searchQuery={searchQuery}
+        />
       )}
     </>
   );

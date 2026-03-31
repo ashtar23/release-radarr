@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { P, match } from "ts-pattern";
-import type { TitleDetails, WatchlistSort } from "@repo/types";
+import type { TitleDetails, WatchlistItem, WatchlistSort } from "@repo/types";
 
 import { useAuth } from "@/auth/auth-provider";
 
@@ -14,20 +14,35 @@ export type WatchlistScreenMode =
   | "loading"
   | "refreshing"
   | "empty";
+
+const EMPTY_WATCHLIST_ITEMS: WatchlistItem[] = [];
+
 export function useWatchlistFeature() {
   const { user, isReady } = useAuth();
   const [sort, setSort] = useState<WatchlistSort>(DEFAULT_WATCHLIST_SORT);
+  const [searchQuery, setSearchQuery] = useState("");
   const watchlistQuery = useWatchlistQuery(sort);
   const { addMutation, removeMutation } = useWatchlistMutation(sort);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const { refetch } = watchlistQuery;
 
-  const items = watchlistQuery.data?.items ?? [];
+  const items = watchlistQuery.data?.items ?? EMPTY_WATCHLIST_ITEMS;
   const hasWatchlistData = watchlistQuery.data !== undefined;
   const canRefresh = isReady && Boolean(user);
   const isInitialLoading =
     watchlistQuery.isPending && !hasWatchlistData && !isManualRefreshing;
   const isMutating = addMutation.isPending || removeMutation.isPending;
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
+
+  const filteredItems = useMemo(() => {
+    if (!normalizedSearchQuery) {
+      return items;
+    }
+
+    return items.filter((item) =>
+      item.title.name.toLocaleLowerCase().includes(normalizedSearchQuery),
+    );
+  }, [items, normalizedSearchQuery]);
 
   const refreshWatchlist = useCallback(async () => {
     if (isManualRefreshing) {
@@ -78,8 +93,11 @@ export function useWatchlistFeature() {
 
   return {
     items,
+    filteredItems,
     sort,
     setSort,
+    searchQuery,
+    setSearchQuery,
     mode,
     canUseWatchlist: Boolean(user),
     refreshing: isManualRefreshing && canRefresh,
