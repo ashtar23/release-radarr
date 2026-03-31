@@ -32,7 +32,7 @@ export function useWatchlistFeature() {
   const isInitialLoading =
     watchlistQuery.isPending && !hasWatchlistData && !isManualRefreshing;
   const isMutating = addMutation.isPending || removeMutation.isPending;
-  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
+  const normalizedSearchQuery = normalizeWatchlistSearchText(searchQuery);
 
   const filteredItems = useMemo(() => {
     if (!normalizedSearchQuery) {
@@ -40,7 +40,9 @@ export function useWatchlistFeature() {
     }
 
     return items.filter((item) =>
-      item.title.name.toLocaleLowerCase().includes(normalizedSearchQuery),
+      normalizeWatchlistSearchText(item.title.name).includes(
+        normalizedSearchQuery,
+      ),
     );
   }, [items, normalizedSearchQuery]);
 
@@ -107,4 +109,14 @@ export function useWatchlistFeature() {
     addToWatchlist,
     removeFromWatchlist,
   };
+}
+
+function normalizeWatchlistSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/['’`]/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .toLocaleLowerCase()
+    .trim();
 }
