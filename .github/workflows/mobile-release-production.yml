@@ -1,4 +1,5 @@
-name: Mobile Release Production
+name: Mobile Production Release
+run-name: Mobile production release v${{ github.event.inputs.version }}
 
 on:
   workflow_dispatch:
@@ -12,6 +13,7 @@ permissions:
 
 jobs:
   release:
+    name: Production release
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:

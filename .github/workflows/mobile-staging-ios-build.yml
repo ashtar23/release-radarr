@@ -1,0 +1,22 @@
+name: Mobile Staging iOS Build
+run-name: Mobile staging iOS build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Staging iOS build
+    uses: ./.github/workflows/mobile-build-reusable.yml
+    with:
+      app_env: staging
+      platform: ios
+      eas_profile: staging
+      deploy_backend: false
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_STAGING_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_STAGING_PROJECT_ID }}
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_STAGING_PUBLISHABLE_KEY }}

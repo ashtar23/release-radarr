@@ -1,4 +1,5 @@
-name: Mobile CI
+name: Mobile App CI
+run-name: Mobile app CI
 
 on:
   pull_request:
@@ -8,6 +9,7 @@ on:
 
 jobs:
   mobile:
+    name: Mobile app verification
     runs-on: ubuntu-latest
 
     steps:

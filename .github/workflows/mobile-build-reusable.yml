@@ -1,0 +1,95 @@
+name: Mobile Build Reusable
+
+on:
+  workflow_call:
+    inputs:
+      app_env:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      eas_profile:
+        required: true
+        type: string
+      deploy_backend:
+        required: true
+        type: boolean
+    secrets:
+      EXPO_TOKEN:
+        required: true
+      SUPABASE_ACCESS_TOKEN:
+        required: true
+      SUPABASE_DB_PASSWORD:
+        required: true
+      SUPABASE_PROJECT_REF:
+        required: true
+      EXPO_PUBLIC_SUPABASE_URL:
+        required: true
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        required: true
+
+jobs:
+  build:
+    name: Build ${{ inputs.app_env }} ${{ inputs.platform }}
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: ${{ inputs.app_env }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify mobile lint
+        run: pnpm lint --filter mobile
+
+      - name: Verify mobile typecheck
+        run: pnpm --filter mobile check-types
+
+      - name: Setup Supabase CLI
+        if: ${{ inputs.deploy_backend }}
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        if: ${{ inputs.deploy_backend }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Push database migrations
+        if: ${{ inputs.deploy_backend }}
+        run: supabase db push
+
+      - name: Deploy API function
+        if: ${{ inputs.deploy_backend }}
+        run: supabase functions deploy api
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Start EAS build
+        working-directory: apps/mobile
+        run: eas build --platform ${{ inputs.platform }} --profile ${{ inputs.eas_profile }} --non-interactive
