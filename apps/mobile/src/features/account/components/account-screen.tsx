@@ -1,28 +1,28 @@
 import React from "react";
 
 import { ScreenScrollView } from "@/components/screen-scroll-view";
-import { useAuth } from "@/auth/auth-provider";
+import { useAuthGate } from "@/auth/use-auth-gate";
 
 import { AccountSignedIn } from "./account-signed-in";
 import { AccountSignedOut } from "./account-signed-out";
 import { AccountStateView } from "./account-state-view";
 
 export function AccountScreen() {
-  const { user, isReady, configError } = useAuth();
+  const { state, user, configError, isSignedIn } = useAuthGate();
 
-  const canSubmit = isReady && !configError;
+  const canSubmit = state === "ready" && !configError;
 
-  if (!isReady) {
+  if (state === "checking-session") {
     return <AccountStateView mode="loading" />;
   }
 
-  if (configError) {
+  if (state === "config-error") {
     return <AccountStateView mode="config-error" errorMessage={configError} />;
   }
 
   return (
     <ScreenScrollView>
-      {user ? (
+      {isSignedIn && user ? (
         <AccountSignedIn
           canSubmit={canSubmit}
           email={user.email}

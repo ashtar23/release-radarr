@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import type { TitleDetails, WatchlistItem, WatchlistSort } from "@repo/types";
 
-import { useAuth } from "@/auth/auth-provider";
+import { useAuthGate } from "@/auth/use-auth-gate";
 import { useAppPreferences } from "@/features/settings/providers/app-preferences";
 
 import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
@@ -19,7 +19,7 @@ export type WatchlistScreenMode =
 const EMPTY_WATCHLIST_ITEMS: WatchlistItem[] = [];
 
 export function useWatchlistFeature() {
-  const { user, isReady } = useAuth();
+  const { state: authGateState, user, isSignedIn } = useAuthGate();
   const { defaultWatchlistSort, isHydrated: arePreferencesHydrated } =
     useAppPreferences();
   const [sort, setSort] = useState<WatchlistSort>(DEFAULT_WATCHLIST_SORT);
@@ -33,7 +33,7 @@ export function useWatchlistFeature() {
 
   const items = watchlistQuery.data?.items ?? EMPTY_WATCHLIST_ITEMS;
   const hasWatchlistData = watchlistQuery.data !== undefined;
-  const canRefresh = isReady && Boolean(user);
+  const canRefresh = authGateState === "ready" && isSignedIn;
   const isInitialLoading =
     watchlistQuery.isPending && !hasWatchlistData && !isManualRefreshing;
   const isMutating = addMutation.isPending || removeMutation.isPending;
@@ -86,15 +86,15 @@ export function useWatchlistFeature() {
   }, [isManualRefreshing, refetch]);
 
   const mode: WatchlistScreenMode = match({
-    isReady,
-    user,
+    authGateState,
     isManualRefreshing,
     hasWatchlistData,
     isInitialLoading,
   })
     .returnType<WatchlistScreenMode>()
-    .with({ isReady: false }, () => "checking-session")
-    .with({ user: P.nullish }, () => "signed-out")
+    .with({ authGateState: "checking-session" }, () => "checking-session")
+    .with({ authGateState: "signed-out" }, () => "signed-out")
+    .with({ authGateState: "config-error" }, () => "loading")
     .with(
       { isManualRefreshing: true, hasWatchlistData: false },
       () => "refreshing",
