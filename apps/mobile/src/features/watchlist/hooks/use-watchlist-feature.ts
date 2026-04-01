@@ -28,6 +28,7 @@ export function useWatchlistFeature() {
   const watchlistQuery = useWatchlistQuery(sort);
   const { addMutation, removeMutation } = useWatchlistMutation(sort);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const [shouldShowControls, setShouldShowControls] = useState(false);
   const { refetch } = watchlistQuery;
 
   const items = watchlistQuery.data?.items ?? EMPTY_WATCHLIST_ITEMS;
@@ -57,6 +58,19 @@ export function useWatchlistFeature() {
 
     setSort(defaultWatchlistSort);
   }, [arePreferencesHydrated, defaultWatchlistSort, isFollowingDefaultSort]);
+
+  useEffect(() => {
+    if (!user) {
+      setShouldShowControls(false);
+      return;
+    }
+
+    if (!hasWatchlistData) {
+      return;
+    }
+
+    setShouldShowControls(items.length > 0);
+  }, [hasWatchlistData, items.length, user]);
 
   const refreshWatchlist = useCallback(async () => {
     if (isManualRefreshing) {
@@ -105,10 +119,13 @@ export function useWatchlistFeature() {
     removeMutation.mutate({ titleId });
   };
 
-  const updateSort = useCallback((nextSort: WatchlistSort) => {
-    setIsFollowingDefaultSort(nextSort === defaultWatchlistSort);
-    setSort(nextSort);
-  }, [defaultWatchlistSort]);
+  const updateSort = useCallback(
+    (nextSort: WatchlistSort) => {
+      setIsFollowingDefaultSort(nextSort === defaultWatchlistSort);
+      setSort(nextSort);
+    },
+    [defaultWatchlistSort],
+  );
 
   return {
     items,
@@ -117,6 +134,7 @@ export function useWatchlistFeature() {
     setSort: updateSort,
     searchQuery,
     setSearchQuery,
+    shouldShowControls,
     mode,
     canUseWatchlist: Boolean(user),
     refreshing: isManualRefreshing && canRefresh,

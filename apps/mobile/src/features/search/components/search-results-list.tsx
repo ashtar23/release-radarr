@@ -7,7 +7,7 @@ import { StyleSheet, View } from "react-native";
 import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 
-import { SearchResultsFooter } from "./search-results.footer";
+import { SearchResultsFooter } from "./search-results-footer";
 import { SearchResultsHeader } from "./search-results-header";
 import { TitleCardRow } from "@/features/titles/components/title-card-row";
 import type { SearchScreenState } from "../hooks/use-search-screen-state";

@@ -10,7 +10,7 @@ import { useHomeDiscoveryQuery } from "../data-access/use-home-discovery-query";
 import { HomeDiscoverySection } from "./home-discovery-section";
 import { HomeStateView } from "./home-state-view";
 
-export function HomeScreenContent() {
+export function HomeScreen() {
   const discoveryQuery = useHomeDiscoveryQuery();
   const hasAnySection =
     (discoveryQuery.data?.upcoming.length ?? 0) > 0 ||

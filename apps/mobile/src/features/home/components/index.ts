@@ -1,2 +1,2 @@
-export { HomeScreenContent } from "./home-screen-content";
+export { HomeScreen } from "./home-screen";
 export { HomeStateView } from "./home-state-view";
