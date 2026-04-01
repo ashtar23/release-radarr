@@ -1,8 +1,8 @@
 import React from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { ThemedText } from "@/components/themed-text";
-import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { apiClientConfigError } from "@/lib/api-client";
@@ -20,15 +20,8 @@ export function HomeScreenContent() {
     (discoveryQuery.data?.popular.length ?? 0) > 0;
 
   return (
-    <ScrollView
-      style={styles.scrollView}
-      contentInsetAdjustmentBehavior={
-        capabilities.autoContentInsets ? "automatic" : "never"
-      }
-      contentContainerStyle={styles.content}
-    >
+    <ScreenScrollView contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        {/* <ThemedText type="title">Discover</ThemedText> */}
         <ThemedText themeColor="textSecondary">
           Browse what&apos;s releasing soon, what just launched, and what&apos;s
           popular right now.
@@ -80,17 +73,14 @@ export function HomeScreenContent() {
           No discovery titles are available right now.
         </ThemedText>
       ) : null}
-    </ScrollView>
+    </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
   content: {
     gap: Spacing.four,
-    paddingTop: Spacing.three,
+    paddingHorizontal: 0,
     paddingBottom: Spacing.five,
   },
   header: {

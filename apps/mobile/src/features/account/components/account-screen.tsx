@@ -1,9 +1,9 @@
 import React from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { useAuth } from "@/auth/auth-provider";
 import { ThemedText } from "@/components/themed-text";
-import { capabilities } from "@/constants/capabilities";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -18,13 +18,7 @@ export function AccountScreen() {
   const errorTextStyle = { color: theme.status.error };
 
   return (
-    <ScrollView
-      style={styles.scrollView}
-      contentInsetAdjustmentBehavior={
-        capabilities.autoContentInsets ? "automatic" : "never"
-      }
-      contentContainerStyle={styles.content}
-    >
+    <ScreenScrollView>
       {!isReady ? (
         <View style={styles.loadingRow}>
           <ActivityIndicator />
@@ -47,20 +41,11 @@ export function AccountScreen() {
       ) : (
         <AccountSignedOut />
       )}
-    </ScrollView>
+    </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
-    paddingBottom: Spacing.three,
-    gap: Spacing.three,
-  },
   loadingRow: {
     flexDirection: "row",
     alignItems: "center",

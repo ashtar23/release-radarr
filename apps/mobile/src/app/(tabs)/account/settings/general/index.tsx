@@ -1,12 +1,11 @@
-import { Platform, ScrollView, StyleSheet } from "react-native";
+import { Platform } from "react-native";
 
 import { AppSymbol } from "@/components/app-symbol";
 import { LinkRow } from "@/components/link-row";
 import { ListSection } from "@/components/list-section";
 import { ListRow } from "@/components/list-row";
 import { ListSwitchRow } from "@/components/list-switch-row";
-import { capabilities } from "@/constants/capabilities";
-import { Spacing } from "@/constants/theme";
+import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { useAppPreferences } from "@/features/settings/providers/app-preferences";
 import { getWatchlistSortLabel } from "@/features/watchlist/watchlist-sort";
 import { useTheme } from "@/hooks/use-theme";
@@ -18,12 +17,7 @@ export default function GeneralSettingsScreen() {
   const watchlistSortSubtitle = getWatchlistSortLabel(defaultWatchlistSort);
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior={
-        capabilities.autoContentInsets ? "automatic" : "never"
-      }
-      contentContainerStyle={styles.content}
-    >
+    <ScreenScrollView>
       <ListSection>
         <LinkRow href="/account/settings/general/watchlist">
           <ListRow
@@ -48,15 +42,6 @@ export default function GeneralSettingsScreen() {
           onValueChange={setHapticsEnabled}
         />
       </ListSection>
-    </ScrollView>
+    </ScreenScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
-    paddingBottom: Spacing.five,
-  },
-});

@@ -21,6 +21,7 @@ export default function WatchlistScreen() {
   const itemCount = watchlistFeature.items.length;
   const filteredItemCount = watchlistFeature.filteredItems.length;
   const { sort, setSort, searchQuery, setSearchQuery } = watchlistFeature;
+
   const handleSearchChange = useCallback(
     (event: { nativeEvent: { text: string } }) => {
       setSearchQuery(event.nativeEvent.text);

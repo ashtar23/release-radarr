@@ -1,12 +1,11 @@
 import React from "react";
-import { Platform, ScrollView, StyleSheet } from "react-native";
+import { Platform } from "react-native";
 import { Href } from "expo-router";
 
-import { capabilities } from "@/constants/capabilities";
-import { Spacing } from "@/constants/theme";
 import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
 import { LinkRow } from "@/components/link-row";
+import { ScreenScrollView } from "@/components/screen-scroll-view";
 
 import {
   AppSymbol,
@@ -48,18 +47,13 @@ const SETTINGS_ITEMS: SettingsItem[] = [
 
 export default function SettingsScreen() {
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior={
-        capabilities.autoContentInsets ? "automatic" : "never"
-      }
-      contentContainerStyle={styles.content}
-    >
+    <ScreenScrollView>
       <ListSection>
         {SETTINGS_ITEMS.map((item) => (
           <SettingsLinkRow key={item.label} item={item} />
         ))}
       </ListSection>
-    </ScrollView>
+    </ScreenScrollView>
   );
 }
 
@@ -86,12 +80,3 @@ function SettingsLinkRow({ item }: { item: SettingsItem }) {
     </LinkRow>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
-    paddingBottom: Spacing.five,
-  },
-});
