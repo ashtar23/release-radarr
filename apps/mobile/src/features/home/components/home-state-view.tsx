@@ -1,10 +1,10 @@
 import React from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 
 import { Button } from "@/components/button";
+import { CenteredStateFrame } from "@/components/centered-state-frame";
 import { EmptyState } from "@/components/empty-state";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 type HomeStateViewMode = "config-error" | "loading" | "request-error";
@@ -27,19 +27,19 @@ export function HomeStateView({
 
   if (mode === "loading") {
     return (
-      <HomeStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Loading discovery..."
           description="Pulling upcoming, latest, and popular games."
           icon={<ActivityIndicator size="small" color={theme.text} />}
         />
-      </HomeStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   if (mode === "config-error") {
     return (
-      <HomeStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Home is unavailable"
           description={errorMessage}
@@ -49,14 +49,14 @@ export function HomeStateView({
             </ThemedText>
           }
         />
-      </HomeStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   return (
-    <HomeStateFrame>
+    <CenteredStateFrame>
       <EmptyState
-        title="Couldn&apos;t load discovery"
+        title="Couldn't load discovery"
         description={
           errorMessage ?? "Something went wrong while loading discovery."
         }
@@ -72,18 +72,6 @@ export function HomeStateView({
           ) : undefined
         }
       />
-    </HomeStateFrame>
+    </CenteredStateFrame>
   );
 }
-
-function HomeStateFrame({ children }: { children?: React.ReactNode }) {
-  return <View style={styles.container}>{children}</View>;
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingTop: Spacing.three,
-  },
-});

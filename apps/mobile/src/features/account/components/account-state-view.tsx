@@ -1,9 +1,9 @@
 import React from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 
+import { CenteredStateFrame } from "@/components/centered-state-frame";
 import { EmptyState } from "@/components/empty-state";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 type AccountStateViewMode = "loading" | "config-error";
@@ -22,18 +22,18 @@ export function AccountStateView({
 
   if (mode === "loading") {
     return (
-      <AccountStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Checking your session..."
           description="Loading your account access."
           icon={<ActivityIndicator size="small" color={theme.text} />}
         />
-      </AccountStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   return (
-    <AccountStateFrame>
+    <CenteredStateFrame>
       <EmptyState
         title="Account is unavailable"
         description={errorMessage ?? "Account configuration is unavailable."}
@@ -43,18 +43,6 @@ export function AccountStateView({
           </ThemedText>
         }
       />
-    </AccountStateFrame>
+    </CenteredStateFrame>
   );
 }
-
-function AccountStateFrame({ children }: { children?: React.ReactNode }) {
-  return <View style={styles.container}>{children}</View>;
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingTop: Spacing.three,
-  },
-});

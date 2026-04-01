@@ -1,10 +1,10 @@
 import React from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 
 import { Button } from "@/components/button";
+import { CenteredStateFrame } from "@/components/centered-state-frame";
 import { EmptyState } from "@/components/empty-state";
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 type TitleDetailsStateViewMode =
@@ -31,19 +31,19 @@ export function TitleDetailsStateView({
 
   if (mode === "loading") {
     return (
-      <TitleDetailsStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Loading title details..."
           description="Pulling the latest information for this game."
           icon={<ActivityIndicator size="small" color={theme.text} />}
         />
-      </TitleDetailsStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   if (mode === "config-error") {
     return (
-      <TitleDetailsStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Title details are unavailable"
           description={errorMessage}
@@ -53,25 +53,25 @@ export function TitleDetailsStateView({
             </ThemedText>
           }
         />
-      </TitleDetailsStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   if (mode === "invalid-title") {
     return (
-      <TitleDetailsStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Invalid title"
           description="This title could not be opened."
         />
-      </TitleDetailsStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   return (
-    <TitleDetailsStateFrame>
+    <CenteredStateFrame>
       <EmptyState
-        title="Couldn&apos;t load title details"
+        title="Couldn't load title details"
         description={
           errorMessage ?? "Something went wrong while loading title details."
         }
@@ -87,22 +87,6 @@ export function TitleDetailsStateView({
           ) : undefined
         }
       />
-    </TitleDetailsStateFrame>
+    </CenteredStateFrame>
   );
 }
-
-function TitleDetailsStateFrame({
-  children,
-}: {
-  children?: React.ReactNode;
-}) {
-  return <View style={styles.container}>{children}</View>;
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingTop: Spacing.three,
-  },
-});

@@ -1,13 +1,12 @@
-import type { ReactNode } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 
 import { AppSymbol } from "@/components/app-symbol";
+import { CenteredStateFrame } from "@/components/centered-state-frame";
 import { EmptyState } from "@/components/empty-state";
 import { ListSection } from "@/components/list-section";
 import { ScreenPrompt } from "@/components/screen-prompt";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { SignInLinkRow } from "@/components/sign-in-link-row";
-import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { LinkRow } from "@/components/link-row";
 import { ListRow } from "@/components/list-row";
@@ -28,13 +27,13 @@ export function WatchlistStateView({
 
   if (mode === "checking-session") {
     return (
-      <WatchlistStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Checking your session..."
           description="Loading your watchlist access."
           icon={<ActivityIndicator size="small" color={theme.text} />}
         />
-      </WatchlistStateFrame>
+      </CenteredStateFrame>
     );
   }
 
@@ -56,18 +55,18 @@ export function WatchlistStateView({
   }
 
   if (mode === "refreshing") {
-    return <WatchlistStateFrame />;
+    return <CenteredStateFrame />;
   }
 
   if (mode === "loading") {
     return (
-      <WatchlistStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="Loading watchlist..."
           description="Pulling your saved games from the server."
           icon={<ActivityIndicator size="small" color={theme.text} />}
         />
-      </WatchlistStateFrame>
+      </CenteredStateFrame>
     );
   }
 
@@ -75,7 +74,7 @@ export function WatchlistStateView({
     const trimmedSearchQuery = searchQuery?.trim() ?? "";
 
     return (
-      <WatchlistStateFrame>
+      <CenteredStateFrame>
         <EmptyState
           title="No matches in your watchlist"
           description={`Try a different title name than "${trimmedSearchQuery}".`}
@@ -102,28 +101,16 @@ export function WatchlistStateView({
             </ListSection>
           }
         />
-      </WatchlistStateFrame>
+      </CenteredStateFrame>
     );
   }
 
   return (
-    <WatchlistStateFrame>
+    <CenteredStateFrame>
       <EmptyState
         title="Your watchlist is empty"
         description="Add games from title details to see them here."
       />
-    </WatchlistStateFrame>
+    </CenteredStateFrame>
   );
 }
-
-function WatchlistStateFrame({ children }: { children?: ReactNode }) {
-  return <View style={styles.emptyState}>{children}</View>;
-}
-
-const styles = StyleSheet.create({
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    paddingTop: Spacing.three,
-  },
-});
