@@ -1,6 +1,7 @@
-# Mobile Navigation Structure (Recommended)
+# Mobile Navigation Structure
 
-This document captures the current Expo Router structure for the mobile app.
+This document captures the current Expo Router structure for the mobile app and
+the planned next navigation step for Notifications.
 
 ## Current structure in this repo
 
@@ -14,22 +15,54 @@ apps/mobile/src/app/
     home/
       _layout.tsx                # stack for Home tab branch
       index.tsx                  # home screen
-    search/
-      _layout.tsx                # stack for search tab branch
-      index.tsx                  # search screen
     watchlist/
       _layout.tsx                # stack for Watchlist tab branch
       index.tsx                  # watchlist screen
-    settings/
-      _layout.tsx                # stack for Settings tab branch
-      index.tsx                  # settings screen
+    search/
+      _layout.tsx                # stack for search tab branch
+      index.tsx                  # search screen
+    account/
+      _layout.tsx                # stack for Account tab branch
+      index.tsx                  # account screen
+      settings/
+        index.tsx                # settings index
+        general/
+          index.tsx              # general settings
+          watchlist.tsx          # watchlist sorting settings
+        theme.tsx                # theme settings
+        developer.tsx            # developer settings
 ```
+
+## Current top-level tabs
+
+The current tab order in the app is:
+
+1. Home
+2. Watchlist
+3. Search
+4. Account
+
+## Planned next step
+
+The next planned navigation change is adding Notifications as a first-class tab.
+
+Planned tab order after that work lands:
+
+1. Home
+2. Watchlist
+3. Notifications
+4. Search
+5. Account
+
+That target is documented in:
+
+- [docs/notifications.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/notifications.md)
 
 ## Why this shape exists
 
 1. **Native tabs + stack per tab branch**
 - Expo docs for Native Tabs explicitly recommend nesting a native `Stack` inside tabs when you need headers and push navigation.
-- This repo follows that pattern for home, search, watchlist, and settings.
+- This repo follows that pattern for home, watchlist, search, and account.
 
 2. **Do not create one layout per page**
 - The target pattern is one navigator per branch/flow (for example, one stack for Home, one stack for Explore), not a separate layout for every single screen file.
@@ -49,7 +82,12 @@ apps/mobile/src/app/
 - Search is its own tab branch because it has infinite scroll and query-driven state.
 - Watchlist is its own tab branch because it is auth-gated and uses a different state model.
 
-6. **`(tabs)/index.tsx` redirect is valid**
+6. **Account owns settings**
+- Settings is not a top-level tab.
+- Settings is pushed from the Account branch through a header action.
+- This keeps Account as the user hub and treats settings as a secondary routed flow.
+
+7. **`(tabs)/index.tsx` redirect is valid**
 - Expo Router officially supports using `<Redirect />` from an index route.
 - Redirecting `/` to `/home` is a clean way to preserve a default app entry route while keeping Home in its own branch stack.
 
