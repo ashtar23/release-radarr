@@ -1,10 +1,8 @@
-import { Stack } from "expo-router";
-import React from "react";
-
-import { defaultStackScreenOptions } from "@/constants/navigation";
 import { useAuth } from "@/auth/auth-provider";
+import { defaultStackScreenOptions } from "@/constants/navigation";
+import { Stack } from "expo-router";
 
-export default function WatchlistLayout() {
+export default function NotificationsLayout() {
   const { user, isReady } = useAuth();
   const shouldShowHeader = isReady && Boolean(user);
 
@@ -13,7 +11,7 @@ export default function WatchlistLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: "Watchlist",
+          title: "Notifications",
           headerLargeTitleEnabled: shouldShowHeader,
         }}
       />

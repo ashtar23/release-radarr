@@ -1,8 +1,4 @@
-import type {
-  EntityId,
-  IsoDateString,
-  IsoDateTimeString,
-} from "./core";
+import type { EntityId, IsoDateString, IsoDateTimeString } from "./core";
 
 export const notificationEventTypeValues = [
   "release_date_changed",

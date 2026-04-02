@@ -68,8 +68,9 @@ export function summarizeTimingMetric(
 ): MetricSummary {
   const values = entries
     .map((entry) => entry[metric])
-    .filter((value): value is number =>
-      typeof value === "number" && Number.isFinite(value)
+    .filter(
+      (value): value is number =>
+        typeof value === "number" && Number.isFinite(value),
     )
     .sort((a, b) => a - b);
 
@@ -98,9 +99,10 @@ export function summarizeTimingMetric(
 
 export function summarizeTimingLogs(entries: SearchTimingLog[]) {
   return Object.fromEntries(
-    METRIC_KEYS.map((
+    METRIC_KEYS.map((metric) => [
       metric,
-    ) => [metric, summarizeTimingMetric(entries, metric)]),
+      summarizeTimingMetric(entries, metric),
+    ]),
   ) as Record<MetricKey, MetricSummary>;
 }
 
@@ -124,10 +126,7 @@ function round(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-function printSummary(
-  label: string,
-  entries: SearchTimingLog[],
-) {
+function printSummary(label: string, entries: SearchTimingLog[]) {
   console.log(`\n=== ${label} ===`);
   console.log(`entries: ${entries.length}`);
 
@@ -158,9 +157,7 @@ function printComparison(
   candidateLabel: string,
   candidateEntries: SearchTimingLog[],
 ) {
-  console.log(
-    `\n=== Comparison (${baselineLabel} -> ${candidateLabel}) ===`,
-  );
+  console.log(`\n=== Comparison (${baselineLabel} -> ${candidateLabel}) ===`);
 
   const baselineSummary = summarizeTimingLogs(baselineEntries);
   const candidateSummary = summarizeTimingLogs(candidateEntries);
@@ -172,9 +169,11 @@ function printComparison(
     const percent = baseline === 0 ? 0 : round((delta / baseline) * 100);
     const sign = delta >= 0 ? "+" : "";
     console.log(
-      `${metric.padEnd(16)} ${baseline.toFixed(2).padStart(8)} -> ${
-        candidate.toFixed(2).padStart(8)
-      } (${sign}${delta.toFixed(2)}ms, ${sign}${percent.toFixed(2)}%)`,
+      `${metric.padEnd(16)} ${baseline.toFixed(2).padStart(8)} -> ${candidate
+        .toFixed(2)
+        .padStart(
+          8,
+        )} (${sign}${delta.toFixed(2)}ms, ${sign}${percent.toFixed(2)}%)`,
     );
   }
 }

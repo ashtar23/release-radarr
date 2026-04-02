@@ -1,5 +1,5 @@
 import { Stack, useRouter } from "expo-router";
-import { Platform, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import { HeaderIconButton } from "@/components/header-icon-button";
 import type {
@@ -108,13 +108,13 @@ function runHeaderButtonAction(
   action.onPress();
 }
 
-const styles = {
+const styles = StyleSheet.create({
   headerButtons: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
-};
+});
 
 function resolveHeaderActions(actions: HeaderAction[]): HeaderAction[] {
   return actions.reduce<HeaderAction[]>((resolvedActions, action) => {
