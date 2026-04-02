@@ -1,6 +1,7 @@
 import { API_PATH_PREFIX } from "@repo/config";
 import type {
   ListNotificationsInput,
+  MarkAllNotificationsReadResult,
   MarkNotificationReadInput,
   MarkNotificationReadResult,
   NotificationPreferencesResult,
@@ -10,6 +11,7 @@ import type {
 } from "@repo/types";
 
 import {
+  isMarkAllNotificationsReadResult,
   isMarkNotificationReadResult,
   isNotificationPreferencesResult,
   isNotificationRecordListResult,
@@ -22,6 +24,10 @@ export interface ListNotificationsParams extends ListNotificationsInput {
 }
 
 export interface MarkNotificationReadParams extends MarkNotificationReadInput {
+  readonly signal?: AbortSignal;
+}
+
+export interface MarkAllNotificationsReadParams {
   readonly signal?: AbortSignal;
 }
 
@@ -38,6 +44,11 @@ interface ListNotificationsRequestParams {
 interface MarkNotificationReadRequestParams {
   readonly context: RequestContext;
   readonly params: MarkNotificationReadParams;
+}
+
+interface MarkAllNotificationsReadRequestParams {
+  readonly context: RequestContext;
+  readonly params?: MarkAllNotificationsReadParams;
 }
 
 interface UpdateNotificationPreferencesRequestParams {
@@ -117,6 +128,21 @@ export function markNotificationRead({
     validate: isMarkNotificationReadResult,
     invalidPayloadMessage: "Notification read payload is invalid.",
     failureMessage: "Mark notification read request failed.",
+  });
+}
+
+export function markAllNotificationsRead({
+  context,
+  params,
+}: MarkAllNotificationsReadRequestParams): Promise<MarkAllNotificationsReadResult> {
+  return requestJson({
+    context,
+    method: "POST",
+    path: `${API_PATH_PREFIX}/notifications/read-all`,
+    signal: params?.signal,
+    validate: isMarkAllNotificationsReadResult,
+    invalidPayloadMessage: "Mark all notifications read payload is invalid.",
+    failureMessage: "Mark all notifications read request failed.",
   });
 }
 

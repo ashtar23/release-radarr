@@ -1,4 +1,5 @@
 import type {
+  MarkAllNotificationsReadResult,
   MarkNotificationReadResult,
   NotificationPreferencesResult,
   NotificationRecord,
@@ -136,6 +137,17 @@ export function isMarkNotificationReadResult(
   value: unknown,
 ): value is MarkNotificationReadResult {
   return isRecord(value) && isNotificationRecord(value.notification);
+}
+
+export function isMarkAllNotificationsReadResult(
+  value: unknown,
+): value is MarkAllNotificationsReadResult {
+  return (
+    isRecord(value) &&
+    typeof value.markedCount === "number" &&
+    Number.isInteger(value.markedCount) &&
+    value.markedCount >= 0
+  );
 }
 
 export function isNotificationPreferencesResult(

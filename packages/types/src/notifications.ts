@@ -100,3 +100,7 @@ export interface MarkNotificationReadInput {
 export interface MarkNotificationReadResult {
   notification: NotificationRecord;
 }
+
+export interface MarkAllNotificationsReadResult {
+  markedCount: number;
+}

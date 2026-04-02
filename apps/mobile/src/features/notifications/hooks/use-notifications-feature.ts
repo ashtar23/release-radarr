@@ -6,6 +6,7 @@ import { match } from "ts-pattern";
 import { useAuthGate } from "@/auth/use-auth-gate";
 
 import { notificationsConfigError } from "../data-access/notifications";
+import { useMarkAllNotificationsReadMutation } from "../queries/use-mark-all-notifications-read-mutation";
 import { useMarkNotificationReadMutation } from "../queries/use-mark-notification-read-mutation";
 import { useNotificationUnreadCountQuery } from "../queries/use-notification-unread-count-query";
 import { useNotificationsQuery } from "../queries/use-notifications-query";
@@ -28,6 +29,7 @@ export function useNotificationsFeature() {
   } = useAuthGate();
   const notificationsQuery = useNotificationsQuery();
   const unreadCountQuery = useNotificationUnreadCountQuery();
+  const markAllReadMutation = useMarkAllNotificationsReadMutation();
   const markReadMutation = useMarkNotificationReadMutation();
   const configError = authConfigError ?? notificationsConfigError;
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -86,6 +88,10 @@ export function useNotificationsFeature() {
     await markReadMutation.mutateAsync({ notificationId });
   };
 
+  const markAllAsRead = async () => {
+    await markAllReadMutation.mutateAsync();
+  };
+
   const mode: NotificationsScreenMode = match({
     authGateState,
     configError,
@@ -115,7 +121,9 @@ export function useNotificationsFeature() {
     hasMoreNotifications: Boolean(notificationsQuery.hasNextPage),
     isLoadingMore: notificationsQuery.isFetchingNextPage,
     loadMoreNotifications: notificationsQuery.loadMoreNotifications,
+    markAllAsRead,
     markAsRead,
+    isMarkingAllAsRead: markAllReadMutation.isPending,
     isMarkingRead: markReadMutation.isPending,
   };
 }

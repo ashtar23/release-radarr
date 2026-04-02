@@ -16,6 +16,7 @@ import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { AppSheetProvider } from "@/components/sheets";
 import { defaultStackScreenOptions } from "@/constants/navigation";
 import { Colors } from "@/constants/theme";
+import { NotificationsRealtimeSync } from "@/features/notifications/components/notifications-realtime-sync";
 import { SearchDebugSettingsProvider } from "@/features/settings/providers/search-debug-settings";
 import { AppPreferencesProvider } from "@/features/settings/providers/app-preferences";
 
@@ -46,6 +47,7 @@ export default function RootLayout() {
                   >
                     <AnimatedSplashOverlay />
                     <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+                    <NotificationsRealtimeSync />
 
                     <Stack>
                       <Stack.Screen

@@ -1,56 +1,101 @@
+import { useMemo } from "react";
+
 import { CenteredStateFrame } from "@/components/centered-state-frame";
 import { EmptyState } from "@/components/empty-state";
+import {
+  HeaderActions,
+  type HeaderAction,
+} from "@/features/navigation/header-actions";
+import { useTheme } from "@/hooks/use-theme";
 
 import { useNotificationsFeature } from "../hooks/use-notifications-feature";
 import { NotificationsList } from "./notifications-list";
 import { NotificationsStateView } from "./notifications-state-view";
 
 export function NotificationsScreen() {
-  const notificationsFeature = useNotificationsFeature();
+  const {
+    unreadCount,
+    isMarkingAllAsRead,
+    markAllAsRead,
+    mode,
+    configError,
+    notifications,
+    refreshing,
+    onRefresh,
+    hasMoreNotifications,
+    isLoadingMore,
+    loadMoreNotifications,
+    markAsRead,
+  } = useNotificationsFeature();
+  const theme = useTheme();
 
-  console.log("notificationsFeature", notificationsFeature.notifications);
+  const headerActions = useMemo<HeaderAction[]>(() => {
+    if (unreadCount === 0) {
+      return [];
+    }
 
-  if (notificationsFeature.mode === "checking-session") {
+    return [
+      {
+        kind: "button",
+        id: "mark-all-notifications-read",
+        label: "Mark all as read",
+        iosIcon: "checkmark.circle",
+        androidIcon: "done_all",
+        tintColor: theme.text,
+        disabled: isMarkingAllAsRead,
+        onPress: () => {
+          void markAllAsRead();
+        },
+      },
+    ];
+  }, [isMarkingAllAsRead, markAllAsRead, theme.text, unreadCount]);
+
+  if (mode === "checking-session") {
     return <NotificationsStateView mode="checking-session" />;
   }
 
-  if (notificationsFeature.mode === "config-error") {
+  if (mode === "config-error") {
     return (
-      <NotificationsStateView
-        mode="config-error"
-        errorMessage={notificationsFeature.configError}
-      />
+      <NotificationsStateView mode="config-error" errorMessage={configError} />
     );
   }
 
-  if (notificationsFeature.mode === "signed-out") {
+  if (mode === "signed-out") {
     return <NotificationsStateView mode="signed-out" />;
   }
 
-  if (notificationsFeature.mode === "loading") {
+  if (mode === "loading") {
     return <NotificationsStateView mode="loading" />;
   }
 
-  if (notificationsFeature.mode === "ready") {
+  if (mode === "ready") {
     return (
-      <NotificationsList
-        notifications={notificationsFeature.notifications}
-        refreshing={notificationsFeature.refreshing}
-        onRefresh={notificationsFeature.onRefresh}
-        hasMoreNotifications={notificationsFeature.hasMoreNotifications}
-        isLoadingMore={notificationsFeature.isLoadingMore}
-        onEndReached={notificationsFeature.loadMoreNotifications}
-        onMarkAsRead={notificationsFeature.markAsRead}
-      />
+      <>
+        <HeaderActions actions={headerActions} />
+
+        <NotificationsList
+          notifications={notifications}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          hasMoreNotifications={hasMoreNotifications}
+          isLoadingMore={isLoadingMore}
+          onEndReached={loadMoreNotifications}
+          onMarkAsRead={markAsRead}
+        />
+      </>
     );
   }
 
   return (
-    <CenteredStateFrame>
-      <EmptyState
-        title="No notifications yet"
-        description="We'll send you updates about your watchlist here."
-      />
-    </CenteredStateFrame>
+    <>
+      <HeaderActions actions={headerActions} />
+
+      <CenteredStateFrame>
+        <EmptyState
+          title="No notifications yet"
+          description="We'll send you updates about your watchlist here."
+        />
+      </CenteredStateFrame>
+    </>
   );
 }

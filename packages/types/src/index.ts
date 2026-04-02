@@ -10,6 +10,7 @@ export type {
 
 export type {
   ListNotificationsInput,
+  MarkAllNotificationsReadResult,
   MarkNotificationReadInput,
   MarkNotificationReadResult,
   NotificationChannelPreferences,

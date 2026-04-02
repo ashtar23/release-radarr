@@ -5,6 +5,7 @@ export type Route =
   | { kind: "notification-preferences" }
   | { kind: "notifications-list" }
   | { kind: "notifications-unread-count" }
+  | { kind: "notifications-read-all" }
   | { kind: "notifications-read"; notificationId: string }
   | { kind: "watchlist-list" }
   | { kind: "watchlist-item"; titleId: string };
@@ -70,6 +71,10 @@ export function resolveRoute(pathname: string): Route | null {
 
     if (maybeId === "unread-count" && segments.length === apiIndex + 3) {
       return { kind: "notifications-unread-count" };
+    }
+
+    if (maybeId === "read-all" && segments.length === apiIndex + 3) {
+      return { kind: "notifications-read-all" };
     }
 
     const action = segments[apiIndex + 3];

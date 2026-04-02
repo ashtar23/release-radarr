@@ -46,4 +46,19 @@ function markNotificationRead({
   return apiClient?.markNotificationRead({ signal, notificationId });
 }
 
-export { listNotifications, getNotificationUnreadCount, markNotificationRead };
+function markAllNotificationsRead({ signal }: { signal?: AbortSignal } = {}) {
+  if (!apiClient) {
+    throw new Error(
+      notificationsConfigError ?? "Notifications API is not configured.",
+    );
+  }
+
+  return apiClient?.markAllNotificationsRead({ signal });
+}
+
+export {
+  listNotifications,
+  getNotificationUnreadCount,
+  markAllNotificationsRead,
+  markNotificationRead,
+};

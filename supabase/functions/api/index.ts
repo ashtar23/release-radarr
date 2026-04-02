@@ -7,6 +7,7 @@ import { handleHomeDiscoveryRequest } from "./handlers/home-discovery.ts";
 import {
   handleNotificationPreferencesGetRequest,
   handleNotificationPreferencesPutRequest,
+  handleNotificationReadAllRequest,
   handleNotificationReadRequest,
   handleNotificationsListRequest,
   handleNotificationUnreadCountRequest,
@@ -49,7 +50,9 @@ Deno.serve(async (request) => {
       ((route.kind === "notifications-list" ||
         route.kind === "notifications-unread-count") &&
         request.method !== "GET") ||
-      (route.kind === "notifications-read" && request.method !== "POST")
+      ((route.kind === "notifications-read" ||
+        route.kind === "notifications-read-all") &&
+        request.method !== "POST")
     ) {
       return jsonResponse({ error: "Method not allowed." }, 405);
     }
@@ -114,8 +117,16 @@ Deno.serve(async (request) => {
       return handleNotificationUnreadCountRequest(admin, user.id);
     }
 
+    if (route.kind === "notifications-read-all") {
+      return handleNotificationReadAllRequest(admin, user.id);
+    }
+
     if (route.kind === "notifications-read") {
-      return handleNotificationReadRequest(admin, user.id, route.notificationId);
+      return handleNotificationReadRequest(
+        admin,
+        user.id,
+        route.notificationId,
+      );
     }
 
     return handleWatchlistRemoveRequest(admin, user.id, route.titleId);

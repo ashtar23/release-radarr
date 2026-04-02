@@ -1,6 +1,7 @@
 import type { NotificationPreferencesResult } from "@repo/types";
 import type { NotificationRecordListResult } from "@repo/types";
 import type { NotificationUnreadCountResult } from "@repo/types";
+import type { MarkAllNotificationsReadResult } from "@repo/types";
 import type { MarkNotificationReadResult } from "@repo/types";
 import type { HomeDiscoveryResult } from "@repo/types";
 import type { HealthStatus } from "@repo/types";
@@ -15,9 +16,11 @@ import {
   getNotificationPreferences,
   getNotificationUnreadCount,
   listNotifications,
+  markAllNotificationsRead,
   markNotificationRead,
   updateNotificationPreferences,
   type ListNotificationsParams,
+  type MarkAllNotificationsReadParams,
   type MarkNotificationReadParams,
   type UpdateNotificationPreferencesParams,
 } from "./notifications";
@@ -51,6 +54,9 @@ export interface ReleaseRadarApiClient {
     params?: ListNotificationsParams,
   ): Promise<NotificationRecordListResult>;
   getNotificationUnreadCount(): Promise<NotificationUnreadCountResult>;
+  markAllNotificationsRead(
+    params?: MarkAllNotificationsReadParams,
+  ): Promise<MarkAllNotificationsReadResult>;
   markNotificationRead(
     params: MarkNotificationReadParams,
   ): Promise<MarkNotificationReadResult>;
@@ -107,6 +113,12 @@ export function createReleaseRadarApiClient(
     async getNotificationUnreadCount() {
       return getNotificationUnreadCount({
         context,
+      });
+    },
+    async markAllNotificationsRead(params = {}) {
+      return markAllNotificationsRead({
+        context,
+        params,
       });
     },
     async markNotificationRead(params) {

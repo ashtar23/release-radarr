@@ -3,6 +3,7 @@ import {
   getNotificationPreferences,
   getNotificationUnreadCount,
   listNotificationRecords,
+  markAllNotificationRecordsRead,
   markNotificationRecordRead,
   upsertNotificationPreferences,
 } from "../data/notifications-repository.ts";
@@ -52,6 +53,14 @@ export async function handleNotificationReadRequest(
   return jsonResponse({ notification });
 }
 
+export async function handleNotificationReadAllRequest(
+  client: AdminClient,
+  userId: string,
+) {
+  const markedCount = await markAllNotificationRecordsRead(client, userId);
+  return jsonResponse({ markedCount });
+}
+
 export async function handleNotificationPreferencesGetRequest(
   client: AdminClient,
   userId: string,
@@ -67,7 +76,10 @@ export async function handleNotificationPreferencesPutRequest(
 ) {
   const preferences = await parseNotificationPreferencesBody(request);
   if (!preferences) {
-    return jsonResponse({ error: "Notification preferences payload is invalid." }, 400);
+    return jsonResponse(
+      { error: "Notification preferences payload is invalid." },
+      400,
+    );
   }
 
   const updatedPreferences = await upsertNotificationPreferences(
@@ -96,7 +108,10 @@ function parseLimit(url: URL) {
 
 async function parseNotificationPreferencesBody(
   request: Request,
-): Promise<Pick<NotificationPreferences, "channels" | "events" | "timingPresets"> | null> {
+): Promise<Pick<
+  NotificationPreferences,
+  "channels" | "events" | "timingPresets"
+> | null> {
   let payload: unknown;
   try {
     payload = await request.json();

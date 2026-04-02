@@ -172,6 +172,10 @@ export interface MarkNotificationReadResult {
   notification: NotificationRecord;
 }
 
+export interface MarkAllNotificationsReadResult {
+  markedCount: number;
+}
+
 export interface TitleDetails extends TitleSummary {
   description: string | null;
   genres: string[];

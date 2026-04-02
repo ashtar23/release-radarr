@@ -169,6 +169,24 @@ export async function markNotificationRecordRead(
   return findNotificationRecord(client, userId, notificationId);
 }
 
+export async function markAllNotificationRecordsRead(
+  client: AdminClient,
+  userId: string,
+): Promise<number> {
+  const { data, error } = await client
+    .from("notification_records")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .is("read_at", null)
+    .select("id");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data?.length ?? 0;
+}
+
 export async function getNotificationPreferences(
   client: AdminClient,
   userId: string,

@@ -15,9 +15,11 @@ export {
   getNotificationPreferences,
   getNotificationUnreadCount,
   listNotifications,
+  markAllNotificationsRead,
   markNotificationRead,
   updateNotificationPreferences,
   type ListNotificationsParams,
+  type MarkAllNotificationsReadParams,
   type MarkNotificationReadParams,
   type UpdateNotificationPreferencesParams,
 } from "./notifications";
