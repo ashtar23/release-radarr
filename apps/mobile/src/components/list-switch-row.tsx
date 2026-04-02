@@ -33,7 +33,7 @@ export function ListSwitchRow({
   const theme = useTheme();
 
   return (
-    <ListRow style={style}>
+    <ListRow style={style} disabled={disabled}>
       <View style={styles.rowContent}>
         <View style={styles.rowText}>
           <ThemedText>{label}</ThemedText>

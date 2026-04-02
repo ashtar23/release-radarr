@@ -12,3 +12,7 @@ export function getNotificationsQueryKey(
 export function getNotificationUnreadCountQueryKey(userId: string | null) {
   return ["notifications-unread-count", userId] as const;
 }
+
+export function getNotificationPreferencesQueryKey(userId: string | null) {
+  return ["notification-preferences", userId] as const;
+}

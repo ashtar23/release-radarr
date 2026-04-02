@@ -26,6 +26,10 @@ type ListSectionProps = {
    */
   title?: string;
   /**
+   * Optional subtle footer rendered below the grouped surface.
+   */
+  footer?: string;
+  /**
    * One or more row items composed inside the grouped section surface.
    */
   children: React.ReactNode;
@@ -38,7 +42,7 @@ type ListSectionProps = {
  * treatment. Compose `ListRow` inside it, then wrap individual rows with
  * `LinkRow` or `ActionRow` when they need interaction.
  */
-export function ListSection({ title, children }: ListSectionProps) {
+export function ListSection({ title, footer, children }: ListSectionProps) {
   const theme = useTheme();
   const isDark = useColorScheme() === "dark";
   const bg = isDark ? theme.backgroundElement : theme.background;
@@ -90,6 +94,16 @@ export function ListSection({ title, children }: ListSectionProps) {
       ) : null}
 
       {sectionContent}
+
+      {footer ? (
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          style={styles.footer}
+        >
+          {footer}
+        </ThemedText>
+      ) : null}
     </View>
   );
 }
@@ -101,9 +115,14 @@ const styles = StyleSheet.create({
   title: {
     paddingHorizontal: LIST_ROW_PADDING_HORIZONTAL,
     paddingBottom: 10,
-    fontSize: 17,
+    fontSize: 15,
     lineHeight: 22,
     fontWeight: "600",
+  },
+  footer: {
+    paddingHorizontal: LIST_ROW_PADDING_HORIZONTAL,
+    paddingTop: 10,
+    fontSize: 13,
   },
   iosSection: {
     borderRadius: IOS_LIST_SECTION_RADIUS,

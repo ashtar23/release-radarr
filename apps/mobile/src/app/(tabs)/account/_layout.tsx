@@ -51,6 +51,13 @@ export default function AccountLayout() {
       />
 
       <Stack.Screen
+        name="settings/notifications"
+        options={{
+          title: "Notifications",
+        }}
+      />
+
+      <Stack.Screen
         name="settings/developer"
         options={{
           title: "Developer",

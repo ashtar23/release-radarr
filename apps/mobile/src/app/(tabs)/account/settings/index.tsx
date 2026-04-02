@@ -12,6 +12,7 @@ import {
   type AndroidSymbolName,
   type IOSSymbolName,
 } from "@/components/app-symbol";
+import { useAuthGate } from "@/auth/use-auth-gate";
 import { SEARCH_DEBUG_MODE_ENABLED } from "@/features/settings/providers/search-debug-settings";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -29,12 +30,18 @@ const DEVELOPER_SETTINGS_ITEM: SettingsItem = {
   androidSymbol: "build",
 };
 
-const SETTINGS_ITEMS: SettingsItem[] = [
+const BASE_SETTINGS_ITEMS: SettingsItem[] = [
   {
     href: "/account/settings/general",
     label: "General",
     iosSymbol: "gear",
     androidSymbol: "settings",
+  },
+  {
+    href: "/account/settings/notifications",
+    label: "Notifications",
+    iosSymbol: "bell",
+    androidSymbol: "notifications",
   },
   {
     href: "/account/settings/theme",
@@ -46,10 +53,18 @@ const SETTINGS_ITEMS: SettingsItem[] = [
 ];
 
 export default function SettingsScreen() {
+  const { isSignedIn } = useAuthGate();
+
+  const settingsItems = isSignedIn
+    ? BASE_SETTINGS_ITEMS
+    : BASE_SETTINGS_ITEMS.filter(
+        (item) => item.href !== "/account/settings/notifications",
+      );
+
   return (
     <ScreenScrollView>
       <ListSection>
-        {SETTINGS_ITEMS.map((item) => (
+        {settingsItems.map((item) => (
           <SettingsLinkRow key={item.label} item={item} />
         ))}
       </ListSection>

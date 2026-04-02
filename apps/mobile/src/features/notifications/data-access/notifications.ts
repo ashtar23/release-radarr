@@ -30,6 +30,52 @@ function getNotificationUnreadCount() {
   return apiClient?.getNotificationUnreadCount();
 }
 
+function getNotificationPreferences() {
+  if (!apiClient) {
+    throw new Error(
+      notificationsConfigError ?? "Notifications API is not configured.",
+    );
+  }
+
+  return apiClient?.getNotificationPreferences();
+}
+
+function updateNotificationPreferences({
+  signal,
+  channels,
+  events,
+  timingPresets,
+}: {
+  signal?: AbortSignal;
+  channels: {
+    inApp: boolean;
+    push: boolean;
+  };
+  events: {
+    releaseDateChanged: boolean;
+    releaseApproaching: boolean;
+  };
+  timingPresets: (
+    | "on_day"
+    | "hours_24_before"
+    | "days_7_before"
+    | "days_30_before"
+  )[];
+}) {
+  if (!apiClient) {
+    throw new Error(
+      notificationsConfigError ?? "Notifications API is not configured.",
+    );
+  }
+
+  return apiClient?.updateNotificationPreferences({
+    signal,
+    channels,
+    events,
+    timingPresets,
+  });
+}
+
 function markNotificationRead({
   signal,
   notificationId,
@@ -57,8 +103,10 @@ function markAllNotificationsRead({ signal }: { signal?: AbortSignal } = {}) {
 }
 
 export {
+  getNotificationPreferences,
   listNotifications,
   getNotificationUnreadCount,
   markAllNotificationsRead,
   markNotificationRead,
+  updateNotificationPreferences,
 };

@@ -30,6 +30,10 @@ type BaseListRowProps = {
    * Additional styles to apply to the row container
    */
   style?: ViewStyle;
+  /**
+   *  Whether the row is disabled
+   */
+  disabled?: boolean;
 };
 
 /**
@@ -100,11 +104,16 @@ export function ListRow({
   trailingIcon,
   children,
   style,
+  disabled = false,
 }: ListRowProps) {
   const theme = useTheme();
 
   if (children != null) {
-    return <View style={[styles.row, style]}>{children}</View>;
+    return (
+      <View style={[styles.row, disabled && styles.disabledRow, style]}>
+        {children}
+      </View>
+    );
   }
 
   const labelColor =
@@ -115,7 +124,7 @@ export function ListRow({
         : undefined;
 
   return (
-    <View style={[styles.row, style]}>
+    <View style={[styles.row, disabled && styles.disabledRow, style]}>
       {leadingIcon != null ? (
         <View style={styles.leading}>{leadingIcon}</View>
       ) : null}
@@ -148,6 +157,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: LIST_ROW_PADDING_HORIZONTAL,
     paddingVertical: LIST_ROW_PADDING_VERTICAL,
+  },
+  disabledRow: {
+    opacity: 0.5,
   },
   label: {
     flex: 1,

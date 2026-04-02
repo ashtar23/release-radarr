@@ -1,14 +1,24 @@
+import type { NotificationRecordListResult } from "@repo/types";
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useAuthGate } from "@/auth/use-auth-gate";
 import { supabase } from "@/lib/supabase";
 
 import {
+  getNotificationPreferences,
+  getNotificationUnreadCount,
+  listNotifications,
+  notificationsConfigError,
+} from "../data-access/notifications";
+import {
+  getNotificationPreferencesQueryKey,
   getNotificationUnreadCountQueryKey,
+  getNotificationsQueryKey,
   getNotificationsQueryScope,
 } from "../queries/notifications-query-key";
+import { NOTIFICATIONS_PAGE_SIZE } from "../queries/use-notifications-query";
 
 type NotificationRecordRealtimeRow = {
   read_at: string | null;
@@ -18,6 +28,7 @@ export function NotificationsRealtimeSync() {
   const queryClient = useQueryClient();
   const { state, user } = useAuthGate();
   const userId = state === "ready" ? (user?.id ?? null) : null;
+  const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const client = supabase;
@@ -70,6 +81,42 @@ export function NotificationsRealtimeSync() {
     return () => {
       void client.removeChannel(channel);
     };
+  }, [queryClient, userId]);
+
+  useEffect(() => {
+    const previousUserId = previousUserIdRef.current;
+    previousUserIdRef.current = userId;
+
+    if (
+      !userId ||
+      notificationsConfigError !== null ||
+      previousUserId === userId
+    ) {
+      return;
+    }
+
+    void queryClient.prefetchQuery({
+      queryKey: getNotificationUnreadCountQueryKey(userId),
+      queryFn: () => getNotificationUnreadCount(),
+    });
+
+    void queryClient.prefetchInfiniteQuery({
+      queryKey: getNotificationsQueryKey(userId),
+      initialPageParam: null as string | null,
+      queryFn: ({ pageParam, signal }) =>
+        listNotifications({
+          signal,
+          cursor: typeof pageParam === "string" ? pageParam : undefined,
+          limit: NOTIFICATIONS_PAGE_SIZE,
+        }),
+      getNextPageParam: (lastPage: NotificationRecordListResult) =>
+        lastPage.nextCursor ?? undefined,
+    });
+
+    void queryClient.prefetchQuery({
+      queryKey: getNotificationPreferencesQueryKey(userId),
+      queryFn: () => getNotificationPreferences(),
+    });
   }, [queryClient, userId]);
 
   return null;
