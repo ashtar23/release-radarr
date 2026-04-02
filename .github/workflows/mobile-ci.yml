@@ -30,8 +30,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Typecheck shared types
+        run: pnpm --filter @repo/types check-types
+
+      - name: Typecheck API client
+        run: pnpm --filter @repo/api-client check-types
+
       - name: Lint mobile
         run: pnpm lint --filter mobile
 
       - name: Typecheck mobile
         run: pnpm --filter mobile check-types
+
+      - name: Check Supabase API function
+        run: deno check supabase/functions/api/index.ts

@@ -60,11 +60,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify shared types
+        run: pnpm --filter @repo/types check-types
+
+      - name: Verify API client typecheck
+        run: pnpm --filter @repo/api-client check-types
+
       - name: Verify mobile lint
         run: pnpm lint --filter mobile
 
       - name: Verify mobile typecheck
         run: pnpm --filter mobile check-types
+
+      - name: Verify Supabase API function
+        run: deno check supabase/functions/api/index.ts
 
       - name: Setup Supabase CLI
         if: ${{ inputs.deploy_backend }}
