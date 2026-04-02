@@ -1,0 +1,64 @@
+name: Supabase Production Deploy
+run-name: Supabase production deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy production backend
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_PRODUCTION_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PRODUCTION_PROJECT_REF }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify shared types
+        run: pnpm --filter @repo/types check-types
+
+      - name: Verify API client typecheck
+        run: pnpm --filter @repo/api-client check-types
+
+      - name: Verify mobile typecheck
+        run: pnpm --filter mobile check-types
+
+      - name: Verify mobile lint
+        run: pnpm lint --filter mobile
+
+      - name: Verify Supabase API function
+        run: deno check supabase/functions/api/index.ts
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link production Supabase project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Push production database migrations
+        run: supabase db push
+
+      - name: Deploy production API function
+        run: supabase functions deploy api
