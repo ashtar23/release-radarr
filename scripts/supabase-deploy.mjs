@@ -23,12 +23,12 @@ const needsDatabaseAccess = action === "db" || action === "all";
 
 runSupabaseCommand(getLinkCommand(projectRef, dbPassword, needsDatabaseAccess));
 
-if (action === "functions" || action === "all") {
-  runSupabaseCommand(["functions", "deploy", "api"]);
-}
-
 if (action === "db" || action === "all") {
   runSupabaseCommand(["db", "push"]);
+}
+
+if (action === "functions" || action === "all") {
+  runSupabaseCommand(["functions", "deploy", "api"]);
 }
 
 function getLinkCommand(projectRef, dbPassword, needsDatabaseAccess) {

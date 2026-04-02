@@ -30,7 +30,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
+          deno-version: 2.7.4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -48,4 +48,4 @@ jobs:
         run: pnpm --filter mobile check-types
 
       - name: Check Supabase API function
-        run: deno check supabase/functions/api/index.ts
+        run: deno check --config supabase/functions/api/deno.json --lock=supabase/functions/api/deno.lock supabase/functions/api/index.ts
