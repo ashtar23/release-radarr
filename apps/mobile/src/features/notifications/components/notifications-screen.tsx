@@ -50,28 +50,51 @@ export function NotificationsScreen() {
     ];
   }, [isMarkingAllAsRead, markAllAsRead, theme.text, unreadCount]);
 
+  const header = <HeaderActions actions={headerActions} />;
+
   if (mode === "checking-session") {
-    return <NotificationsStateView mode="checking-session" />;
+    return (
+      <>
+        {header}
+        <NotificationsStateView mode="checking-session" />
+      </>
+    );
   }
 
   if (mode === "config-error") {
     return (
-      <NotificationsStateView mode="config-error" errorMessage={configError} />
+      <>
+        {header}
+        <NotificationsStateView
+          mode="config-error"
+          errorMessage={configError}
+        />
+      </>
     );
   }
 
   if (mode === "signed-out") {
-    return <NotificationsStateView mode="signed-out" />;
+    return (
+      <>
+        {header}
+        <NotificationsStateView mode="signed-out" />
+      </>
+    );
   }
 
   if (mode === "loading") {
-    return <NotificationsStateView mode="loading" />;
+    return (
+      <>
+        {header}
+        <NotificationsStateView mode="loading" />
+      </>
+    );
   }
 
   if (mode === "ready") {
     return (
       <>
-        <HeaderActions actions={headerActions} />
+        {header}
 
         <NotificationsList
           notifications={notifications}
@@ -88,7 +111,7 @@ export function NotificationsScreen() {
 
   return (
     <>
-      <HeaderActions actions={headerActions} />
+      {header}
 
       <CenteredStateFrame>
         <EmptyState
