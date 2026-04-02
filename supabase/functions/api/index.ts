@@ -4,6 +4,13 @@ import type { Database } from "../_shared/database.types.ts";
 import { corsHeaders } from "./config.ts";
 import { handleDetailRequest } from "./handlers/detail.ts";
 import { handleHomeDiscoveryRequest } from "./handlers/home-discovery.ts";
+import {
+  handleNotificationPreferencesGetRequest,
+  handleNotificationPreferencesPutRequest,
+  handleNotificationReadRequest,
+  handleNotificationsListRequest,
+  handleNotificationUnreadCountRequest,
+} from "./handlers/notifications.ts";
 import { handleSearchRequest } from "./handlers/search.ts";
 import {
   handleWatchlistAddRequest,
@@ -35,7 +42,14 @@ Deno.serve(async (request) => {
       (isWatchlistRoute &&
         request.method !== "GET" &&
         request.method !== "POST" &&
-        request.method !== "DELETE")
+        request.method !== "DELETE") ||
+      (route.kind === "notification-preferences" &&
+        request.method !== "GET" &&
+        request.method !== "PUT") ||
+      ((route.kind === "notifications-list" ||
+        route.kind === "notifications-unread-count") &&
+        request.method !== "GET") ||
+      (route.kind === "notifications-read" && request.method !== "POST")
     ) {
       return jsonResponse({ error: "Method not allowed." }, 405);
     }
@@ -82,6 +96,26 @@ Deno.serve(async (request) => {
       }
 
       return handleWatchlistAddRequest(admin, user.id, request);
+    }
+
+    if (route.kind === "notification-preferences") {
+      if (request.method === "GET") {
+        return handleNotificationPreferencesGetRequest(admin, user.id);
+      }
+
+      return handleNotificationPreferencesPutRequest(admin, user.id, request);
+    }
+
+    if (route.kind === "notifications-list") {
+      return handleNotificationsListRequest(admin, user.id, url);
+    }
+
+    if (route.kind === "notifications-unread-count") {
+      return handleNotificationUnreadCountRequest(admin, user.id);
+    }
+
+    if (route.kind === "notifications-read") {
+      return handleNotificationReadRequest(admin, user.id, route.notificationId);
     }
 
     return handleWatchlistRemoveRequest(admin, user.id, route.titleId);

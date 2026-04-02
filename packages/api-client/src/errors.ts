@@ -1,4 +1,4 @@
-export type HttpMethod = "GET" | "POST" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 export interface ApiClientErrorOptions {
   readonly message: string;

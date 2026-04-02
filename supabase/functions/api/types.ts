@@ -13,6 +13,18 @@ export type DbJson = Database["public"]["Tables"]["titles"]["Row"]["platforms"];
 export type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 export type WatchlistInsertRow =
   Database["public"]["Tables"]["watchlists"]["Insert"];
+export type NotificationEventInsertRow =
+  Database["public"]["Tables"]["notification_events"]["Insert"];
+export type NotificationEventRow =
+  Database["public"]["Tables"]["notification_events"]["Row"];
+export type NotificationPreferencesInsertRow =
+  Database["public"]["Tables"]["notification_preferences"]["Insert"];
+export type NotificationPreferencesRow =
+  Database["public"]["Tables"]["notification_preferences"]["Row"];
+export type NotificationRecordInsertRow =
+  Database["public"]["Tables"]["notification_records"]["Insert"];
+export type NotificationRecordRow =
+  Database["public"]["Tables"]["notification_records"]["Row"];
 export type WatchlistRow = Database["public"]["Tables"]["watchlists"]["Row"];
 export type WatchlistViewRow =
   Database["public"]["Views"]["watchlist_items"]["Row"];
@@ -83,6 +95,81 @@ export interface WatchlistListResult {
 
 export interface WatchlistUpsertResult {
   item: WatchlistItem;
+}
+
+export type NotificationEventType =
+  | "release_date_changed"
+  | "release_approaching";
+
+export type NotificationTimingPreset =
+  | "on_day"
+  | "hours_24_before"
+  | "days_7_before"
+  | "days_30_before";
+
+export type NotificationDestinationKind = "title";
+
+export interface NotificationChannelPreferences {
+  inApp: boolean;
+  push: boolean;
+}
+
+export interface NotificationEventPreferences {
+  releaseDateChanged: boolean;
+  releaseApproaching: boolean;
+}
+
+export interface NotificationPreferences {
+  channels: NotificationChannelPreferences;
+  events: NotificationEventPreferences;
+  timingPresets: NotificationTimingPreset[];
+  updatedAt: string;
+}
+
+export interface NotificationPreferencesResult {
+  preferences: NotificationPreferences;
+}
+
+export interface ReleaseDateChangedNotificationPayload {
+  previousReleaseDate: string | null;
+  nextReleaseDate: string | null;
+}
+
+export interface ReleaseApproachingNotificationPayload {
+  targetReleaseDate: string | null;
+  timingPreset: NotificationTimingPreset;
+}
+
+export type NotificationPayload =
+  | ReleaseDateChangedNotificationPayload
+  | ReleaseApproachingNotificationPayload;
+
+export interface NotificationRecord {
+  id: string;
+  titleId: string;
+  eventType: NotificationEventType;
+  destinationKind: NotificationDestinationKind;
+  destinationTitleId: string;
+  titleName: string;
+  titleArtworkUrl: string | null;
+  message: string;
+  subtitle: string | null;
+  payload: NotificationPayload;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export interface NotificationRecordListResult {
+  items: NotificationRecord[];
+  nextCursor: string | null;
+}
+
+export interface NotificationUnreadCountResult {
+  unreadCount: number;
+}
+
+export interface MarkNotificationReadResult {
+  notification: NotificationRecord;
 }
 
 export interface TitleDetails extends TitleSummary {

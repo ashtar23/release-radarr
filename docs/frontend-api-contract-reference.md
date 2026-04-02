@@ -12,6 +12,7 @@ Path prefix constant:
 ## Auth Model
 - Public title endpoints do not require user auth.
 - Watchlist endpoints require a valid user bearer token.
+- Notifications endpoints require a valid user bearer token.
 - Requests should include:
   - `apikey: <supabase publishable key>`
   - `Authorization: Bearer <access token>`
@@ -23,7 +24,7 @@ The shared API client handles this header strategy.
 - Error: `{ "error": string }`
 - Common statuses:
   - `400` invalid request input
-  - `401` missing/invalid auth (watchlist only)
+  - `401` missing/invalid auth (watchlist/notifications)
   - `404` not found
   - `405` method not allowed
   - `500` server error
@@ -140,15 +141,190 @@ Notes:
 - Safe to treat as idempotent on FE.
 - The shared API client exposes this as `Promise<void>`.
 
+### 6) List Notifications
+- Method: `GET`
+- Path: `/notifications`
+- Auth: required
+- Query:
+  - `cursor` (optional opaque pagination cursor)
+  - `limit` (optional, default 20, clamped to max 50)
+- Returns: `NotificationRecordListResult`
+
+Example:
+```http
+GET /functions/v1/api/notifications?limit=20
+Authorization: Bearer <access_token>
+```
+
+Type:
+```ts
+interface NotificationRecordListResult {
+  items: NotificationRecord[];
+  nextCursor: string | null;
+}
+```
+
+Sorting:
+- newest first
+- backend order is `createdAt DESC, id DESC`
+
+### 7) Get Notification Unread Count
+- Method: `GET`
+- Path: `/notifications/unread-count`
+- Auth: required
+- Returns: `NotificationUnreadCountResult`
+
+Example:
+```http
+GET /functions/v1/api/notifications/unread-count
+Authorization: Bearer <access_token>
+```
+
+Type:
+```ts
+interface NotificationUnreadCountResult {
+  unreadCount: number;
+}
+```
+
+### 8) Mark Notification Read
+- Method: `POST`
+- Path: `/notifications/{notificationId}/read` (URL-encoded)
+- Auth: required
+- Returns: `MarkNotificationReadResult`
+
+Example:
+```http
+POST /functions/v1/api/notifications/notification-record%3Aevent%3A123%3Auser%3A456/read
+Authorization: Bearer <access_token>
+```
+
+Type:
+```ts
+interface MarkNotificationReadResult {
+  notification: NotificationRecord;
+}
+```
+
+Notes:
+- idempotent for FE use
+- returns `404` if the notification is not owned by the caller or does not exist
+
+### 9) Get Notification Preferences
+- Method: `GET`
+- Path: `/notification-preferences`
+- Auth: required
+- Returns: `NotificationPreferencesResult`
+
+Example:
+```http
+GET /functions/v1/api/notification-preferences
+Authorization: Bearer <access_token>
+```
+
+Type:
+```ts
+interface NotificationPreferencesResult {
+  preferences: NotificationPreferences;
+}
+```
+
+Notes:
+- if no row exists yet, backend returns default preferences instead of `404`
+
+### 10) Update Notification Preferences
+- Method: `PUT`
+- Path: `/notification-preferences`
+- Auth: required
+- Body:
+```json
+{
+  "channels": { "inApp": true, "push": false },
+  "events": {
+    "releaseDateChanged": true,
+    "releaseApproaching": true
+  },
+  "timingPresets": ["on_day", "days_7_before"]
+}
+```
+- Returns: `NotificationPreferencesResult`
+
+Notes:
+- upsert semantics by `user_id`
+- invalid payload returns `400`
+
 ## Official Typed Client Surface (`@repo/api-client`)
 
 ```ts
 interface ReleaseRadarApiClient {
   searchTitles(params: { query: string; page?: number; limit?: number; forceRefresh?: boolean; signal?: AbortSignal }): Promise<TitleSearchResult>;
   getTitleDetails(params: { id: string; signal?: AbortSignal }): Promise<TitleDetails>;
+  listNotifications(params?: { cursor?: string; limit?: number; signal?: AbortSignal }): Promise<NotificationRecordListResult>;
+  getNotificationUnreadCount(): Promise<NotificationUnreadCountResult>;
+  markNotificationRead(params: { notificationId: string; signal?: AbortSignal }): Promise<MarkNotificationReadResult>;
+  getNotificationPreferences(): Promise<NotificationPreferencesResult>;
+  updateNotificationPreferences(params: {
+    channels: { inApp: boolean; push: boolean };
+    events: { releaseDateChanged: boolean; releaseApproaching: boolean };
+    timingPresets: NotificationTimingPreset[];
+    signal?: AbortSignal;
+  }): Promise<NotificationPreferencesResult>;
   listWatchlist(params?: { signal?: AbortSignal }): Promise<WatchlistListResult>;
   addWatchlistItem(params: { titleId: string; signal?: AbortSignal }): Promise<WatchlistUpsertResult>;
   removeWatchlistItem(params: { titleId: string; signal?: AbortSignal }): Promise<void>;
+}
+```
+
+Supporting notification types:
+```ts
+type NotificationEventType =
+  | "release_date_changed"
+  | "release_approaching";
+
+type NotificationDestinationKind = "title";
+
+type NotificationTimingPreset =
+  | "on_day"
+  | "hours_24_before"
+  | "days_7_before"
+  | "days_30_before";
+
+type NotificationPayload =
+  | {
+      previousReleaseDate: string | null;
+      nextReleaseDate: string | null;
+    }
+  | {
+      targetReleaseDate: string | null;
+      timingPreset: NotificationTimingPreset;
+    };
+
+interface NotificationRecord {
+  id: string;
+  titleId: string;
+  eventType: NotificationEventType;
+  destinationKind: NotificationDestinationKind;
+  destinationTitleId: string;
+  titleName: string;
+  titleArtworkUrl: string | null;
+  message: string;
+  subtitle: string | null;
+  payload: NotificationPayload;
+  createdAt: string;
+  readAt: string | null;
+}
+
+interface NotificationPreferences {
+  channels: {
+    inApp: boolean;
+    push: boolean;
+  };
+  events: {
+    releaseDateChanged: boolean;
+    releaseApproaching: boolean;
+  };
+  timingPresets: NotificationTimingPreset[];
+  updatedAt: string;
 }
 ```
 
@@ -173,6 +349,17 @@ const search = await api.searchTitles({ query: "hades", limit: 10 });
 const detail = await api.getTitleDetails({ id: search.results[0].id });
 await api.addWatchlistItem({ titleId: detail.id });
 const watchlist = await api.listWatchlist();
+const notifications = await api.listNotifications({ limit: 20 });
+const unread = await api.getNotificationUnreadCount();
+if (notifications.items[0]) {
+  await api.markNotificationRead({ notificationId: notifications.items[0].id });
+}
+const preferences = await api.getNotificationPreferences();
+await api.updateNotificationPreferences({
+  channels: preferences.preferences.channels,
+  events: preferences.preferences.events,
+  timingPresets: preferences.preferences.timingPresets,
+});
 await api.removeWatchlistItem({ titleId: detail.id });
 ```
 
@@ -183,7 +370,7 @@ await api.removeWatchlistItem({ titleId: detail.id });
 ```ts
 class ApiClientError extends Error {
   status: number;
-  method: "GET" | "POST" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
 }
 ```

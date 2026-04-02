@@ -1,3 +1,7 @@
+import type { NotificationPreferencesResult } from "@repo/types";
+import type { NotificationRecordListResult } from "@repo/types";
+import type { NotificationUnreadCountResult } from "@repo/types";
+import type { MarkNotificationReadResult } from "@repo/types";
 import type { HomeDiscoveryResult } from "@repo/types";
 import type { HealthStatus } from "@repo/types";
 import type { TitleDetails } from "@repo/types";
@@ -7,6 +11,16 @@ import type { WatchlistListResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
 
 import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
+import {
+  getNotificationPreferences,
+  getNotificationUnreadCount,
+  listNotifications,
+  markNotificationRead,
+  updateNotificationPreferences,
+  type ListNotificationsParams,
+  type MarkNotificationReadParams,
+  type UpdateNotificationPreferencesParams,
+} from "./notifications";
 import { searchTitles, type SearchTitlesParams } from "./search";
 import { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 import {
@@ -33,6 +47,17 @@ export interface ReleaseRadarApiClient {
   ): Promise<HomeDiscoveryResult<TitleSummary>>;
   searchTitles(params: SearchTitlesParams): Promise<TitleSearchResult>;
   getTitleDetails(params: GetTitleDetailsParams): Promise<TitleDetails>;
+  listNotifications(
+    params?: ListNotificationsParams,
+  ): Promise<NotificationRecordListResult>;
+  getNotificationUnreadCount(): Promise<NotificationUnreadCountResult>;
+  markNotificationRead(
+    params: MarkNotificationReadParams,
+  ): Promise<MarkNotificationReadResult>;
+  getNotificationPreferences(): Promise<NotificationPreferencesResult>;
+  updateNotificationPreferences(
+    params: UpdateNotificationPreferencesParams,
+  ): Promise<NotificationPreferencesResult>;
   listWatchlist(params?: ListWatchlistParams): Promise<WatchlistListResult>;
   addWatchlistItem(
     params: AddWatchlistItemParams,
@@ -69,6 +94,34 @@ export function createReleaseRadarApiClient(
     },
     async getTitleDetails(params) {
       return getTitleDetails({
+        context,
+        params,
+      });
+    },
+    async listNotifications(params = {}) {
+      return listNotifications({
+        context,
+        params,
+      });
+    },
+    async getNotificationUnreadCount() {
+      return getNotificationUnreadCount({
+        context,
+      });
+    },
+    async markNotificationRead(params) {
+      return markNotificationRead({
+        context,
+        params,
+      });
+    },
+    async getNotificationPreferences() {
+      return getNotificationPreferences({
+        context,
+      });
+    },
+    async updateNotificationPreferences(params) {
+      return updateNotificationPreferences({
         context,
         params,
       });

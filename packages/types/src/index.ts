@@ -9,11 +9,28 @@ export type {
 } from "./core";
 
 export type {
+  ListNotificationsInput,
+  MarkNotificationReadInput,
+  MarkNotificationReadResult,
   NotificationChannelPreferences,
+  NotificationDestinationKind,
   NotificationEventPreferences,
   NotificationEventType,
   NotificationPreferences,
+  NotificationPreferencesResult,
+  NotificationRecord,
+  NotificationRecordListResult,
   NotificationTimingPreset,
+  NotificationUnreadCountResult,
+  NotificationPayload,
+  ReleaseApproachingNotificationPayload,
+  ReleaseDateChangedNotificationPayload,
+  UpdateNotificationPreferencesInput,
+} from "./notifications";
+export {
+  notificationDestinationKindValues,
+  notificationEventTypeValues,
+  notificationTimingPresetValues,
 } from "./notifications";
 export type { HomeDiscoveryResult } from "./home";
 

@@ -11,6 +11,16 @@ export {
 } from "./auth";
 export { type RequestContext, requestJson, requestVoid } from "./request";
 export { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
+export {
+  getNotificationPreferences,
+  getNotificationUnreadCount,
+  listNotifications,
+  markNotificationRead,
+  updateNotificationPreferences,
+  type ListNotificationsParams,
+  type MarkNotificationReadParams,
+  type UpdateNotificationPreferencesParams,
+} from "./notifications";
 export { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 export { searchTitles, type SearchTitlesParams } from "./search";
 export {

@@ -2,6 +2,10 @@ export type Route =
   | { kind: "home-discovery" }
   | { kind: "search" }
   | { kind: "detail"; id: string }
+  | { kind: "notification-preferences" }
+  | { kind: "notifications-list" }
+  | { kind: "notifications-unread-count" }
+  | { kind: "notifications-read"; notificationId: string }
   | { kind: "watchlist-list" }
   | { kind: "watchlist-item"; titleId: string };
 
@@ -49,6 +53,34 @@ export function resolveRoute(pathname: string): Route | null {
     }
 
     return { kind: "watchlist-item", titleId: decodeURIComponent(maybeId) };
+  }
+
+  if (resource === "notification-preferences") {
+    if (segments.length !== apiIndex + 2) {
+      return null;
+    }
+
+    return { kind: "notification-preferences" };
+  }
+
+  if (resource === "notifications") {
+    if (!maybeId) {
+      return { kind: "notifications-list" };
+    }
+
+    if (maybeId === "unread-count" && segments.length === apiIndex + 3) {
+      return { kind: "notifications-unread-count" };
+    }
+
+    const action = segments[apiIndex + 3];
+    if (action === "read" && segments.length === apiIndex + 4) {
+      return {
+        kind: "notifications-read",
+        notificationId: decodeURIComponent(maybeId),
+      };
+    }
+
+    return null;
   }
 
   return null;

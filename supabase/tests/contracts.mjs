@@ -85,6 +85,7 @@ async function run() {
   try {
     await assertSearchContract();
     await assertDetailContract();
+    await assertNotificationsContract();
     console.log("Backend contract tests passed.");
   } finally {
     await cleanupSeedRow();
@@ -242,6 +243,350 @@ async function assertDetailContract() {
   assertNullableFiniteNumber(payload.rawgReviewsCount);
   assertNullableFiniteNumber(payload.rawgSuggestionsCount);
   assertNullableFiniteNumber(payload.rawgRatingTop);
+}
+
+async function assertNotificationsContract() {
+  const adminHeaders = {
+    apikey: serviceSecretKey,
+    Authorization: `Bearer ${serviceSecretKey}`,
+    "Content-Type": "application/json",
+    Prefer: "resolution=merge-duplicates",
+  };
+  const notificationId = "notification-record-contract-test";
+  const eventId = "notification-event-contract-test";
+  const { userId, accessToken } = await createContractUser();
+
+  try {
+    const preferencesResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notification-preferences`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${publishableKey}`,
+        },
+      },
+    );
+    assert.equal(preferencesResponse.status, 401);
+
+    const unreadResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications/unread-count`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${publishableKey}`,
+        },
+      },
+    );
+    assert.equal(unreadResponse.status, 401);
+
+    const listResponse = await fetch(`${supabaseUrl}/functions/v1/api/notifications`, {
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${publishableKey}`,
+      },
+    });
+    assert.equal(listResponse.status, 401);
+
+    const seedEventResponse = await fetch(
+      `${supabaseUrl}/rest/v1/notification_events`,
+      {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify([
+          {
+            id: eventId,
+            title_id: seedId,
+            event_type: "release_date_changed",
+            event_version: 1,
+            event_key: "contract-test:key",
+            occurred_at: now,
+            payload: {
+              previousReleaseDate: "2025-12-01",
+              nextReleaseDate: "2026-01-01",
+            },
+            created_at: now,
+          },
+        ]),
+      },
+    );
+
+    if (!seedEventResponse.ok) {
+      throw new Error(
+        `Notification event seed failed: ${seedEventResponse.status} ${await seedEventResponse.text()}`,
+      );
+    }
+
+    const seedRecordResponse = await fetch(
+      `${supabaseUrl}/rest/v1/notification_records`,
+      {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify([
+          {
+            id: notificationId,
+            user_id: userId,
+            event_id: eventId,
+            title_id: seedId,
+            event_type: "release_date_changed",
+            destination_kind: "title",
+            destination_title_id: seedId,
+            title_name: seedName,
+            title_artwork_url: null,
+            message: "Contract notification",
+            subtitle: "Release date changed",
+            payload: {
+              previousReleaseDate: "2025-12-01",
+              nextReleaseDate: "2026-01-01",
+            },
+            created_at: now,
+            read_at: null,
+          },
+        ]),
+      },
+    );
+
+    if (!seedRecordResponse.ok) {
+      throw new Error(
+        `Notification record seed failed: ${seedRecordResponse.status} ${await seedRecordResponse.text()}`,
+      );
+    }
+
+    const preferencesResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notification-preferences`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!preferencesResponse.ok) {
+      throw new Error(
+        `Notification preferences request failed: ${preferencesResponse.status} ${await preferencesResponse.text()}`,
+      );
+    }
+
+    const preferencesPayload = await preferencesResponse.json();
+    assert.equal(preferencesPayload.preferences.channels.inApp, true);
+    assert.equal(preferencesPayload.preferences.channels.push, false);
+    assert.equal(
+      Array.isArray(preferencesPayload.preferences.timingPresets),
+      true,
+    );
+
+    const updatePreferencesResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notification-preferences`,
+      {
+        method: "PUT",
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channels: {
+            inApp: true,
+            push: false,
+          },
+          events: {
+            releaseDateChanged: false,
+            releaseApproaching: true,
+          },
+          timingPresets: ["days_7_before", "on_day"],
+        }),
+      },
+    );
+    if (!updatePreferencesResponse.ok) {
+      throw new Error(
+        `Notification preferences update failed: ${updatePreferencesResponse.status} ${await updatePreferencesResponse.text()}`,
+      );
+    }
+
+    const updatePreferencesPayload = await updatePreferencesResponse.json();
+    assert.equal(
+      updatePreferencesPayload.preferences.events.releaseDateChanged,
+      false,
+    );
+    assert.deepEqual(updatePreferencesPayload.preferences.timingPresets, [
+      "days_7_before",
+      "on_day",
+    ]);
+
+    const listAuthenticatedResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications?limit=10`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!listAuthenticatedResponse.ok) {
+      throw new Error(
+        `Notifications list request failed: ${listAuthenticatedResponse.status} ${await listAuthenticatedResponse.text()}`,
+      );
+    }
+
+    const listPayload = await listAuthenticatedResponse.json();
+    assert.equal(Array.isArray(listPayload.items), true);
+    assert.equal(listPayload.nextCursor === null || typeof listPayload.nextCursor === "string", true);
+    const notification = listPayload.items.find((item) => item.id === notificationId);
+    assert.ok(notification, "Expected seeded notification in list response.");
+    assert.equal(notification.titleId, seedId);
+    assert.equal(notification.destinationKind, "title");
+    assert.equal(notification.destinationTitleId, seedId);
+    assert.equal(notification.titleName, seedName);
+    assert.equal(notification.readAt, null);
+    assert.equal(notification.payload.previousReleaseDate, "2025-12-01");
+    assert.equal(notification.payload.nextReleaseDate, "2026-01-01");
+
+    const unreadAuthenticatedResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications/unread-count`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!unreadAuthenticatedResponse.ok) {
+      throw new Error(
+        `Notification unread count request failed: ${unreadAuthenticatedResponse.status} ${await unreadAuthenticatedResponse.text()}`,
+      );
+    }
+    const unreadPayload = await unreadAuthenticatedResponse.json();
+    assert.equal(typeof unreadPayload.unreadCount, "number");
+    assert.equal(unreadPayload.unreadCount >= 1, true);
+
+    const markReadResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications/${encodeURIComponent(notificationId)}/read`,
+      {
+        method: "POST",
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    if (!markReadResponse.ok) {
+      throw new Error(
+        `Mark notification read failed: ${markReadResponse.status} ${await markReadResponse.text()}`,
+      );
+    }
+    const markReadPayload = await markReadResponse.json();
+    assert.equal(markReadPayload.notification.id, notificationId);
+    assert.equal(typeof markReadPayload.notification.readAt, "string");
+
+    const rereadResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications/${encodeURIComponent(notificationId)}/read`,
+      {
+        method: "POST",
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    assert.equal(rereadResponse.ok, true);
+
+    const unreadAfterReadResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications/unread-count`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    const unreadAfterReadPayload = await unreadAfterReadResponse.json();
+    assert.equal(unreadAfterReadPayload.unreadCount, 0);
+  } finally {
+    await fetch(
+      `${supabaseUrl}/rest/v1/notification_records?id=eq.${encodeURIComponent(notificationId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          apikey: serviceSecretKey,
+          Authorization: `Bearer ${serviceSecretKey}`,
+        },
+      },
+    );
+    await deleteContractUser(userId);
+    await fetch(
+      `${supabaseUrl}/rest/v1/notification_events?id=eq.${encodeURIComponent(eventId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          apikey: serviceSecretKey,
+          Authorization: `Bearer ${serviceSecretKey}`,
+        },
+      },
+    );
+  }
+}
+
+async function createContractUser() {
+  const email = `notifications-contract-${Date.now()}@example.com`;
+  const password = "ContractTest123!";
+
+  const createResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: {
+      apikey: serviceSecretKey,
+      Authorization: `Bearer ${serviceSecretKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      email_confirm: true,
+    }),
+  });
+
+  if (!createResponse.ok) {
+    throw new Error(
+      `Contract user create failed: ${createResponse.status} ${await createResponse.text()}`,
+    );
+  }
+
+  const createdUser = await createResponse.json();
+  const tokenResponse = await fetch(
+    `${supabaseUrl}/auth/v1/token?grant_type=password`,
+    {
+      method: "POST",
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${publishableKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    },
+  );
+
+  if (!tokenResponse.ok) {
+    throw new Error(
+      `Contract user token failed: ${tokenResponse.status} ${await tokenResponse.text()}`,
+    );
+  }
+
+  const tokenPayload = await tokenResponse.json();
+  return {
+    userId: createdUser.id,
+    accessToken: tokenPayload.access_token,
+  };
+}
+
+async function deleteContractUser(userId) {
+  await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+    headers: {
+      apikey: serviceSecretKey,
+      Authorization: `Bearer ${serviceSecretKey}`,
+    },
+  });
 }
 
 function assertNullableFiniteNumber(value) {
