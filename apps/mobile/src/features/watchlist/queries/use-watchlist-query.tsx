@@ -1,6 +1,6 @@
 import type { WatchlistSort } from "@repo/types";
 import { useAuth } from "@/auth/auth-provider";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { listWatchlist, watchlistConfigError } from "../data-access/watchlist";
 import { getWatchlistQueryKey } from "./watchlist-query-key";
 
@@ -13,6 +13,7 @@ function useWatchlistQuery(sort: WatchlistSort) {
   return useQuery({
     queryKey: getWatchlistQueryKey(userId, sort),
     enabled: Boolean(userId) && watchlistConfigError === null && isReady,
+    placeholderData: keepPreviousData,
     staleTime: WATCHLIST_STALE_TIME,
     queryFn: ({ signal }) => listWatchlist({ signal, sort }),
   });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { match } from "ts-pattern";
 import type { TitleDetails, WatchlistItem, WatchlistSort } from "@repo/types";
 
@@ -19,24 +19,34 @@ export type WatchlistScreenMode =
 const EMPTY_WATCHLIST_ITEMS: WatchlistItem[] = [];
 
 export function useWatchlistFeature() {
-  const { state: authGateState, user, isSignedIn } = useAuthGate();
+  const { state: authGateState, isSignedIn } = useAuthGate();
   const { defaultWatchlistSort, isHydrated: arePreferencesHydrated } =
     useAppPreferences();
-  const [sort, setSort] = useState<WatchlistSort>(DEFAULT_WATCHLIST_SORT);
-  const [isFollowingDefaultSort, setIsFollowingDefaultSort] = useState(true);
+  const [selectedSort, setSelectedSort] = useState<WatchlistSort | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const resolvedDefaultSort = arePreferencesHydrated
+    ? defaultWatchlistSort
+    : DEFAULT_WATCHLIST_SORT;
+  const sort = selectedSort ?? resolvedDefaultSort;
   const watchlistQuery = useWatchlistQuery(sort);
   const { addMutation, removeMutation } = useWatchlistMutation(sort);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
-  const [shouldShowControls, setShouldShowControls] = useState(false);
   const { refetch } = watchlistQuery;
 
-  const items = watchlistQuery.data?.items ?? EMPTY_WATCHLIST_ITEMS;
+  const items =
+    authGateState === "ready" && isSignedIn
+      ? watchlistQuery.data?.items ?? EMPTY_WATCHLIST_ITEMS
+      : EMPTY_WATCHLIST_ITEMS;
   const hasWatchlistData = watchlistQuery.data !== undefined;
   const canRefresh = authGateState === "ready" && isSignedIn;
   const isInitialLoading =
     watchlistQuery.isPending && !hasWatchlistData && !isManualRefreshing;
   const isMutating = addMutation.isPending || removeMutation.isPending;
+  const isUpdatingSort =
+    canRefresh &&
+    watchlistQuery.isFetching &&
+    watchlistQuery.isPlaceholderData &&
+    !isManualRefreshing;
   const normalizedSearchQuery = normalizeWatchlistSearchText(searchQuery);
 
   const filteredItems = useMemo(() => {
@@ -50,27 +60,6 @@ export function useWatchlistFeature() {
       ),
     );
   }, [items, normalizedSearchQuery]);
-
-  useEffect(() => {
-    if (!arePreferencesHydrated || !isFollowingDefaultSort) {
-      return;
-    }
-
-    setSort(defaultWatchlistSort);
-  }, [arePreferencesHydrated, defaultWatchlistSort, isFollowingDefaultSort]);
-
-  useEffect(() => {
-    if (!user) {
-      setShouldShowControls(false);
-      return;
-    }
-
-    if (!hasWatchlistData) {
-      return;
-    }
-
-    setShouldShowControls(items.length > 0);
-  }, [hasWatchlistData, items.length, user]);
 
   const refreshWatchlist = useCallback(async () => {
     if (isManualRefreshing) {
@@ -121,11 +110,12 @@ export function useWatchlistFeature() {
 
   const updateSort = useCallback(
     (nextSort: WatchlistSort) => {
-      setIsFollowingDefaultSort(nextSort === defaultWatchlistSort);
-      setSort(nextSort);
+      setSelectedSort(nextSort === defaultWatchlistSort ? null : nextSort);
     },
     [defaultWatchlistSort],
   );
+
+  const shouldShowControls = canRefresh && items.length > 0;
 
   return {
     items,
@@ -136,10 +126,11 @@ export function useWatchlistFeature() {
     setSearchQuery,
     shouldShowControls,
     mode,
-    canUseWatchlist: Boolean(user),
+    canUseWatchlist: isSignedIn,
     refreshing: isManualRefreshing && canRefresh,
     onRefresh: canRefresh ? refreshWatchlist : undefined,
     isMutating,
+    isUpdatingSort,
     isInWatchlist,
     addToWatchlist,
     removeFromWatchlist,
