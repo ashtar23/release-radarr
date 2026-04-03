@@ -249,7 +249,9 @@ export function NotificationsSettingsScreen() {
         ) : null}
       </ScreenScrollView>
 
-      {isBackgroundSyncing ? <ScreenLoadingOverlay /> : null}
+      {isBackgroundSyncing ? (
+        <ScreenLoadingOverlay label="Refreshing notification preferences" />
+      ) : null}
     </View>
   );
 }
