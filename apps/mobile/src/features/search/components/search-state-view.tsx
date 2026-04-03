@@ -3,24 +3,19 @@ import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import type { SearchStateMode } from "../hooks/use-search-screen-state";
+import { RecentSearchesSection } from "./recent-searches-section";
+import type { SearchScreenNonReadyState } from "../screen-state";
 
 interface SearchStateViewProps {
-  mode: SearchStateMode;
-  query: string;
-  errorMessage?: string | null;
+  state: SearchScreenNonReadyState;
 }
 
-export function SearchStateView({
-  mode,
-  query,
-  errorMessage,
-}: SearchStateViewProps) {
+export function SearchStateView({ state }: SearchStateViewProps) {
   const theme = useTheme();
 
   const emptyStateDescription = "Start typing in the search bar to find games.";
 
-  if (mode === "loading")
+  if (state.mode === "loading")
     return (
       <View style={styles.panel}>
         <EmptyState
@@ -31,18 +26,18 @@ export function SearchStateView({
       </View>
     );
 
-  if (mode === "error") {
+  if (state.mode === "request-error") {
     return (
       <View style={styles.emptyRoot}>
         <EmptyState
           title="Search failed"
-          description={errorMessage ?? "An unexpected error occurred."}
+          description={state.errorMessage ?? "An unexpected error occurred."}
         />
       </View>
     );
   }
 
-  if (mode === "typing-too-short") {
+  if (state.mode === "typing-too-short") {
     return (
       <View style={styles.emptyRoot}>
         <EmptyState
@@ -53,14 +48,25 @@ export function SearchStateView({
     );
   }
 
-  if (mode === "empty" && query.length >= 2) {
+  if (state.mode === "empty" && state.query.length >= 2) {
     return (
       <View style={styles.emptyRoot}>
         <EmptyState
           title="No games found"
-          description={`Try another query instead of “${query}”.`}
+          description={`Try another query instead of “${state.query}”.`}
         />
       </View>
+    );
+  }
+
+  if (state.mode === "idle" && state.recentSearches.length > 0) {
+    return (
+      <RecentSearchesSection
+        recentSearches={state.recentSearches}
+        onSearchPress={state.onRecentSearchPress}
+        onRemoveSearch={state.onRemoveRecentSearch}
+        onClearAll={state.onClearRecentSearches}
+      />
     );
   }
 

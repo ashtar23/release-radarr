@@ -42,6 +42,25 @@ Search is DB-first, then RAWG fallback.
 
 This lets the mobile app drive infinite scroll without guessing whether more data exists.
 
+## Pagination note
+
+Search currently uses page-based pagination, not cursor pagination.
+
+That is intentional because the backend search pipeline is a ranked result flow that can combine:
+- local cached titles
+- search policy decisions
+- optional RAWG refresh and cache fill
+
+Future cursor pagination is allowed, but only as a backend-first change. It should not be introduced from the mobile client outward.
+
+Before adopting cursor search, the backend must define:
+- a stable ranked ordering contract
+- stable tie-breakers
+- an opaque continuation cursor
+- consistent continuation behavior across local-only and RAWG-refresh result paths
+
+Until then, page + limit remains the source-of-truth contract for search.
+
 ## Data update paths
 
 ### Search cache fill

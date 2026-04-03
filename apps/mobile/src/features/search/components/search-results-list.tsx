@@ -10,19 +10,10 @@ import { Spacing } from "@/constants/theme";
 import { SearchResultsFooter } from "./search-results-footer";
 import { SearchResultsHeader } from "./search-results-header";
 import { TitleCardRow } from "@/features/titles/components/title-card-row";
-import type { SearchScreenState } from "../hooks/use-search-screen-state";
+import type { SearchScreenReadyState } from "../screen-state";
 
 interface SearchResultsListProps {
-  searchState: Pick<
-    SearchScreenState,
-    | "results"
-    | "servedBy"
-    | "decisionReason"
-    | "showSourceBadge"
-    | "hasMoreResults"
-    | "isLoadingMore"
-    | "loadMoreErrorMessage"
-  >;
+  searchState: SearchScreenReadyState;
   onRetryLoadMore: () => void;
   onEndReached: () => void;
 }

@@ -34,6 +34,40 @@ Response:
 
 The shared client mirrors that contract and `useSearchTitlesQuery` uses `useInfiniteQuery` with a fixed page size.
 
+## Pagination stance
+
+Search is intentionally page-based today.
+
+- current request contract: `query`, `page`, `limit`, optional `forceRefresh`
+- current response contract: `page`, `limit`, `hasMore`
+- mobile uses `useInfiniteQuery`, but computes the next page from `lastPage.page + 1`
+
+This is different from notifications, which are cursor-based and return `nextCursor`.
+
+That difference is intentional:
+- notifications are a chronological feed, which is a natural fit for cursor pagination
+- search is currently a ranked result set backed by local DB search plus optional RAWG refresh, which is implemented end-to-end as page + limit
+
+### Guidance for future AI work
+
+Treat search as a first-class performance feature. It should be one of the highest-optimization surfaces in the app.
+
+However, do not change search to cursor pagination only to make it look like notifications on the client.
+
+Cursor search should be considered only if the backend contract is redesigned to support it safely:
+- stable deterministic sort order for ranked search results
+- stable tie-breakers across pages
+- an opaque cursor that can represent continuation state for the ranked result set
+- parity across local-cache and RAWG-refresh paths
+
+Until that backend work exists, frontend search should keep:
+- page + limit request semantics
+- `useInfiniteQuery` on the client
+- a delegated `queryFn` shape similar to notifications where possible
+- careful handling of stale typed queries, deduped pages, and load-more state
+
+The goal is not identical pagination mechanics across features. The goal is the best scalable search UX for the contract we actually have.
+
 ## Search flow
 
 1. normalize the query and decide whether it is broad or specific
@@ -71,4 +105,5 @@ Specific queries can stop early when strong matches are exhausted, which keeps l
 - Search provider policy: `supabase/functions/api/utils/search-provider-policy.ts`
 - Shared search contract: `packages/types/src/titles.ts`
 - Search client: `packages/api-client/src/search.ts`
-- Mobile search hook: `apps/mobile/src/features/search/hooks/use-search-titles-query.ts`
+- Mobile search query hook: `apps/mobile/src/features/search/queries/use-search-titles-infinite-query.ts`
+- Mobile search screen hook: `apps/mobile/src/features/search/hooks/use-search-screen.ts`
