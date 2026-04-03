@@ -1,0 +1,70 @@
+name: Mobile Staging iOS Submit
+run-name: Mobile staging iOS submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: "EAS build ID to submit to TestFlight"
+        required: true
+        type: string
+      what_to_test:
+        description: "Optional TestFlight 'What to Test' note"
+        required: false
+        type: string
+
+jobs:
+  submit:
+    name: Submit staging iOS build to TestFlight
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      APP_STORE_CONNECT_APP_ID_STAGING: ${{ secrets.APP_STORE_CONNECT_APP_ID_STAGING }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Validate App Store Connect configuration
+        run: |
+          if [ -z "$APP_STORE_CONNECT_APP_ID_STAGING" ]; then
+            echo "APP_STORE_CONNECT_APP_ID_STAGING secret is required to submit the staging app to TestFlight."
+            exit 1
+          fi
+
+      - name: Inject App Store Connect app id into staging submit profile
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const easJsonPath = "apps/mobile/eas.json";
+          const easJson = JSON.parse(fs.readFileSync(easJsonPath, "utf8"));
+          easJson.submit = easJson.submit ?? {};
+          easJson.submit.staging = easJson.submit.staging ?? {};
+          easJson.submit.staging.ios = {
+            ...(easJson.submit.staging.ios ?? {}),
+            ascAppId: process.env.APP_STORE_CONNECT_APP_ID_STAGING,
+          };
+          fs.writeFileSync(easJsonPath, JSON.stringify(easJson, null, 2) + "\n");
+          NODE
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Submit staging iOS build
+        working-directory: apps/mobile
+        env:
+          WHAT_TO_TEST: ${{ github.event.inputs.what_to_test }}
+        run: |
+          if [ -n "$WHAT_TO_TEST" ]; then
+            eas submit --platform ios --profile staging --id "${{ github.event.inputs.build_id }}" --what-to-test "$WHAT_TO_TEST" --non-interactive
+          else
+            eas submit --platform ios --profile staging --id "${{ github.event.inputs.build_id }}" --non-interactive
+          fi

@@ -26,5 +26,12 @@
         "APP_ENV": "production"
       }
     }
+  },
+  "submit": {
+    "staging": {
+      "ios": {
+        "appleTeamId": "ZP5VQ274FF"
+      }
+    }
   }
 }
