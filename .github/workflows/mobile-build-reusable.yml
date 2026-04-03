@@ -9,13 +9,13 @@ on:
       platform:
         required: true
         type: string
-      eas_profile:
+      build_profile:
         required: true
         type: string
-      submit_to_testflight:
+      submit_profile:
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: ""
       deploy_backend:
         required: true
         type: boolean
@@ -111,14 +111,8 @@ jobs:
       - name: Start EAS build
         working-directory: apps/mobile
         run: |
-          if [ "${{ inputs.submit_to_testflight }}" = "true" ]; then
-            build_profile="${{ inputs.eas_profile }}"
-
-            if [ "${{ inputs.app_env }}" = "staging" ] && [ "${{ inputs.platform }}" = "ios" ]; then
-              build_profile="staging_testflight"
-            fi
-
-            eas build --platform ${{ inputs.platform }} --profile "$build_profile" --auto-submit-with-profile=${{ inputs.eas_profile }} --non-interactive
+          if [ -n "${{ inputs.submit_profile }}" ]; then
+            eas build --platform ${{ inputs.platform }} --profile ${{ inputs.build_profile }} --auto-submit-with-profile=${{ inputs.submit_profile }} --non-interactive
           else
-            eas build --platform ${{ inputs.platform }} --profile ${{ inputs.eas_profile }} --non-interactive
+            eas build --platform ${{ inputs.platform }} --profile ${{ inputs.build_profile }} --non-interactive
           fi

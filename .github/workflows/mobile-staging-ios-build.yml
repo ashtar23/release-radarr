@@ -4,11 +4,14 @@ run-name: Mobile staging iOS build
 on:
   workflow_dispatch:
     inputs:
-      submit_to_testflight:
-        description: "Also submit the finished build to TestFlight"
+      distribution_target:
+        description: "Choose whether to build for internal install or TestFlight"
         required: true
-        default: false
-        type: boolean
+        default: internal
+        type: choice
+        options:
+          - internal
+          - testflight
 
 jobs:
   build:
@@ -17,8 +20,8 @@ jobs:
     with:
       app_env: staging
       platform: ios
-      eas_profile: staging
-      submit_to_testflight: ${{ github.event.inputs.submit_to_testflight == 'true' }}
+      build_profile: ${{ github.event.inputs.distribution_target == 'testflight' && 'staging_testflight' || 'staging' }}
+      submit_profile: ${{ github.event.inputs.distribution_target == 'testflight' && 'staging' || '' }}
       deploy_backend: false
     secrets:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

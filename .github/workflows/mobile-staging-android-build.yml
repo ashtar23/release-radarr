@@ -11,7 +11,8 @@ jobs:
     with:
       app_env: staging
       platform: android
-      eas_profile: staging
+      build_profile: staging
+      submit_profile: ""
       deploy_backend: false
     secrets:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
