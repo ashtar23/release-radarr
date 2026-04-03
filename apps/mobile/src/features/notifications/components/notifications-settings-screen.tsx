@@ -1,4 +1,4 @@
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import {
   notificationTimingPresetValues,
   type NotificationPreferences,
@@ -18,6 +18,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { useNotificationPreferencesQuery } from "../queries/use-notification-preferences-query";
 import { useUpdateNotificationPreferencesMutation } from "../queries/use-update-notification-preferences-mutation";
 import { CenteredStateFrame } from "@/components/centered-state-frame";
+import { ScreenLoadingOverlay } from "@/components/screen-loading-overlay";
 
 const FALLBACK_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   channels: {
@@ -66,6 +67,8 @@ export function NotificationsSettingsScreen() {
   const isInitialLoading = !hasLoadedPreferences && preferencesQuery.isPending;
   const hasBlockingError =
     !hasLoadedPreferences && preferencesQuery.error != null;
+  const isBackgroundSyncing =
+    hasLoadedPreferences && preferencesQuery.isFetching;
   const isInAppEnabled = preferences.channels.inApp;
   const isReleaseApproachingEnabled = preferences.events.releaseApproaching;
   const areEventSettingsDisabled = isInitialLoading || !isInAppEnabled;
@@ -112,8 +115,7 @@ export function NotificationsSettingsScreen() {
     return (
       <CenteredStateFrame>
         <EmptyState
-          title="Loading notification settings..."
-          description="Pulling in your saved preferences."
+          title="Getting notification preferences"
           icon={<ActivityIndicator size="small" color={theme.text} />}
         />
       </CenteredStateFrame>
@@ -132,114 +134,128 @@ export function NotificationsSettingsScreen() {
   }
 
   return (
-    <ScreenScrollView>
-      <ListSection title="Channels">
-        <ListSwitchRow
-          label="In-App Notifications"
-          subtitle="Show watchlist notifications inside the app."
-          value={preferences.channels.inApp}
-          onValueChange={(inApp) =>
-            updatePreferences({
-              channels: { ...preferences.channels, inApp },
-              events: preferences.events,
-              timingPresets: preferences.timingPresets,
-            })
-          }
-          disabled={isInitialLoading}
-        />
+    <View style={styles.container}>
+      <ScreenScrollView>
+        <ListSection title="Channels">
+          <ListSwitchRow
+            label="In-App Notifications"
+            subtitle="Show watchlist notifications inside the app."
+            value={preferences.channels.inApp}
+            onValueChange={(inApp) =>
+              updatePreferences({
+                channels: { ...preferences.channels, inApp },
+                events: preferences.events,
+                timingPresets: preferences.timingPresets,
+              })
+            }
+            disabled={isInitialLoading}
+          />
 
-        <ListSwitchRow
-          label="Push Notifications"
-          subtitle="Coming soon. Push delivery is not live yet."
-          value={preferences.channels.push}
-          onValueChange={() => {}}
-          disabled
-        />
-      </ListSection>
+          <ListSwitchRow
+            label="Push Notifications"
+            subtitle="Coming soon. Push delivery is not live yet."
+            value={preferences.channels.push}
+            onValueChange={() => {}}
+            disabled
+          />
+        </ListSection>
 
-      {isInAppEnabled ? (
-        <>
-          <ListSection title="Events">
-            <ListSwitchRow
-              label="Release Date Changes"
-              subtitle="Coming soon. Automatic release date change notifications are not live yet."
-              value={
-                RELEASE_DATE_CHANGES_AVAILABLE
-                  ? preferences.events.releaseDateChanged
-                  : false
-              }
-              onValueChange={(releaseDateChanged) =>
-                updatePreferences({
-                  channels: preferences.channels,
-                  events: {
-                    ...preferences.events,
-                    releaseDateChanged,
-                  },
-                  timingPresets: preferences.timingPresets,
-                })
-              }
-              disabled
-            />
+        {isInAppEnabled ? (
+          <>
+            <ListSection title="Events">
+              <ListSwitchRow
+                label="Release Date Changes"
+                subtitle="Coming soon. Automatic release date change notifications are not live yet."
+                value={
+                  RELEASE_DATE_CHANGES_AVAILABLE
+                    ? preferences.events.releaseDateChanged
+                    : false
+                }
+                onValueChange={(releaseDateChanged) =>
+                  updatePreferences({
+                    channels: preferences.channels,
+                    events: {
+                      ...preferences.events,
+                      releaseDateChanged,
+                    },
+                    timingPresets: preferences.timingPresets,
+                  })
+                }
+                disabled
+              />
 
-            <ListSwitchRow
-              label="Release Approaching"
-              subtitle="Notify me before a watched title is due to release."
-              value={preferences.events.releaseApproaching}
-              onValueChange={(releaseApproaching) =>
-                updatePreferences({
-                  channels: preferences.channels,
-                  events: {
-                    ...preferences.events,
-                    releaseApproaching,
-                  },
-                  timingPresets: preferences.timingPresets,
-                })
-              }
-              disabled={areEventSettingsDisabled}
-            />
-          </ListSection>
+              <ListSwitchRow
+                label="Release Approaching"
+                subtitle="Notify me before a watched title is due to release."
+                value={preferences.events.releaseApproaching}
+                onValueChange={(releaseApproaching) =>
+                  updatePreferences({
+                    channels: preferences.channels,
+                    events: {
+                      ...preferences.events,
+                      releaseApproaching,
+                    },
+                    timingPresets: preferences.timingPresets,
+                  })
+                }
+                disabled={areEventSettingsDisabled}
+              />
+            </ListSection>
 
-          <ListSection
-            title="Timing Presets"
-            footer="Select at least one notification time."
-          >
-            {notificationTimingPresetValues.map((preset) => {
-              const meta = TIMING_PRESET_META[preset];
-              const isSelected = preferences.timingPresets.includes(preset);
+            <ListSection
+              title="Timing Presets"
+              footer="Select at least one notification time."
+            >
+              {notificationTimingPresetValues.map((preset) => {
+                const meta = TIMING_PRESET_META[preset];
+                const isSelected = preferences.timingPresets.includes(preset);
 
-              return (
-                <ActionRow
-                  key={preset}
-                  onPress={() => toggleTimingPreset(preset)}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected: isSelected,
-                    disabled: areTimingPresetsDisabled,
-                  }}
-                  disabled={areTimingPresetsDisabled}
-                >
-                  <ListRow
-                    label={meta.label}
-                    subtitle={meta.subtitle}
+                return (
+                  <ActionRow
+                    key={preset}
+                    onPress={() => toggleTimingPreset(preset)}
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      selected: isSelected,
+                      disabled: areTimingPresetsDisabled,
+                    }}
                     disabled={areTimingPresetsDisabled}
-                    trailingIcon={
-                      isSelected ? (
-                        <AppSymbol ios="checkmark" android="check" size={18} />
-                      ) : undefined
-                    }
-                  />
-                </ActionRow>
-              );
-            })}
-          </ListSection>
-        </>
-      ) : null}
+                  >
+                    <ListRow
+                      label={meta.label}
+                      subtitle={meta.subtitle}
+                      disabled={areTimingPresetsDisabled}
+                      trailingIcon={
+                        isSelected ? (
+                          <AppSymbol
+                            ios="checkmark"
+                            android="check"
+                            size={18}
+                          />
+                        ) : undefined
+                      }
+                    />
+                  </ActionRow>
+                );
+              })}
+            </ListSection>
+          </>
+        ) : null}
 
-      {preferencesQuery.error && hasLoadedPreferences ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          Unable to load notification preferences right now.
-        </ThemedText>
-      ) : null}
-    </ScreenScrollView>
+        {preferencesQuery.error && hasLoadedPreferences ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            Unable to refresh notification preferences right now.
+          </ThemedText>
+        ) : null}
+      </ScreenScrollView>
+
+      {isBackgroundSyncing ? <ScreenLoadingOverlay /> : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

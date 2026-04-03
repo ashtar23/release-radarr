@@ -1,4 +1,10 @@
-import { StyleSheet, Switch, View, type ViewStyle } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Switch,
+  View,
+  type ViewStyle,
+} from "react-native";
 
 import { ListRow } from "@/components/list-row";
 import { ThemedText } from "@/components/themed-text";
@@ -31,6 +37,13 @@ export function ListSwitchRow({
   testID,
 }: ListSwitchRowProps) {
   const theme = useTheme();
+  const trackColor =
+    Platform.OS === "ios"
+      ? {
+          false: theme.separator,
+          true: theme.interactive.focusRing,
+        }
+      : undefined;
 
   return (
     <ListRow style={style} disabled={disabled}>
@@ -48,10 +61,7 @@ export function ListSwitchRow({
           onValueChange={onValueChange}
           disabled={disabled}
           testID={testID}
-          trackColor={{
-            false: theme.separator,
-            true: theme.interactive.focusRing,
-          }}
+          trackColor={trackColor}
         />
       </View>
     </ListRow>

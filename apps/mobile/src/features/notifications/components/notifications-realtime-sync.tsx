@@ -1,4 +1,8 @@
-import type { NotificationRecordListResult } from "@repo/types";
+import type {
+  NotificationPreferencesResult,
+  NotificationRecordListResult,
+  NotificationTimingPreset,
+} from "@repo/types";
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,6 +28,35 @@ type NotificationRecordRealtimeRow = {
   read_at: string | null;
 };
 
+type NotificationPreferencesRealtimeRow = {
+  in_app_enabled: boolean;
+  push_enabled: boolean;
+  release_approaching_enabled: boolean;
+  release_date_changed_enabled: boolean;
+  timing_presets: string[];
+  updated_at: string;
+  user_id: string;
+};
+
+function mapNotificationPreferencesRealtimeRow(
+  row: NotificationPreferencesRealtimeRow,
+): NotificationPreferencesResult {
+  return {
+    preferences: {
+      channels: {
+        inApp: row.in_app_enabled,
+        push: row.push_enabled,
+      },
+      events: {
+        releaseApproaching: row.release_approaching_enabled,
+        releaseDateChanged: row.release_date_changed_enabled,
+      },
+      timingPresets: row.timing_presets as NotificationTimingPreset[],
+      updatedAt: row.updated_at,
+    },
+  };
+}
+
 export function NotificationsRealtimeSync() {
   const queryClient = useQueryClient();
   const { state, user } = useAuthGate();
@@ -44,6 +77,25 @@ export function NotificationsRealtimeSync() {
       void queryClient.invalidateQueries({
         queryKey: getNotificationUnreadCountQueryKey(userId),
       });
+    };
+
+    const syncNotificationPreferences = (
+      row: NotificationPreferencesRealtimeRow,
+    ) => {
+      const queryKey = getNotificationPreferencesQueryKey(userId);
+      const nextPreferences = mapNotificationPreferencesRealtimeRow(row);
+      const cachedPreferences =
+        queryClient.getQueryData<NotificationPreferencesResult>(queryKey);
+
+      if (
+        cachedPreferences &&
+        cachedPreferences.preferences.updatedAt >=
+          nextPreferences.preferences.updatedAt
+      ) {
+        return;
+      }
+
+      queryClient.setQueryData(queryKey, nextPreferences);
     };
 
     const channel = client
@@ -74,6 +126,32 @@ export function NotificationsRealtimeSync() {
           }
 
           invalidateNotificationQueries();
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notification_preferences",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: { new: NotificationPreferencesRealtimeRow }) => {
+          syncNotificationPreferences(payload.new);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notification_preferences",
+          filter: `user_id=eq.${userId}`,
+        },
+        (
+          payload: RealtimePostgresUpdatePayload<NotificationPreferencesRealtimeRow>,
+        ) => {
+          syncNotificationPreferences(payload.new);
         },
       )
       .subscribe();
