@@ -1,18 +1,16 @@
 import { readFileSync } from "node:fs";
-import * as path from "node:path";
+import path from "node:path";
 
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
 const PRODUCT_NAME = "Release Radar";
 const PRODUCT_SLUG = "release-radar";
 const mobilePackagePath = path.join(__dirname, "package.json");
-const mobilePackage = JSON.parse(readFileSync(mobilePackagePath, "utf8")) as {
-  version: string;
-};
+const mobilePackage = JSON.parse(
+  readFileSync(mobilePackagePath, "utf8"),
+) as { version: string };
 
-const APP_ENVIRONMENTS = ["development", "staging", "production"] as const;
-
-type AppEnvironment = (typeof APP_ENVIRONMENTS)[number];
+type AppEnvironment = "development" | "staging" | "production";
 
 type EnvironmentConfig = {
   name: string;
@@ -50,6 +48,7 @@ function getEnvironmentConfig(appEnv: AppEnvironment): EnvironmentConfig {
         packageName: "com.ashtar23.releaseradar.staging",
       };
     case "production":
+    default:
       return {
         name: PRODUCT_NAME,
         scheme: "releaseradar",
@@ -94,6 +93,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      "expo-font",
+      "expo-image",
       "expo-router",
       [
         "expo-splash-screen",
@@ -105,6 +106,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           },
         },
       ],
+      "expo-web-browser",
     ],
     experiments: {
       typedRoutes: true,
