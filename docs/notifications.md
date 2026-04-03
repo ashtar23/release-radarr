@@ -211,7 +211,7 @@ Current mobile freshness behavior is:
 - preferences are patched directly into cache when newer realtime payloads arrive
 - preferences updates are written optimistically on the client and debounced before persistence
 
-Files to treat as the current reference:
+Reference files:
 
 - [apps/mobile/src/features/notifications/queries/use-notifications-query.ts](../apps/mobile/src/features/notifications/queries/use-notifications-query.ts)
 - [apps/mobile/src/features/notifications/queries/use-notification-preferences-query.ts](../apps/mobile/src/features/notifications/queries/use-notification-preferences-query.ts)

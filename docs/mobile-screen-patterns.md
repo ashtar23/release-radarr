@@ -173,7 +173,7 @@ early.
 - Notifications signed-out
 - Watchlist signed-out
 
-## Follow-up alignment work
+## Follow-up
 
 The main structural migration is now in place for the primary mobile surfaces:
 

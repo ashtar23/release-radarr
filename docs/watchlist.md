@@ -29,7 +29,7 @@ Mobile watchlist now follows the shared mobile screen architecture:
 - thin screen composition hook in `hooks/`
 - feature-specific `WatchlistStateView` for non-ready rendering
 
-The main reference files are:
+Reference files:
 
 - [apps/mobile/src/features/watchlist/queries/use-watchlist-query.tsx](../apps/mobile/src/features/watchlist/queries/use-watchlist-query.tsx)
 - [apps/mobile/src/features/watchlist/mutations/use-watchlist-mutation.tsx](../apps/mobile/src/features/watchlist/mutations/use-watchlist-mutation.tsx)
@@ -38,7 +38,7 @@ The main reference files are:
 - [apps/mobile/src/features/watchlist/components/watchlist-screen.tsx](../apps/mobile/src/features/watchlist/components/watchlist-screen.tsx)
 - [apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx](../apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx)
 
-Mutations are optimistic:
+Mutation behavior:
 - add/remove update the local cache immediately
 - failed requests roll back to the previous snapshot
 - successful requests invalidate the watchlist query to resync
