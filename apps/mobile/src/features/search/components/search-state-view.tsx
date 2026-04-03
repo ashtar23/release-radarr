@@ -1,30 +1,26 @@
+import { CenteredLoadingState } from "@/components/centered-loading-state";
 import { EmptyState } from "@/components/empty-state";
 import { Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { RecentSearchesSection } from "./recent-searches-section";
 import type { SearchScreenNonReadyState } from "../screen-state";
 
-interface SearchStateViewProps {
+type SearchStateViewProps = {
   state: SearchScreenNonReadyState;
-}
+};
 
 export function SearchStateView({ state }: SearchStateViewProps) {
-  const theme = useTheme();
-
   const emptyStateDescription = "Start typing in the search bar to find games.";
 
-  if (state.mode === "loading")
+  if (state.mode === "loading") {
     return (
-      <View style={styles.panel}>
-        <EmptyState
-          title="Searching..."
-          description="Looking up matching games."
-          icon={<ActivityIndicator size="small" color={theme.text} />}
-        />
-      </View>
+      <CenteredLoadingState
+        title="Searching..."
+        description="Looking up matching games."
+      />
     );
+  }
 
   if (state.mode === "request-error") {
     return (
@@ -78,12 +74,6 @@ export function SearchStateView({ state }: SearchStateViewProps) {
 }
 
 const styles = StyleSheet.create({
-  panel: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: Spacing.three,
-  },
   emptyRoot: {
     flex: 1,
     alignItems: "center",

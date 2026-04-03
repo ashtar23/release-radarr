@@ -39,6 +39,7 @@ const TIMING_PRESET_META: Record<
 };
 
 const RELEASE_DATE_CHANGES_AVAILABLE = false;
+const noop = () => {};
 
 export function NotificationsSettingsScreen() {
   const { state } = useNotificationsSettingsScreen();
@@ -74,7 +75,7 @@ export function NotificationsSettingsScreen() {
             label="Push Notifications"
             subtitle="Coming soon. Push delivery is not live yet."
             value={preferences.channels.push}
-            onValueChange={() => {}}
+            onValueChange={noop}
             disabled
           />
         </ListSection>
@@ -90,7 +91,7 @@ export function NotificationsSettingsScreen() {
                     ? preferences.events.releaseDateChanged
                     : false
                 }
-                onValueChange={() => {}}
+                onValueChange={noop}
                 disabled
               />
 
