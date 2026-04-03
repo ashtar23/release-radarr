@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getTitleDetails,
   titleDetailsConfigError,
-} from "../get-title-details";
+} from "../data-access/get-title-details";
 
 const TITLE_DETAILS_STALE_TIME_MS = 60_000;
 const TITLE_DETAILS_QUERY_KEY_PREFIX = ["titles", "detail"];
