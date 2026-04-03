@@ -16,6 +16,7 @@ on:
 jobs:
   build:
     name: Staging iOS build
+    if: github.ref == 'refs/heads/dev'
     uses: ./.github/workflows/mobile-build-reusable.yml
     with:
       app_env: staging
