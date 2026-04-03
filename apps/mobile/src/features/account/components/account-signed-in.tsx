@@ -10,19 +10,12 @@ import { useTheme } from "@/hooks/use-theme";
 type AccountSignedInProps = {
   canSubmit: boolean;
   email: string | null | undefined;
-  onSignedOut: () => void;
 };
 
-export function AccountSignedIn({
-  canSubmit,
-  email,
-  onSignedOut,
-}: AccountSignedInProps) {
+export function AccountSignedIn({ canSubmit, email }: AccountSignedInProps) {
   const theme = useTheme();
 
-  const signOutMutation = useSignOutMutation({
-    onSuccess: onSignedOut,
-  });
+  const signOutMutation = useSignOutMutation();
 
   return (
     <>

@@ -1,48 +1,31 @@
 import React from "react";
-import { ActivityIndicator } from "react-native";
 
-import { CenteredStateFrame } from "@/components/centered-state-frame";
-import { EmptyState } from "@/components/empty-state";
-import { ThemedText } from "@/components/themed-text";
-import { useTheme } from "@/hooks/use-theme";
+import { CenteredConfigErrorState } from "@/components/centered-config-error-state";
+import { CenteredLoadingState } from "@/components/centered-loading-state";
 
-type AccountStateViewMode = "loading" | "config-error";
+import type { AccountScreenNonReadyState } from "../screen-state";
 
 type AccountStateViewProps = {
-  mode: AccountStateViewMode;
-  errorMessage?: string | null;
+  state: AccountScreenNonReadyState;
 };
 
-export function AccountStateView({
-  mode,
-  errorMessage,
-}: AccountStateViewProps) {
-  const theme = useTheme();
-  const errorTextStyle = { color: theme.status.error };
-
-  if (mode === "loading") {
+export function AccountStateView({ state }: AccountStateViewProps) {
+  if (state.mode === "checking-session") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Checking your session..."
-          description="Loading your account access."
-          icon={<ActivityIndicator size="small" color={theme.text} />}
-        />
-      </CenteredStateFrame>
+      <CenteredLoadingState
+        title="Checking your session..."
+        description="Loading your account access."
+      />
     );
   }
 
   return (
-    <CenteredStateFrame>
-      <EmptyState
-        title="Account is unavailable"
-        description={errorMessage ?? "Account configuration is unavailable."}
-        action={
-          <ThemedText style={errorTextStyle}>
-            Check the Supabase environment configuration for this build.
-          </ThemedText>
-        }
-      />
-    </CenteredStateFrame>
+    <CenteredConfigErrorState
+      title="Account is unavailable"
+      description={
+        state.errorMessage ?? "Account configuration is unavailable."
+      }
+      helpText="Check the Supabase environment configuration for this build."
+    />
   );
 }
