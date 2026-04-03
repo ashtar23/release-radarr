@@ -25,10 +25,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 20
+          cache: pnpm
 
       - name: Validate App Store Connect configuration
         run: |
