@@ -2,19 +2,24 @@
 
 This document captures the current screen-composition rules for the mobile app.
 
-The goal is to keep feature screens consistent before adding Notifications and
-future authenticated surfaces.
+The goal is to keep feature screens consistent across the current mobile
+surfaces instead of letting each screen invent its own loading, error, auth,
+and empty-state split.
 
 ## Core rule
 
 For feature screens, prefer this split:
 
-1. the screen owns data fetching and high-level branching
-2. a feature-specific `...StateView` owns non-success rendering
-3. shared UI primitives are reused underneath
+1. raw `queries/` and `mutations/` stay React Query-native and avoid UI mode logic
+2. a thin `use-...-screen` hook composes auth, query state, and screen callbacks
+3. a pure `screen-state/derive-...` helper maps inputs to a discriminated union
+4. the screen renders one `ready` vs `non-ready` branch
+5. a feature-specific `...StateView` owns non-ready rendering
+6. shared centered state primitives are reused underneath
 
-This keeps data orchestration close to the feature screen while avoiding large
-mixed “everything in one component” render functions.
+This keeps data orchestration close to the feature while avoiding large mixed
+“everything in one component” render functions or giant hooks full of nested
+ternaries.
 
 ## Shared primitives
 
@@ -22,7 +27,7 @@ mixed “everything in one component” render functions.
 
 File:
 
-- [apps/mobile/src/components/screen-scroll-view.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/components/screen-scroll-view.tsx)
+- [apps/mobile/src/components/screen-scroll-view.tsx](../apps/mobile/src/components/screen-scroll-view.tsx)
 
 Use for:
 
@@ -45,7 +50,7 @@ behavior.
 
 File:
 
-- [apps/mobile/src/components/screen-prompt.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/components/screen-prompt.tsx)
+- [apps/mobile/src/components/screen-prompt.tsx](../apps/mobile/src/components/screen-prompt.tsx)
 
 Use for:
 
@@ -68,14 +73,13 @@ than a generic empty state.
 
 File:
 
-- [apps/mobile/src/components/empty-state.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/components/empty-state.tsx)
+- [apps/mobile/src/components/empty-state.tsx](../apps/mobile/src/components/empty-state.tsx)
 
 Use for:
 
-- centered empty states
-- loading placeholders
+- lightweight empty states
 - no-results states
-- lightweight error messaging
+- simple informational placeholders
 
 Do not use `EmptyState` when the screen needs:
 
@@ -83,44 +87,65 @@ Do not use `EmptyState` when the screen needs:
 - a signed-out/access prompt treatment
 - screen-owned follow-up layout that is more than a simple centered state
 
+For full-screen centered loading, request-error, config-error, and empty states,
+prefer the shared wrappers in `apps/mobile/src/components/centered-*.tsx`.
+
 ## Feature-level state views
 
-When a screen has multiple non-success states, prefer a feature-specific
+When a screen has multiple non-ready states, prefer a feature-specific
 `...StateView` rather than pushing that branching inline forever.
 
 ### Good current examples
 
-- [apps/mobile/src/features/home/components/home-state-view.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/features/home/components/home-state-view.tsx)
-- [apps/mobile/src/features/search/components/search-state-view.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/features/search/components/search-state-view.tsx)
-- [apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx)
+- [apps/mobile/src/features/home/components/home-state-view.tsx](../apps/mobile/src/features/home/components/home-state-view.tsx)
+- [apps/mobile/src/features/notifications/components/notifications-state-view.tsx](../apps/mobile/src/features/notifications/components/notifications-state-view.tsx)
+- [apps/mobile/src/features/notifications/components/notifications-settings-state-view.tsx](../apps/mobile/src/features/notifications/components/notifications-settings-state-view.tsx)
+- [apps/mobile/src/features/search/components/search-state-view.tsx](../apps/mobile/src/features/search/components/search-state-view.tsx)
+- [apps/mobile/src/features/title-details/components/title-details-state-view.tsx](../apps/mobile/src/features/title-details/components/title-details-state-view.tsx)
+- [apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx](../apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx)
+- [apps/mobile/src/features/account/components/account-state-view.tsx](../apps/mobile/src/features/account/components/account-state-view.tsx)
 
 ### Recommended default split
 
 - feature screen:
-  - fetch data
-  - derive mode
+  - call a thin `use-...-screen` hook
   - render success content
 - feature `...StateView`:
   - loading
-  - error
+  - request-error
   - config/setup problems
-  - other non-success visual states
+  - signed-out or other non-ready visual states
+- feature `screen-state/`:
+  - define the union
+  - keep derivation pure and testable
+- raw query/mutation hooks:
+  - own query keys, request functions, optimistic updates, and invalidation
+  - do not return screen-specific UI modes
 
 ### Home as the reference
 
-Use [home-screen-content.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/features/home/components/home-screen-content.tsx)
-plus [home-state-view.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/features/home/components/home-state-view.tsx)
-as the current reference pattern:
+Use [use-home-screen.ts](../apps/mobile/src/features/home/hooks/use-home-screen.ts),
+[home-screen.tsx](../apps/mobile/src/features/home/components/home-screen.tsx),
+and [home-state-view.tsx](../apps/mobile/src/features/home/components/home-state-view.tsx)
+as the current guest-screen reference pattern:
 
-- screen owns query and branching
+- raw query stays in `queries/`
+- `useHomeScreen()` composes and derives the mode
 - `HomeStateView` owns blocking states
-- successful-but-empty discovery remains part of the success screen
+- successful content renders only on `ready`
+
+For an auth-gated reference, use:
+
+- [use-notifications-screen.ts](../apps/mobile/src/features/notifications/hooks/use-notifications-screen.ts)
+- [derive-notifications-screen-state.ts](../apps/mobile/src/features/notifications/screen-state/derive-notifications-screen-state.ts)
+- [notifications-screen.tsx](../apps/mobile/src/features/notifications/components/notifications-screen.tsx)
+- [notifications-state-view.tsx](../apps/mobile/src/features/notifications/components/notifications-state-view.tsx)
 
 ## Header/title rules
 
 Shared stack styling belongs in:
 
-- [apps/mobile/src/constants/navigation.tsx](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/src/constants/navigation.tsx)
+- [apps/mobile/src/constants/navigation.tsx](../apps/mobile/src/constants/navigation.tsx)
 
 Keep these decisions local to the screen or layout branch:
 
@@ -139,22 +164,29 @@ early.
 - Account settings screens
 - Home screen
 - Watchlist signed-out screen
+- Notifications signed-out/settings screens
 
 ### Good current `ScreenPrompt` adopters
 
 - Account signed-out
+- Notifications settings signed-out
+- Notifications signed-out
 - Watchlist signed-out
-
-### Likely next adopter
-
-- Notifications signed-out state
 
 ## Follow-up alignment work
 
-These are worth aligning when touched next, but they do not need to block the
-Notifications feature:
+The main structural migration is now in place for the primary mobile surfaces:
 
-- Account can eventually move more of its loading/config branching into a
-  dedicated state view if it grows further.
-- Title details could benefit from a similar split if that screen gets more
-  states or richer retry/setup behavior.
+- home
+- watchlist
+- notifications
+- notifications settings
+- title details
+- search
+- account
+
+Future work here should be incremental rather than another broad rewrite:
+
+- keep docs and exports aligned as features evolve
+- prefer localized cleanup over introducing new generic screen abstractions
+- only revisit the architecture if a new feature genuinely breaks this pattern

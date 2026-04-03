@@ -13,7 +13,8 @@ Current route groups:
 - `(tabs)/home` - entry/home surface
 - `(tabs)/search` - guest search and browsing
 - `(tabs)/watchlist` - authenticated watchlist
-- `(tabs)/profile` - guest and signed-in account hub
+- `(tabs)/notifications` - authenticated notifications feed
+- `(tabs)/account` - guest and signed-in account hub
 - `(tabs)/account/settings` - settings, theme, and developer tools
 - `titles/[titleId]` - shared title details screen from any tab
 
@@ -50,6 +51,14 @@ Supabase owns:
 - search refresh and ranking behavior
 
 RAWG is the external metadata source, but clients never call it directly.
+
+Within the mobile app, the current feature ownership pattern is:
+
+- `data-access/` owns request helpers and API-specific shaping
+- `queries/` and `mutations/` own React Query wiring, optimistic cache behavior, and invalidation
+- `screen-state/` owns discriminated unions plus pure `derive-...` helpers
+- `hooks/use-...-screen.ts` owns screen composition only
+- screen components render `ready` content and delegate non-ready rendering to feature-specific `...StateView` components
 
 ## Direction
 

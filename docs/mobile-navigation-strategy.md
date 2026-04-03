@@ -76,7 +76,7 @@ The intended role is:
 
 The full product and implementation direction lives in:
 
-- [docs/notifications.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/notifications.md)
+- [docs/notifications.md](notifications.md)
 
 ## Header Actions
 

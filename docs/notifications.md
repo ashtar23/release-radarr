@@ -18,8 +18,9 @@ The agreed V1 behavior is:
 - opening a notification marks it as read
 - signed-out users see an explainer screen instead of being redirected
 - notification preferences live in Account settings
-- pull-to-refresh and refetch-on-open are enough for V1
-- no realtime subscriptions in V1
+- pull-to-refresh is supported
+- app-focus revalidation is wired through React Query's native focus integration
+- realtime subscriptions keep notification records and preferences fresh
 - no grouping, bundling, or per-title overrides in V1
 
 ## Scope
@@ -191,7 +192,6 @@ The backend should expose support for:
 
 V1 does not require:
 
-- realtime subscriptions
 - grouped notification summaries
 - push delivery fan-out
 - per-title preference overrides
@@ -200,11 +200,23 @@ If the single daily `release_approaching` batch later becomes a bottleneck, the 
 
 ## Freshness model
 
-V1 freshness should stay simple:
+Current mobile freshness behavior is:
 
-- refetch when the Notifications screen is focused or opened
-- support pull-to-refresh
-- avoid realtime listeners until the feed and generation model are stable
+- the notifications list uses cursor-based infinite pagination
+- app foreground/background focus is wired globally through React Query native focus handling
+- the notifications provider subscribes to realtime updates for:
+  - `notification_records`
+  - `notification_preferences`
+- unread-count and feed queries are invalidated on relevant record changes
+- preferences are patched directly into cache when newer realtime payloads arrive
+- preferences updates are written optimistically on the client and debounced before persistence
+
+Files to treat as the current reference:
+
+- [apps/mobile/src/features/notifications/queries/use-notifications-query.ts](../apps/mobile/src/features/notifications/queries/use-notifications-query.ts)
+- [apps/mobile/src/features/notifications/queries/use-notification-preferences-query.ts](../apps/mobile/src/features/notifications/queries/use-notification-preferences-query.ts)
+- [apps/mobile/src/features/notifications/mutations/use-update-notification-preferences-mutation.ts](../apps/mobile/src/features/notifications/mutations/use-update-notification-preferences-mutation.ts)
+- [apps/mobile/src/features/notifications/providers/notifications-realtime-provider.tsx](../apps/mobile/src/features/notifications/providers/notifications-realtime-provider.tsx)
 
 ## Implementation order
 
@@ -230,5 +242,6 @@ The minimum expected verification for V1 is:
 - tapping a notification opens the correct title detail screen
 - tapping a notification marks it as read
 - pull-to-refresh refreshes feed and unread count
+- realtime updates keep feed, unread count, and preferences cache in sync
 - disabled notification event types prevent new records from being created
 - non-watchlisted titles do not create notifications in V1

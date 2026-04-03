@@ -45,8 +45,8 @@ Hosted backend mapping:
 - staging app -> staging backend
 - production app -> production backend
 
-EAS build profiles live in [eas.json](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/eas.json).
-The full contract is documented in [docs/mobile-environments.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/mobile-environments.md).
+EAS build profiles live in [eas.json](eas.json).
+The full contract is documented in [docs/mobile-environments.md](../../docs/mobile-environments.md).
 
 ## Behavior
 
