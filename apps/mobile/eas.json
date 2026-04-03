@@ -21,6 +21,7 @@
     },
     "staging_testflight": {
       "environment": "preview",
+      "autoIncrement": true,
       "env": {
         "APP_ENV": "staging"
       }
