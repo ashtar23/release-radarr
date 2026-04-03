@@ -135,6 +135,51 @@ Notification records should minimally support:
 5. clients read notification records from Supabase-backed endpoints
 6. clients mark records as read when opened
 
+For `release_approaching`, the daily scheduled job should:
+
+- start from titles whose `earliest_release_date` is within the next 30 days
+- then join watchlists and notification preferences for only that smaller title set
+- then evaluate exact timing preset matches (`on_day`, `24 hours`, `7 days`, `30 days`)
+
+This keeps behavior the same while making the daily scan cost depend more on near-term releases and their watchers than on total watchlist size across the whole product.
+
+### `release_approaching` staging verification
+
+Use these queries in staging after applying the optimization migration:
+
+```sql
+explain analyze
+select
+  t.id,
+  t.earliest_release_date
+from public.titles t
+where t.earliest_release_date between current_date and current_date + 30;
+```
+
+```sql
+explain analyze
+with due_titles_window as (
+  select
+    t.id as title_id,
+    t.earliest_release_date as target_release_date
+  from public.titles t
+  where t.earliest_release_date between current_date and current_date + 30
+)
+select
+  w.user_id,
+  dtw.title_id,
+  dtw.target_release_date
+from due_titles_window dtw
+join public.watchlists w on w.title_id = dtw.title_id;
+```
+
+Good signs:
+
+- the planner can use `titles_earliest_release_date_idx` for the date-window filter
+- date-window filtering happens before the wider watchlist join
+- `watchlists(title_id)` supports the join path from `due_titles_window`
+- the working set is visibly smaller than an unbounded scan of all watchlist rows
+
 ## Backend support needed
 
 The backend should expose support for:
@@ -150,6 +195,8 @@ V1 does not require:
 - grouped notification summaries
 - push delivery fan-out
 - per-title preference overrides
+
+If the single daily `release_approaching` batch later becomes a bottleneck, the next scale step should keep the same due-title selection logic and focus on batching `notification_records` fan-out or splitting fan-out into a second phase/job. That follow-up should not change timing preset behavior, event key semantics, or reminder cadence. Triggers for that follow-up are long cron runtimes, large `notification_records` spikes per run, or very popular titles producing heavy single-run fan-out.
 
 ## Freshness model
 
