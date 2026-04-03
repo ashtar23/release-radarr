@@ -4,45 +4,19 @@ import { StyleSheet, View } from "react-native";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
-import { apiClientConfigError } from "@/lib/api-client";
 
-import { useHomeDiscoveryQuery } from "../data-access/use-home-discovery-query";
+import { useHomeScreen } from "../hooks/use-home-screen";
 import { HomeDiscoverySection } from "./home-discovery-section";
 import { HomeStateView } from "./home-state-view";
 
 export function HomeScreen() {
-  const discoveryQuery = useHomeDiscoveryQuery();
-  const hasAnySection =
-    (discoveryQuery.data?.upcoming.length ?? 0) > 0 ||
-    (discoveryQuery.data?.latest.length ?? 0) > 0 ||
-    (discoveryQuery.data?.popular.length ?? 0) > 0;
+  const { state } = useHomeScreen();
 
-  if (apiClientConfigError) {
-    return (
-      <HomeStateView mode="config-error" errorMessage={apiClientConfigError} />
-    );
+  if (state.mode !== "ready") {
+    return <HomeStateView state={state} />;
   }
 
-  if (discoveryQuery.isPending) {
-    return <HomeStateView mode="loading" />;
-  }
-
-  if (discoveryQuery.isError) {
-    return (
-      <HomeStateView
-        mode="request-error"
-        errorMessage={
-          discoveryQuery.error instanceof Error
-            ? discoveryQuery.error.message
-            : "Something went wrong while loading discovery."
-        }
-        onRetry={() => {
-          void discoveryQuery.refetch();
-        }}
-        retrying={discoveryQuery.isRefetching}
-      />
-    );
-  }
+  const { discovery } = state;
 
   return (
     <ScreenScrollView contentContainerStyle={styles.content}>
@@ -53,28 +27,9 @@ export function HomeScreen() {
         </ThemedText>
       </View>
 
-      {discoveryQuery.data && hasAnySection ? (
-        <>
-          <HomeDiscoverySection
-            title="Upcoming games"
-            items={discoveryQuery.data.upcoming}
-          />
-          <HomeDiscoverySection
-            title="Latest releases"
-            items={discoveryQuery.data.latest}
-          />
-          <HomeDiscoverySection
-            title="Popular now"
-            items={discoveryQuery.data.popular}
-          />
-        </>
-      ) : null}
-
-      {discoveryQuery.data && !hasAnySection ? (
-        <ThemedText themeColor="textSecondary" style={styles.message}>
-          No discovery titles are available right now.
-        </ThemedText>
-      ) : null}
+      <HomeDiscoverySection title="Upcoming games" items={discovery.upcoming} />
+      <HomeDiscoverySection title="Latest releases" items={discovery.latest} />
+      <HomeDiscoverySection title="Popular now" items={discovery.popular} />
     </ScreenScrollView>
   );
 }
@@ -88,8 +43,5 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.three,
     gap: Spacing.one,
-  },
-  message: {
-    paddingHorizontal: Spacing.three,
   },
 });

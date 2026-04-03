@@ -1,77 +1,51 @@
 import React from "react";
-import { ActivityIndicator } from "react-native";
 
-import { Button } from "@/components/button";
-import { CenteredStateFrame } from "@/components/centered-state-frame";
-import { EmptyState } from "@/components/empty-state";
-import { ThemedText } from "@/components/themed-text";
-import { useTheme } from "@/hooks/use-theme";
+import { CenteredConfigErrorState } from "@/components/centered-config-error-state";
+import { CenteredEmptyState } from "@/components/centered-empty-state";
+import { CenteredLoadingState } from "@/components/centered-loading-state";
+import { CenteredRequestErrorState } from "@/components/centered-request-error-state";
 
-type HomeStateViewMode = "config-error" | "loading" | "request-error";
+import type { HomeScreenNonReadyState } from "../screen-state";
 
 type HomeStateViewProps = {
-  mode: HomeStateViewMode;
-  errorMessage?: string;
-  onRetry?: () => void;
-  retrying?: boolean;
+  state: HomeScreenNonReadyState;
 };
 
-export function HomeStateView({
-  mode,
-  errorMessage,
-  onRetry,
-  retrying = false,
-}: HomeStateViewProps) {
-  const theme = useTheme();
-  const errorTextStyle = { color: theme.status.error };
-
-  if (mode === "loading") {
+export function HomeStateView({ state }: HomeStateViewProps) {
+  if (state.mode === "loading") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Loading discovery..."
-          description="Pulling upcoming, latest, and popular games."
-          icon={<ActivityIndicator size="small" color={theme.text} />}
-        />
-      </CenteredStateFrame>
+      <CenteredLoadingState
+        title="Loading discovery..."
+        description="Pulling upcoming, latest, and popular games."
+      />
     );
   }
 
-  if (mode === "config-error") {
+  if (state.mode === "config-error") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Home is unavailable"
-          description={errorMessage}
-          action={
-            <ThemedText style={errorTextStyle}>
-              Check the API client environment configuration for this build.
-            </ThemedText>
-          }
-        />
-      </CenteredStateFrame>
+      <CenteredConfigErrorState
+        title="Home is unavailable"
+        description={state.errorMessage}
+        helpText="Check the API client environment configuration for this build."
+      />
+    );
+  }
+
+  if (state.mode === "request-error") {
+    return (
+      <CenteredRequestErrorState
+        title="Couldn't load discovery"
+        description={state.errorMessage}
+        onRetry={state.onRetry}
+        retrying={state.retrying}
+      />
     );
   }
 
   return (
-    <CenteredStateFrame>
-      <EmptyState
-        title="Couldn't load discovery"
-        description={
-          errorMessage ?? "Something went wrong while loading discovery."
-        }
-        action={
-          onRetry ? (
-            <Button
-              label={retrying ? "Trying again..." : "Try again"}
-              tone="neutral"
-              loading={retrying}
-              disabled={retrying}
-              onPress={onRetry}
-            />
-          ) : undefined
-        }
-      />
-    </CenteredStateFrame>
+    <CenteredEmptyState
+      title="No discovery titles available"
+      description="There are no upcoming, latest, or popular games to show right now."
+    />
   );
 }
