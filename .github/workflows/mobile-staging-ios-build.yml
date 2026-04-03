@@ -3,6 +3,12 @@ run-name: Mobile staging iOS build
 
 on:
   workflow_dispatch:
+    inputs:
+      submit_to_testflight:
+        description: "Also submit the finished build to TestFlight"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -12,6 +18,7 @@ jobs:
       app_env: staging
       platform: ios
       eas_profile: staging
+      submit_to_testflight: ${{ github.event.inputs.submit_to_testflight == 'true' }}
       deploy_backend: false
     secrets:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
