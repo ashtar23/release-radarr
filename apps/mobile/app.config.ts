@@ -75,6 +75,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       icon: "./assets/expo.icon",
       bundleIdentifier: environmentConfig.bundleIdentifier,
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       adaptiveIcon: {
