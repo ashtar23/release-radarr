@@ -30,7 +30,9 @@
   "submit": {
     "staging": {
       "ios": {
-        "appleTeamId": "ZP5VQ274FF"
+        "appleTeamId": "ZP5VQ274FF",
+        "bundleIdentifier": "com.ashtar23.releaseradar.staging",
+        "ascAppId": "6761613452"
       }
     }
   }
