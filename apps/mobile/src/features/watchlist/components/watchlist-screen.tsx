@@ -13,7 +13,7 @@ import {
 import { WatchlistList } from "./watchlist-list";
 import { WatchlistSortSheet } from "./watchlist-sort-sheet";
 import { WatchlistStateView } from "./watchlist-state-view";
-import { useWatchlistFeature } from "../hooks/use-watchlist-feature";
+import { useWatchlistScreen } from "../hooks/use-watchlist-screen";
 import {
   getWatchlistSortFamily,
   isWatchlistSortAscending,
@@ -22,13 +22,16 @@ import {
 } from "../watchlist-sort";
 
 export function WatchlistScreen() {
-  const watchlistFeature = useWatchlistFeature();
   const theme = useTheme();
   const { openSheet } = useSheetController();
-  const itemCount = watchlistFeature.items.length;
-  const filteredItemCount = watchlistFeature.filteredItems.length;
-  const { sort, setSort, searchQuery, setSearchQuery, shouldShowControls } =
-    watchlistFeature;
+  const {
+    sort,
+    setSort,
+    setSearchQuery,
+    shouldShowControls,
+    state,
+    isUpdatingSort,
+  } = useWatchlistScreen();
 
   const handleSearchChange = useCallback(
     (event: { nativeEvent: { text: string } }) => {
@@ -95,33 +98,28 @@ export function WatchlistScreen() {
       <HeaderActions actions={headerActions} />
 
       {shouldShowControls ? (
-        <>
-          <Stack.SearchBar
-            placeholder="Search watchlist"
-            shouldShowHintSearchIcon={false}
-            textColor={theme.text}
-            headerIconColor={theme.text}
-            tintColor={theme.textSecondary}
-            hintTextColor={theme.textSecondary}
-            onChangeText={handleSearchChange}
-          />
-        </>
+        <Stack.SearchBar
+          placeholder="Search watchlist"
+          shouldShowHintSearchIcon={false}
+          textColor={theme.text}
+          headerIconColor={theme.text}
+          tintColor={theme.textSecondary}
+          hintTextColor={theme.textSecondary}
+          onChangeText={handleSearchChange}
+        />
       ) : null}
 
-      {itemCount > 0 && filteredItemCount > 0 ? (
+      {state.mode === "ready" ? (
         <WatchlistList
-          items={watchlistFeature.filteredItems}
-          refreshing={watchlistFeature.refreshing}
-          onRefresh={watchlistFeature.onRefresh}
+          items={state.filteredItems}
+          refreshing={state.refreshing}
+          onRefresh={state.onRefresh}
         />
       ) : (
-        <WatchlistStateView
-          mode={watchlistFeature.mode}
-          searchQuery={searchQuery}
-        />
+        <WatchlistStateView state={state} />
       )}
 
-      {watchlistFeature.isUpdatingSort ? <ScreenLoadingOverlay /> : null}
+      {isUpdatingSort ? <ScreenLoadingOverlay /> : null}
     </KeyboardAvoidingView>
   );
 }

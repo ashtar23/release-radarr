@@ -16,9 +16,9 @@ import {
 import {
   getNotificationUnreadCountQueryKey,
   getNotificationsQueryScope,
-} from "./notifications-query-key";
+} from "../queries/notifications-query-key";
 
-function useMarkAllNotificationsReadMutation() {
+export function useMarkAllNotificationsReadMutation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id ?? null;
@@ -28,14 +28,12 @@ function useMarkAllNotificationsReadMutation() {
       return;
     }
 
-    queryClient
-      .invalidateQueries({ queryKey: getNotificationsQueryScope(userId) })
-      .catch(() => {});
-    queryClient
-      .invalidateQueries({
-        queryKey: getNotificationUnreadCountQueryKey(userId),
-      })
-      .catch(() => {});
+    void queryClient.invalidateQueries({
+      queryKey: getNotificationsQueryScope(userId),
+    });
+    void queryClient.invalidateQueries({
+      queryKey: getNotificationUnreadCountQueryKey(userId),
+    });
   };
 
   return useMutation({
@@ -85,5 +83,3 @@ function useMarkAllNotificationsReadMutation() {
     onSettled: invalidateNotifications,
   });
 }
-
-export { useMarkAllNotificationsReadMutation };

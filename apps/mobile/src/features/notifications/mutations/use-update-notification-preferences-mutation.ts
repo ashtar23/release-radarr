@@ -8,7 +8,7 @@ import {
   notificationsConfigError,
   updateNotificationPreferences,
 } from "../data-access/notifications";
-import { getNotificationPreferencesQueryKey } from "./notifications-query-key";
+import { getNotificationPreferencesQueryKey } from "../queries/notifications-query-key";
 
 type UpdateNotificationPreferencesInput = Pick<
   NotificationPreferences,
@@ -48,12 +48,14 @@ function useUpdateNotificationPreferencesMutation() {
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const queryClient = useQueryClient();
+
   const latestPreferencesRef =
     useRef<UpdateNotificationPreferencesInput | null>(null);
   const activePreferencesRef =
     useRef<UpdateNotificationPreferencesInput | null>(null);
   const activePersistPromiseRef = useRef<Promise<void> | null>(null);
   const pendingFlushOnSettleRef = useRef(false);
+
   const isUnmountingRef = useRef(false);
   const lastInteractionAtRef = useRef<number>(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

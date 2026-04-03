@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useAuth } from "@/auth/auth-provider";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
@@ -15,7 +14,7 @@ function useNotificationsQuery() {
   const { user, isReady } = useAuth();
   const userId = user?.id ?? null;
 
-  const notificationsQuery = useInfiniteQuery({
+  return useInfiniteQuery({
     queryKey: getNotificationsQueryKey(userId),
     enabled: Boolean(userId) && notificationsConfigError === null && isReady,
     initialPageParam: null as string | null,
@@ -28,19 +27,6 @@ function useNotificationsQuery() {
       }),
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
-
-  const loadMoreNotifications = useCallback(() => {
-    if (!notificationsQuery.hasNextPage || notificationsQuery.isFetchingNextPage) {
-      return;
-    }
-
-    void notificationsQuery.fetchNextPage({ cancelRefetch: false });
-  }, [notificationsQuery]);
-
-  return {
-    ...notificationsQuery,
-    loadMoreNotifications,
-  };
 }
 
 export { NOTIFICATIONS_PAGE_SIZE, useNotificationsQuery };

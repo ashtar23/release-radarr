@@ -16,7 +16,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useTheme } from "@/hooks/use-theme";
 
 import { useNotificationPreferencesQuery } from "../queries/use-notification-preferences-query";
-import { useUpdateNotificationPreferencesMutation } from "../queries/use-update-notification-preferences-mutation";
+import { useUpdateNotificationPreferencesMutation } from "../mutations/use-update-notification-preferences-mutation";
 import { CenteredStateFrame } from "@/components/centered-state-frame";
 import { ScreenLoadingOverlay } from "@/components/screen-loading-overlay";
 

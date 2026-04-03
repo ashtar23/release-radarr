@@ -16,13 +16,13 @@ import {
 import {
   getNotificationUnreadCountQueryKey,
   getNotificationsQueryScope,
-} from "./notifications-query-key";
+} from "../queries/notifications-query-key";
 
 type MarkNotificationReadVariables = {
   notificationId: string;
 };
 
-function useMarkNotificationReadMutation() {
+export function useMarkNotificationReadMutation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id ?? null;
@@ -32,14 +32,12 @@ function useMarkNotificationReadMutation() {
       return;
     }
 
-    queryClient
-      .invalidateQueries({ queryKey: getNotificationsQueryScope(userId) })
-      .catch(() => {});
-    queryClient
-      .invalidateQueries({
-        queryKey: getNotificationUnreadCountQueryKey(userId),
-      })
-      .catch(() => {});
+    void queryClient.invalidateQueries({
+      queryKey: getNotificationsQueryScope(userId),
+    });
+    void queryClient.invalidateQueries({
+      queryKey: getNotificationUnreadCountQueryKey(userId),
+    });
   };
 
   return useMutation({
@@ -114,11 +112,7 @@ function useMarkNotificationReadMutation() {
           };
         },
       );
-
-      invalidateNotifications();
     },
     onSettled: invalidateNotifications,
   });
 }
-
-export { useMarkNotificationReadMutation };

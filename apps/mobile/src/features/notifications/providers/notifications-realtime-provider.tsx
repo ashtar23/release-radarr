@@ -57,7 +57,7 @@ function mapNotificationPreferencesRealtimeRow(
   };
 }
 
-export function NotificationsRealtimeSync() {
+export function NotificationsRealtimeProvider() {
   const queryClient = useQueryClient();
   const { state, user } = useAuthGate();
   const userId = state === "ready" ? (user?.id ?? null) : null;

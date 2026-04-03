@@ -4,24 +4,26 @@ import type {
   WatchlistSort,
 } from "@repo/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useAuth } from "@/auth/auth-provider";
+
 import {
   addWatchlistItem,
   removeWatchlistItem,
   watchlistConfigError,
 } from "../data-access/watchlist";
-import { useAuth } from "@/auth/auth-provider";
+import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
 import {
   buildOptimisticWatchlistItem,
   getWatchlistSnapshot,
   removeWatchlistItemByTitleId,
   setWatchlistSnapshot,
   upsertWatchlistItem,
-} from "./watchlist-cache";
-import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
+} from "../queries/watchlist-cache";
 import {
   getWatchlistQueryKey,
   getWatchlistQueryScope,
-} from "./watchlist-query-key";
+} from "../queries/watchlist-query-key";
 
 type AddToWatchlistVariables = {
   title: TitleDetails;
@@ -35,19 +37,20 @@ type WatchlistMutationContext = {
   previousWatchlist?: WatchlistListResult;
 };
 
-function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
+export function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id ?? null;
   const watchlistQueryKey = getWatchlistQueryKey(userId, sort);
+
   const invalidateWatchlist = () => {
     if (!userId) {
       return;
     }
 
-    queryClient
-      .invalidateQueries({ queryKey: getWatchlistQueryScope(userId) })
-      .catch(() => {});
+    void queryClient.invalidateQueries({
+      queryKey: getWatchlistQueryScope(userId),
+    });
   };
 
   const addMutation = useMutation({
@@ -93,7 +96,9 @@ function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
       }
     },
     onSuccess: (payload) => {
-      if (!userId) return;
+      if (!userId) {
+        return;
+      }
 
       queryClient.setQueryData<WatchlistListResult>(
         watchlistQueryKey,
@@ -104,7 +109,6 @@ function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
               }
             : { items: upsertWatchlistItem([], payload.item, sort) },
       );
-      invalidateWatchlist();
     },
     onSettled: invalidateWatchlist,
   });
@@ -148,11 +152,6 @@ function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
         );
       }
     },
-    onSuccess: () => {
-      if (!userId) return;
-
-      invalidateWatchlist();
-    },
     onSettled: invalidateWatchlist,
   });
 
@@ -161,5 +160,3 @@ function useWatchlistMutation(sort: WatchlistSort = DEFAULT_WATCHLIST_SORT) {
     removeMutation,
   };
 }
-
-export { useWatchlistMutation };

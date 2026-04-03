@@ -1,62 +1,39 @@
-import { CenteredStateFrame } from "@/components/centered-state-frame";
-import { EmptyState } from "@/components/empty-state";
+import { CenteredConfigErrorState } from "@/components/centered-config-error-state";
+import { CenteredEmptyState } from "@/components/centered-empty-state";
+import { CenteredLoadingState } from "@/components/centered-loading-state";
+import { CenteredRequestErrorState } from "@/components/centered-request-error-state";
 import { ListSection } from "@/components/list-section";
 import { ScreenPrompt } from "@/components/screen-prompt";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { SignInLinkRow } from "@/components/sign-in-link-row";
-import { ThemedText } from "@/components/themed-text";
-import { useTheme } from "@/hooks/use-theme";
-import { ActivityIndicator } from "react-native";
 
-type NotificationsStateViewMode =
-  | "checking-session"
-  | "config-error"
-  | "signed-out"
-  | "loading";
+import type { NotificationsScreenNonReadyState } from "../screen-state";
 
 type NotificationsStateViewProps = {
-  mode: NotificationsStateViewMode;
-  errorMessage?: string | null;
+  state: NotificationsScreenNonReadyState;
 };
 
-export function NotificationsStateView({
-  mode,
-  errorMessage,
-}: NotificationsStateViewProps) {
-  const theme = useTheme();
-  const errorTextStyle = { color: theme.status.error };
-
-  if (mode === "checking-session") {
+export function NotificationsStateView({ state }: NotificationsStateViewProps) {
+  if (state.mode === "checking-session") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Checking your session..."
-          description="Loading your notifications access."
-          icon={<ActivityIndicator size="small" color={theme.text} />}
-        />
-      </CenteredStateFrame>
+      <CenteredLoadingState
+        title="Checking your session..."
+        description="Loading your notifications access."
+      />
     );
   }
 
-  if (mode === "config-error") {
+  if (state.mode === "config-error") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Notifications are unavailable"
-          description={
-            errorMessage ?? "Notification configuration is unavailable."
-          }
-          action={
-            <ThemedText style={errorTextStyle}>
-              Check the Supabase environment configuration for this build.
-            </ThemedText>
-          }
-        />
-      </CenteredStateFrame>
+      <CenteredConfigErrorState
+        title="Notifications are unavailable"
+        description={state.errorMessage}
+        helpText="Check the Supabase environment configuration for this build."
+      />
     );
   }
 
-  if (mode === "signed-out") {
+  if (state.mode === "signed-out") {
     return (
       <ScreenScrollView>
         <ScreenPrompt
@@ -73,13 +50,30 @@ export function NotificationsStateView({
     );
   }
 
-  return (
-    <CenteredStateFrame>
-      <EmptyState
+  if (state.mode === "request-error") {
+    return (
+      <CenteredRequestErrorState
+        title="Couldn't load notifications"
+        description={state.errorMessage}
+        onRetry={state.onRetry}
+        retrying={state.retrying}
+      />
+    );
+  }
+
+  if (state.mode === "loading") {
+    return (
+      <CenteredLoadingState
         title="Loading notifications..."
         description="Pulling the latest updates for your watchlist."
-        icon={<ActivityIndicator size="small" color={theme.text} />}
       />
-    </CenteredStateFrame>
+    );
+  }
+
+  return (
+    <CenteredEmptyState
+      title="No notifications yet"
+      description="We'll send you updates about your watchlist here."
+    />
   );
 }
