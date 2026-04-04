@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   },
   offlineBanner: {
     marginHorizontal: Spacing.three,
-    marginTop: Spacing.four,
+    marginTop: Spacing.three,
     marginBottom: Spacing.two,
   },
 });
