@@ -18,12 +18,12 @@ import {
 const WATCHLIST_STALE_TIME = 1000 * 60 * 5;
 const WATCHLIST_PAGE_SIZE = 20;
 
-function useWatchlistQuery(sort: WatchlistSort) {
+function useWatchlistQuery(sort: WatchlistSort, query: string) {
   const { user, isReady } = useAuth();
   const userId = user?.id ?? null;
 
   return useInfiniteQuery<WatchlistListResult>({
-    queryKey: getWatchlistListQueryKey(userId, sort),
+    queryKey: getWatchlistListQueryKey(userId, sort, query),
     enabled: Boolean(userId) && watchlistConfigError === null && isReady,
     initialPageParam: null as string | null,
     placeholderData: keepPreviousData,
@@ -32,6 +32,7 @@ function useWatchlistQuery(sort: WatchlistSort) {
       listWatchlist({
         signal,
         sort,
+        query,
         cursor: typeof pageParam === "string" ? pageParam : undefined,
         limit: WATCHLIST_PAGE_SIZE,
       }),

@@ -16,10 +16,12 @@ export async function handleWatchlistListRequest(
   url: URL,
 ) {
   const sort = parseWatchlistSort(url);
+  const query = parseQuery(url);
   const cursor = parseCursor(url);
   const limit = parseLimit(url);
   const result = await listWatchlistItems(client, userId, {
     sort,
+    query,
     cursor,
     limit,
   });
@@ -121,6 +123,11 @@ function parseWatchlistSort(url: URL): WatchlistSort {
 
 function parseCursor(url: URL): ListWatchlistParams["cursor"] {
   const value = url.searchParams.get("cursor");
+  return value && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function parseQuery(url: URL): ListWatchlistParams["query"] {
+  const value = url.searchParams.get("query");
   return value && value.trim().length > 0 ? value.trim() : undefined;
 }
 

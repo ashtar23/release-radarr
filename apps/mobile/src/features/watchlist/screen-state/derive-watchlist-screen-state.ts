@@ -1,11 +1,9 @@
 import type { AuthGateState } from "@/auth/use-auth-gate";
 
-import type {
-  WatchlistScreenReadyState,
-  WatchlistScreenState,
-} from "./types";
+import type { WatchlistScreenReadyState, WatchlistScreenState } from "./types";
 
-const WATCHLIST_CONFIG_ERROR_MESSAGE = "Watchlist configuration is unavailable.";
+const WATCHLIST_CONFIG_ERROR_MESSAGE =
+  "Watchlist configuration is unavailable.";
 
 type DeriveWatchlistScreenStateInput = {
   authGateState: AuthGateState;
@@ -62,12 +60,12 @@ export function deriveWatchlistScreenState({
     };
   }
 
-  if (itemsCount === 0) {
-    return { mode: "empty" };
-  }
-
   if (filteredItemsCount === 0 && hasSearchQuery) {
     return { mode: "search-empty", searchQuery };
+  }
+
+  if (itemsCount === 0) {
+    return { mode: "empty" };
   }
 
   return readyState;

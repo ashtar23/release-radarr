@@ -11,6 +11,7 @@ import type {
 } from "@tanstack/react-query";
 
 import { sortWatchlistItems } from "../watchlist-sort";
+import { matchesWatchlistSearchQuery } from "../watchlist-search";
 import {
   getWatchlistListQueryScope,
   getWatchlistMembershipQueryKey,
@@ -36,6 +37,7 @@ export function updateWatchlistListQueries(
   updater: (params: {
     queryKey: QueryKey;
     sort: WatchlistSort;
+    query: string;
     current: WatchlistInfiniteData;
   }) => WatchlistInfiniteData,
 ) {
@@ -44,14 +46,14 @@ export function updateWatchlistListQueries(
   });
 
   for (const [queryKey, current] of entries) {
-    const sort = parseSortFromQueryKey(queryKey);
-    if (!current || !sort) {
+    const metadata = parseWatchlistListQueryKey(queryKey);
+    if (!current || !metadata) {
       continue;
     }
 
     queryClient.setQueryData<WatchlistInfiniteData>(
       queryKey,
-      updater({ queryKey, sort, current }),
+      updater({ queryKey, sort: metadata.sort, query: metadata.query, current }),
     );
   }
 }
@@ -102,7 +104,12 @@ export function upsertWatchlistItemInInfiniteData(
   current: WatchlistInfiniteData,
   item: WatchlistItem,
   sort: WatchlistSort,
+  query: string,
 ) {
+  if (!matchesWatchlistSearchQuery(item, query)) {
+    return current;
+  }
+
   const flattenedItems = current.pages.flatMap((page) => page.items);
   const filteredItems = flattenedItems.filter(
     (existingItem) => existingItem.id !== item.id,
@@ -144,8 +151,9 @@ function replaceInfiniteItems(
   };
 }
 
-function parseSortFromQueryKey(queryKey: QueryKey): WatchlistSort | null {
-  const maybeSort = queryKey.at(-1);
+function parseWatchlistListQueryKey(queryKey: QueryKey) {
+  const maybeQuery = queryKey.at(-1);
+  const maybeSort = queryKey.at(-2);
   switch (maybeSort) {
     case "added-desc":
     case "added-asc":
@@ -153,7 +161,10 @@ function parseSortFromQueryKey(queryKey: QueryKey): WatchlistSort | null {
     case "release-asc":
     case "name-asc":
     case "name-desc":
-      return maybeSort;
+      return {
+        sort: maybeSort,
+        query: typeof maybeQuery === "string" ? maybeQuery : "",
+      } as const;
     default:
       return null;
   }

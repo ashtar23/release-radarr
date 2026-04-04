@@ -114,8 +114,8 @@ export function useWatchlistMutation() {
       const context = await createWatchlistMutationContext(title.id);
 
       const optimisticItem = buildOptimisticWatchlistItem(userId, title);
-      updateWatchlistListQueries(queryClient, userId, ({ sort, current }) =>
-        upsertWatchlistItemInInfiniteData(current, optimisticItem, sort),
+      updateWatchlistListQueries(queryClient, userId, ({ sort, query, current }) =>
+        upsertWatchlistItemInInfiniteData(current, optimisticItem, sort, query),
       );
       setWatchlistMembershipSnapshot(queryClient, userId, title.id, true);
 
@@ -129,8 +129,8 @@ export function useWatchlistMutation() {
         return;
       }
 
-      updateWatchlistListQueries(queryClient, userId, ({ sort, current }) =>
-        upsertWatchlistItemInInfiniteData(current, payload.item, sort),
+      updateWatchlistListQueries(queryClient, userId, ({ sort, query, current }) =>
+        upsertWatchlistItemInInfiniteData(current, payload.item, sort, query),
       );
       setWatchlistMembershipSnapshot(
         queryClient,

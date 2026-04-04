@@ -6,11 +6,13 @@ export const watchlistConfigError = apiClientConfigError;
 function listWatchlist({
   signal,
   sort,
+  query,
   cursor,
   limit,
 }: {
   signal: AbortSignal;
   sort: WatchlistSort;
+  query?: string;
   cursor?: string;
   limit?: number;
 }) {
@@ -18,7 +20,7 @@ function listWatchlist({
     throw new Error(watchlistConfigError ?? "Watchlist API is not configured.");
   }
 
-  return apiClient.listWatchlist({ signal, sort, cursor, limit });
+  return apiClient.listWatchlist({ signal, sort, query, cursor, limit });
 }
 
 function getWatchlistMembership({

@@ -61,6 +61,10 @@ export function listWatchlist({
     searchParams.set("sort", params.sort);
   }
 
+  if (typeof params?.query === "string" && params.query.trim()) {
+    searchParams.set("query", params.query.trim());
+  }
+
   if (typeof params?.cursor === "string" && params.cursor.trim()) {
     searchParams.set("cursor", params.cursor.trim());
   }

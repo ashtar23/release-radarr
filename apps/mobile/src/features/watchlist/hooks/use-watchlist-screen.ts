@@ -30,6 +30,8 @@ export function useWatchlistScreen() {
     useAppPreferences();
 
   const [selectedSort, setSelectedSort] = useState<WatchlistSort | null>(null);
+  const { setSearchQuery, trimmedSearchQuery, debouncedSearchQuery } =
+    useWatchlistSearch();
 
   const resolvedDefaultSort = arePreferencesHydrated
     ? defaultWatchlistSort
@@ -49,7 +51,7 @@ export function useWatchlistScreen() {
     isPending,
     isRefetching,
     refetch: refetchWatchlist,
-  } = useWatchlistQuery(sort);
+  } = useWatchlistQuery(sort, debouncedSearchQuery);
 
   const { addMutation, removeMutation } = useWatchlistMutation();
 
@@ -79,8 +81,7 @@ export function useWatchlistScreen() {
   );
   const hasBlockingRequestError = !hasWatchlistData && hasWatchlistError;
   const isMutating = addMutation.isPending || removeMutation.isPending;
-  const { setSearchQuery, trimmedSearchQuery, filteredItems } =
-    useWatchlistSearch(items);
+  const filteredItems = items;
 
   const retryWatchlist = useCallback(() => {
     void refreshWatchlist();
@@ -157,7 +158,9 @@ export function useWatchlistScreen() {
   );
 
   const shouldShowControls =
-    canRefresh && (state.mode === "ready" || state.mode === "search-empty");
+    !isOffline &&
+    canRefresh &&
+    (state.mode === "ready" || state.mode === "search-empty");
   const showLoadingOverlay =
     isPlaceholderData &&
     isFetching &&

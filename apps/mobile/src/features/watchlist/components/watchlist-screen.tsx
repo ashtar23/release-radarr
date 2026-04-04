@@ -160,10 +160,7 @@ export function WatchlistScreen() {
       )}
 
       {showLoadingOverlay ? (
-        <ScreenLoadingOverlay
-          pointerEvents="none"
-          label="Updating watchlist..."
-        />
+        <ScreenLoadingOverlay label="Updating watchlist..." />
       ) : null}
     </KeyboardAvoidingView>
   );

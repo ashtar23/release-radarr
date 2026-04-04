@@ -7,8 +7,9 @@ export function getWatchlistListQueryScope(userId: string | null) {
 export function getWatchlistListQueryKey(
   userId: string | null,
   sort: WatchlistSort,
+  query: string,
 ) {
-  return [...getWatchlistListQueryScope(userId), sort] as const;
+  return [...getWatchlistListQueryScope(userId), sort, query] as const;
 }
 
 export function getWatchlistMembershipQueryKey(

@@ -7,6 +7,7 @@ import type {
   WatchlistRow,
   WatchlistViewRow,
 } from "../types.ts";
+import { toCanonicalSearchKey } from "../utils/search-normalization.ts";
 
 export type WatchlistSort =
   | "added-desc"
@@ -21,6 +22,7 @@ const MAX_PAGE_LIMIT = 50;
 
 export interface ListWatchlistParams {
   readonly sort: WatchlistSort;
+  readonly query?: string;
   readonly cursor?: string;
   readonly limit?: number;
 }
@@ -31,12 +33,16 @@ export async function listWatchlistItems(
   params: ListWatchlistParams,
 ): Promise<WatchlistListResult> {
   const pageLimit = normalizeLimit(params.limit);
+  const normalizedQuery = params.query
+    ? toCanonicalSearchKey(params.query)
+    : null;
   const decodedCursor = params.cursor
     ? decodeCursor(params.cursor, params.sort)
     : null;
   const { data, error } = await client.rpc("list_watchlist_items_page", {
     p_user_id: userId,
     p_sort: params.sort,
+    p_query: normalizedQuery,
     p_limit: pageLimit,
     p_added_at_cursor:
       decodedCursor &&

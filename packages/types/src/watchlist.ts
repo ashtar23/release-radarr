@@ -22,6 +22,7 @@ export interface WatchlistItem {
 export interface ListWatchlistInput {
   cursor?: string;
   limit?: number;
+  query?: string;
   sort?: WatchlistSort;
 }
 

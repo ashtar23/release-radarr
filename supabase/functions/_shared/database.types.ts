@@ -330,6 +330,7 @@ export type Database = {
           p_added_at_cursor?: string | null;
           p_id_cursor?: string | null;
           p_limit?: number;
+          p_query?: string | null;
           p_release_bucket_cursor?: number | null;
           p_release_date_cursor?: string | null;
           p_search_name_cursor?: string | null;
