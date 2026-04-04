@@ -4,6 +4,7 @@ import Fastify from "fastify";
 
 import { env } from "./lib/env";
 import { getHomeDiscovery } from "./lib/home-discovery";
+import { closePostgresPool } from "./lib/postgres";
 
 const server = Fastify({
   logger: env.appEnv !== "test",
@@ -13,6 +14,7 @@ server.get("/health", async () => {
   return {
     status: "ok",
     appEnv: env.appEnv,
+    dataSource: env.dataSource,
   };
 });
 
@@ -30,6 +32,7 @@ server.get("/home/discovery", async (_request, reply) => {
 });
 
 const closeServer = async () => {
+  await closePostgresPool();
   await server.close();
   process.exit(0);
 };

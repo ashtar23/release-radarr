@@ -1,5 +1,6 @@
 export {
   ApiClientError,
+  getApiErrorMessage,
   isApiClientError,
   type ApiClientErrorOptions,
   type HttpMethod,

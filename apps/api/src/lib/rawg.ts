@@ -2,6 +2,9 @@ import type { TitleSummary } from "@repo/types";
 
 const RAWG_BASE_URL = "https://api.rawg.io/api/games";
 
+// Transitional provider helper kept for later migration phases. Phase 1 home
+// discovery intentionally does not call RAWG on the request path.
+
 type RawgSearchResponse = {
   results?: RawgSearchGame[];
 };

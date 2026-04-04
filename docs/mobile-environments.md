@@ -26,6 +26,11 @@ Hosted environment routing:
 - `staging` -> staging Supabase project
 - `production` -> production Supabase project
 
+During the backend migration, `home/discovery` can be pointed at the custom API
+without changing the rest of the app backend by setting:
+
+- `EXPO_PUBLIC_HOME_API_BASE_URL`
+
 Local Supabase remains available for backend development and contract testing, but the mobile app does not automatically switch to it. If a local mobile build is needed later, use explicit env overrides rather than changing the default environment model.
 
 ## Required mobile env vars
@@ -36,12 +41,14 @@ The mobile app currently needs:
 APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+EXPO_PUBLIC_HOME_API_BASE_URL=
 ```
 
 Runtime behavior:
 
 - `APP_ENV` selects the app identity and build target
 - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` select the backend the app talks to
+- `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery` to use the custom API
 
 Only publishable client credentials belong in the mobile app. Do not put service role or secret keys in Expo env vars.
 

@@ -1,9 +1,8 @@
-# API Spike
+# API Backend
 
-Minimal Fastify backend for testing whether a long-lived API gives better and
-more consistent latency than the current Supabase Edge Functions path.
+Fastify backend for Release Radar's migrated API routes.
 
-## Initial scope
+Phase 1 starts with:
 
 - `GET /health`
 - `GET /home/discovery`
@@ -12,15 +11,34 @@ more consistent latency than the current Supabase Edge Functions path.
 
 Copy `.env.example` to `.env` and provide:
 
-- `SUPABASE_URL`
-- `SUPABASE_SECRET_KEY`
-- `RAWG_API_KEY`
+- `DATABASE_URL` for direct Postgres access
 
 Optional:
 
 - `PORT`
 - `HOST`
-- `APP_ENV`
+- `APP_ENV` (`development`, `staging`, `production`, or `test`)
+
+## Local Docker Postgres
+
+Spin up a local database for local API development with:
+
+```bash
+docker run --name release-radarr-db \
+  -e POSTGRES_USER=release_radar \
+  -e POSTGRES_PASSWORD=release_radar \
+  -e POSTGRES_DB=release_radar \
+  -p 5433:5432 \
+  -d postgres:16
+```
+
+Then set:
+
+```bash
+DATABASE_URL=postgresql://release_radar:release_radar@127.0.0.1:5433/release_radar
+```
+
+The API reads directly from Postgres through `DATABASE_URL`.
 
 ## Local dev
 
@@ -30,25 +48,48 @@ pnpm --filter api dev
 
 ## Railway envs
 
-Create at least:
+Phase 1 only needs a staging environment.
 
-- `staging`
-- `production`
+Set these variables on the API service:
 
-Set these variables in each environment:
+- `DATABASE_URL`
+- `APP_ENV=staging`
+- `PORT` (Railway usually injects this automatically, so only set it if needed)
 
-- `SUPABASE_URL`
-- `SUPABASE_SECRET_KEY`
-- `RAWG_API_KEY`
-- `APP_ENV`
-- `PORT` (Railway usually injects this automatically)
+## API environment matrix
+
+Phase 1 API runtime contract:
+
+| Environment | Required vars                         | Notes                                                 |
+| ----------- | ------------------------------------- | ----------------------------------------------------- |
+| local       | `DATABASE_URL`, `APP_ENV=development` | local Docker Postgres + local Fastify                 |
+| staging     | `DATABASE_URL`, `APP_ENV=staging`     | Railway API + Railway Postgres                        |
+| production  | `DATABASE_URL`, `APP_ENV=production`  | same shape as staging when production cutover happens |
+
+Transitional envs that remain available but are not part of the current
+`home/discovery` route:
+
+| Var                   | Why it still exists                                                                                             |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`        | future authenticated routes may verify Supabase Auth or temporarily use Supabase-backed access during migration |
+| `SUPABASE_SECRET_KEY` | same as above                                                                                                   |
+| `RAWG_API_KEY`        | future enrichment/search phases may still use RAWG outside the phase 1 home request path                        |
 
 ## Railway deploy
+
+### Services to create
+
+Create two services in the same Railway project:
+
+- `api-staging`
+- `postgres-staging`
+
+### API service settings
 
 1. Create a new Railway service from this repo.
 2. Set the root directory to `/` so the workspace packages remain available.
 3. Use explicit `pnpm --dir apps/api ...` commands.
-4. Set the environment variables above in `staging` first.
+4. Set the environment variables above on the API service.
 5. Deploy and confirm `GET /health` works before wiring mobile.
 
 Recommended build command:
@@ -69,15 +110,56 @@ Recommended health check path:
 /health
 ```
 
-## Mobile spike env
+### Database bootstrap
+
+After Railway Postgres is provisioned:
+
+1. copy the Postgres connection string into `DATABASE_URL` on the API service
+2. apply the phase-1 home schema SQL
+
+```bash
+psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-home-schema.sql
+```
+
+3. import the exported `titles` rows
+
+If your export contains bare `ARRAY[]` values, patch it first:
+
+```bash
+perl -0pe 's/ARRAY\\[\\]/ARRAY[]::text[]/g' /path/to/titles_rows.sql > /tmp/titles_rows_patched.sql
+```
+
+Then import it:
+
+```bash
+psql "<railway-postgres-connection-string>" -f /tmp/titles_rows_patched.sql
+```
+
+### Hosted verification
+
+Before wiring mobile:
+
+1. `GET /health`
+2. `GET /home/discovery`
+3. confirm the API returns real section data from Railway Postgres
+
+## Mobile env
 
 In the mobile app env, set:
 
 - `EXPO_PUBLIC_HOME_API_BASE_URL=https://your-railway-service.up.railway.app`
 
-Leave it unset to keep `home/discovery` on Supabase Functions.
+Leave it unset to keep `home/discovery` on the current hosted backend.
 
-## Goal of the spike
+Phase 1 mobile env matrix:
 
-Point only mobile `home/discovery` at this service first, compare latency, then
-decide whether more endpoints are worth migrating.
+| Environment      | Required vars                                                                             | Optional vars                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`                |
+| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app` |
+| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave `EXPO_PUBLIC_HOME_API_BASE_URL` unset until production cutover |
+
+## Current phase goal
+
+Point only `home/discovery` at this service first, validate hosted performance,
+then migrate additional routes one by one.

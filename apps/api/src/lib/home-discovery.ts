@@ -1,6 +1,7 @@
 import type { HomeDiscoveryResult, TitleSummary } from "@repo/types";
-import type { Database } from "@/types/database";
-import { supabaseAdmin } from "./supabase";
+
+import type { Database } from "@shared/database-types";
+import { queryCachedTitles } from "./postgres";
 
 const DISCOVERY_LIMIT = 10;
 const LATEST_WINDOW_DAYS = 60;
@@ -8,7 +9,7 @@ const LATEST_WINDOW_DAYS = 60;
 type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 
 const TITLE_LIST_SELECT =
-  "id, kind, source, external_id, slug, name, search_name, cover_image_url, earliest_release_date, platforms, search_updated_at, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top";
+  "id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top";
 
 export async function getHomeDiscovery(): Promise<
   HomeDiscoveryResult<TitleSummary>
@@ -33,19 +34,18 @@ async function listUpcomingTitles(
   todayIsoDate: string,
   limit: number,
 ): Promise<TitleSummary[]> {
-  const { data, error } = await supabaseAdmin
-    .from("titles")
-    .select(TITLE_LIST_SELECT)
-    .gte("earliest_release_date", todayIsoDate)
-    .order("earliest_release_date", { ascending: true, nullsFirst: false })
-    .order("rawg_added", { ascending: false, nullsFirst: false })
-    .limit(limit);
+  const rows = await queryCachedTitles(
+    `
+      select ${TITLE_LIST_SELECT}
+      from titles
+      where earliest_release_date >= $1
+      order by earliest_release_date asc nulls last, rawg_added desc nulls last
+      limit $2
+    `,
+    [todayIsoDate, limit],
+  );
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return ((data ?? []) as CachedTitleRow[]).map(mapCachedRowToTitleSummary);
+  return rows.map(mapCachedRowToTitleSummary);
 }
 
 async function listLatestTitles(
@@ -53,36 +53,35 @@ async function listLatestTitles(
   latestIsoDate: string,
   limit: number,
 ): Promise<TitleSummary[]> {
-  const { data, error } = await supabaseAdmin
-    .from("titles")
-    .select(TITLE_LIST_SELECT)
-    .gte("earliest_release_date", earliestIsoDate)
-    .lte("earliest_release_date", latestIsoDate)
-    .order("earliest_release_date", { ascending: false, nullsFirst: false })
-    .order("rawg_added", { ascending: false, nullsFirst: false })
-    .limit(limit);
+  const rows = await queryCachedTitles(
+    `
+      select ${TITLE_LIST_SELECT}
+      from titles
+      where earliest_release_date >= $1
+        and earliest_release_date <= $2
+      order by earliest_release_date desc nulls last, rawg_added desc nulls last
+      limit $3
+    `,
+    [earliestIsoDate, latestIsoDate, limit],
+  );
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return ((data ?? []) as CachedTitleRow[]).map(mapCachedRowToTitleSummary);
+  return rows.map(mapCachedRowToTitleSummary);
 }
 
 async function listPopularTitles(limit: number): Promise<TitleSummary[]> {
-  const { data, error } = await supabaseAdmin
-    .from("titles")
-    .select(TITLE_LIST_SELECT)
-    .order("rawg_added", { ascending: false, nullsFirst: false })
-    .order("rawg_ratings_count", { ascending: false, nullsFirst: false })
-    .order("rawg_metacritic", { ascending: false, nullsFirst: false })
-    .limit(limit);
+  const rows = await queryCachedTitles(
+    `
+      select ${TITLE_LIST_SELECT}
+      from titles
+      order by rawg_added desc nulls last,
+               rawg_ratings_count desc nulls last,
+               rawg_metacritic desc nulls last
+      limit $1
+    `,
+    [limit],
+  );
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return ((data ?? []) as CachedTitleRow[]).map(mapCachedRowToTitleSummary);
+  return rows.map(mapCachedRowToTitleSummary);
 }
 
 function mapCachedRowToTitleSummary(row: CachedTitleRow): TitleSummary {
