@@ -28,14 +28,19 @@ function useWatchlistQuery(sort: WatchlistSort, query: string) {
     initialPageParam: null as string | null,
     placeholderData: keepPreviousData,
     staleTime: WATCHLIST_STALE_TIME,
-    queryFn: ({ pageParam, signal }) =>
-      listWatchlist({
+    queryFn: async ({ pageParam, signal }) => {
+      const cursor = typeof pageParam === "string" ? pageParam : undefined;
+
+      const result = await listWatchlist({
         signal,
         sort,
         query,
-        cursor: typeof pageParam === "string" ? pageParam : undefined,
+        cursor,
         limit: WATCHLIST_PAGE_SIZE,
-      }),
+      });
+
+      return result;
+    },
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
