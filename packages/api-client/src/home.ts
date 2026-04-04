@@ -17,10 +17,16 @@ export async function getHomeDiscovery({
   context,
   params,
 }: GetHomeDiscoveryRequestParams): Promise<HomeDiscoveryResult<TitleSummary>> {
+  const homeBaseUrl = context.homeBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: homeBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/home/discovery`,
+    path:
+      homeBaseUrl == null
+        ? `${API_PATH_PREFIX}/home/discovery`
+        : "/home/discovery",
     signal: params?.signal,
     validate: isHomeDiscoveryResult,
     invalidPayloadMessage: "Home discovery payload is invalid.",

@@ -12,6 +12,7 @@ Required environment variables:
 APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+EXPO_PUBLIC_HOME_API_BASE_URL=
 ```
 
 Use only:
@@ -24,6 +25,10 @@ Do not use:
 - service role keys
 - secret keys
 - any server-only credential
+
+`EXPO_PUBLIC_HOME_API_BASE_URL` is optional and only used for the separate
+backend spike. When set, the mobile app routes only `home/discovery` to that
+API and keeps all other requests on Supabase Functions.
 
 ## Environment model
 
