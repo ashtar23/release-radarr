@@ -44,9 +44,8 @@ export function useSearchScreen() {
   const handleRecentSearchPress = useCallback(
     (recentQuery: string) => {
       setQuery(recentQuery);
-      searchBarRef.current?.setText(recentQuery);
     },
-    [searchBarRef, setQuery],
+    [setQuery],
   );
 
   const state = deriveSearchScreenState({
@@ -75,8 +74,12 @@ export function useSearchScreen() {
   });
 
   return {
+    query,
     searchBarRef,
     setQuery,
     state,
+    retry: queryState.refetchSearch,
+    retrying: queryState.isFetchingInitial,
+    canShowOfflineState: queryState.query.length >= SEARCH_MIN_QUERY_LENGTH,
   };
 }

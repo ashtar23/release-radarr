@@ -22,13 +22,6 @@ export function useSearchRouteQuery() {
 
   useEffect(() => {
     setQuery(routeQuery);
-
-    if (routeQuery.length > 0) {
-      searchBarRef.current?.setText(routeQuery);
-      return;
-    }
-
-    searchBarRef.current?.clearText();
   }, [routeQuery]);
 
   return {

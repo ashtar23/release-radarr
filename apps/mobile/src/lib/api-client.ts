@@ -6,6 +6,26 @@ import { supabase } from "./supabase";
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+const OFFLINE_AUTH_ERROR_PATTERNS = [
+  "failed to fetch",
+  "network request failed",
+  "request timed out",
+  "timed out",
+  "offline",
+  "load failed",
+];
+
+function isLikelyOfflineAuthError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLocaleLowerCase();
+  return OFFLINE_AUTH_ERROR_PATTERNS.some((pattern) =>
+    message.includes(pattern),
+  );
+}
+
 export const apiClientConfigError =
   !supabaseUrl || !supabasePublishableKey
     ? `Missing ${SUPABASE_MOBILE_ENV.url} or ${SUPABASE_MOBILE_ENV.publishableKey}.`
@@ -29,9 +49,19 @@ export const apiClient =
             return false;
           }
 
-          const { data, error } = await supabase.auth.refreshSession();
-          if (!error && data.session) {
-            return true;
+          try {
+            const { data, error } = await supabase.auth.refreshSession();
+            if (!error && data.session) {
+              return true;
+            }
+
+            if (isLikelyOfflineAuthError(error)) {
+              return false;
+            }
+          } catch (error) {
+            if (isLikelyOfflineAuthError(error)) {
+              return false;
+            }
           }
 
           await supabase.auth.signOut({ scope: "local" }).catch(() => {});

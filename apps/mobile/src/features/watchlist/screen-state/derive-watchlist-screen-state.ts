@@ -38,10 +38,6 @@ export function deriveWatchlistScreenState({
 }: DeriveWatchlistScreenStateInput): WatchlistScreenState {
   const isConfigError = authGateState === "config-error" || configError != null;
 
-  if (authGateState === "checking-session") {
-    return { mode: "checking-session" };
-  }
-
   if (authGateState === "signed-out") {
     return { mode: "signed-out" };
   }
@@ -53,7 +49,7 @@ export function deriveWatchlistScreenState({
     };
   }
 
-  if (isInitialLoading) {
+  if (authGateState === "checking-session" || isInitialLoading) {
     return { mode: "loading" };
   }
 

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, type ReactNode } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 
 import type { TitleSummary } from "@repo/types";
@@ -16,12 +16,14 @@ interface SearchResultsListProps {
   searchState: SearchScreenReadyState;
   onRetryLoadMore: () => void;
   onEndReached: () => void;
+  listHeader?: ReactNode;
 }
 
 export function SearchResultsList({
   searchState,
   onRetryLoadMore,
   onEndReached,
+  listHeader,
 }: SearchResultsListProps) {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TitleSummary>) => (
@@ -48,11 +50,14 @@ export function SearchResultsList({
       }
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
-        <SearchResultsHeader
-          servedBy={searchState.servedBy}
-          decisionReason={searchState.decisionReason}
-          showSourceBadge={searchState.showSourceBadge}
-        />
+        <>
+          {listHeader}
+          <SearchResultsHeader
+            servedBy={searchState.servedBy}
+            decisionReason={searchState.decisionReason}
+            showSourceBadge={searchState.showSourceBadge}
+          />
+        </>
       }
       ItemSeparatorComponent={ResultSeparator}
       ListFooterComponent={

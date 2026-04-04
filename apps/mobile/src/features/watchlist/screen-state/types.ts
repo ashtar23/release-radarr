@@ -9,7 +9,6 @@ export type WatchlistScreenReadyState = {
 };
 
 export type WatchlistScreenNonReadyState =
-  | { mode: "checking-session" }
   | { mode: "signed-out" }
   | {
       mode: "config-error";

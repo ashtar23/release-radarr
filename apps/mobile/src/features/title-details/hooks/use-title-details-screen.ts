@@ -93,9 +93,15 @@ export function useTitleDetailsScreen({
     readyState,
   });
 
+  const retry = () => {
+    void refetch();
+  };
+
   return {
     headerActions,
     screenTitle,
     state,
+    retry,
+    retrying: isRefetching,
   };
 }

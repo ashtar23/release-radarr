@@ -20,15 +20,6 @@ type WatchlistStateViewProps = {
 export function WatchlistStateView({ state }: WatchlistStateViewProps) {
   const theme = useTheme();
 
-  if (state.mode === "checking-session") {
-    return (
-      <CenteredLoadingState
-        title="Checking your session..."
-        description="Loading your watchlist access."
-      />
-    );
-  }
-
   if (state.mode === "signed-out") {
     return (
       <ScreenScrollView>

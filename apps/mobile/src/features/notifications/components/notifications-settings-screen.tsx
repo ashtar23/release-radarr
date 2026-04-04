@@ -6,13 +6,18 @@ import {
 
 import { ActionRow } from "@/components/action-row";
 import { AppSymbol } from "@/components/app-symbol";
+import { CenteredOfflineState } from "@/components/centered-offline-state";
 import { ListRow } from "@/components/list-row";
 import { ListSection } from "@/components/list-section";
 import { ListSwitchRow } from "@/components/list-switch-row";
+import { OfflineBanner } from "@/components/offline-banner";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { ThemedText } from "@/components/themed-text";
-
 import { ScreenLoadingOverlay } from "@/components/screen-loading-overlay";
+import { Spacing } from "@/constants/theme";
+import { useProtectedOfflineRetry } from "@/lib/offline-screen";
+import { useIsOffline } from "@/lib/react-query-online";
+
 import { useNotificationsSettingsScreen } from "../hooks/use-notifications-settings-screen";
 import { NotificationsSettingsStateView } from "./notifications-settings-state-view";
 
@@ -42,45 +47,54 @@ const RELEASE_DATE_CHANGES_AVAILABLE = false;
 const noop = () => {};
 
 export function NotificationsSettingsScreen() {
-  const { state } = useNotificationsSettingsScreen();
+  const isOffline = useIsOffline();
+  const { state, retry, retrying } = useNotificationsSettingsScreen();
+  const offlineRetry = useProtectedOfflineRetry({
+    onRetryReady: retry,
+    retrying,
+  });
 
-  if (state.mode !== "ready") {
-    return <NotificationsSettingsStateView state={state} />;
+  if (isOffline && state.mode !== "ready") {
+    return (
+      <CenteredOfflineState
+        description="Reconnect to load and update your notification preferences."
+        onRetry={offlineRetry.onRetry}
+        retrying={offlineRetry.retrying}
+      />
+    );
   }
 
-  const {
-    preferences,
-    isInAppEnabled,
-    areEventSettingsDisabled,
-    areTimingPresetsDisabled,
-    isRefreshing,
-    hasRefreshError,
-    updateInAppChannel,
-    updateReleaseApproachingEvent,
-    toggleTimingPreset,
-  } = state;
-
-  return (
+  return state.mode !== "ready" ? (
+    <NotificationsSettingsStateView state={state} />
+  ) : (
     <View style={styles.container}>
       <ScreenScrollView>
+        {isOffline ? (
+          <OfflineBanner
+            message="You’re offline. Showing your last saved notification preferences."
+            style={styles.offlineBanner}
+          />
+        ) : null}
+
         <ListSection title="Channels">
           <ListSwitchRow
             label="In-App Notifications"
             subtitle="Show watchlist notifications inside the app."
-            value={preferences.channels.inApp}
-            onValueChange={updateInAppChannel}
+            value={state.preferences.channels.inApp}
+            onValueChange={state.updateInAppChannel}
+            disabled={isOffline}
           />
 
           <ListSwitchRow
             label="Push Notifications"
             subtitle="Coming soon. Push delivery is not live yet."
-            value={preferences.channels.push}
+            value={state.preferences.channels.push}
             onValueChange={noop}
             disabled
           />
         </ListSection>
 
-        {isInAppEnabled ? (
+        {state.isInAppEnabled ? (
           <>
             <ListSection title="Events">
               <ListSwitchRow
@@ -88,7 +102,7 @@ export function NotificationsSettingsScreen() {
                 subtitle="Coming soon. Automatic release date change notifications are not live yet."
                 value={
                   RELEASE_DATE_CHANGES_AVAILABLE
-                    ? preferences.events.releaseDateChanged
+                    ? state.preferences.events.releaseDateChanged
                     : false
                 }
                 onValueChange={noop}
@@ -98,9 +112,9 @@ export function NotificationsSettingsScreen() {
               <ListSwitchRow
                 label="Release Approaching"
                 subtitle="Notify me before a watched title is due to release."
-                value={preferences.events.releaseApproaching}
-                onValueChange={updateReleaseApproachingEvent}
-                disabled={areEventSettingsDisabled}
+                value={state.preferences.events.releaseApproaching}
+                onValueChange={state.updateReleaseApproachingEvent}
+                disabled={isOffline || state.areEventSettingsDisabled}
               />
             </ListSection>
 
@@ -110,23 +124,24 @@ export function NotificationsSettingsScreen() {
             >
               {notificationTimingPresetValues.map((preset) => {
                 const meta = TIMING_PRESET_META[preset];
-                const isSelected = preferences.timingPresets.includes(preset);
+                const isSelected =
+                  state.preferences.timingPresets.includes(preset);
 
                 return (
                   <ActionRow
                     key={preset}
-                    onPress={() => toggleTimingPreset(preset)}
+                    onPress={() => state.toggleTimingPreset(preset)}
                     accessibilityRole="button"
                     accessibilityState={{
                       selected: isSelected,
-                      disabled: areTimingPresetsDisabled,
+                      disabled: isOffline || state.areTimingPresetsDisabled,
                     }}
-                    disabled={areTimingPresetsDisabled}
+                    disabled={isOffline || state.areTimingPresetsDisabled}
                   >
                     <ListRow
                       label={meta.label}
                       subtitle={meta.subtitle}
-                      disabled={areTimingPresetsDisabled}
+                      disabled={isOffline || state.areTimingPresetsDisabled}
                       trailingIcon={
                         isSelected ? (
                           <AppSymbol
@@ -144,14 +159,14 @@ export function NotificationsSettingsScreen() {
           </>
         ) : null}
 
-        {hasRefreshError ? (
+        {state.hasRefreshError ? (
           <ThemedText type="small" themeColor="textSecondary">
             Unable to refresh notification preferences right now.
           </ThemedText>
         ) : null}
       </ScreenScrollView>
 
-      {isRefreshing ? (
+      {state.isRefreshing ? (
         <ScreenLoadingOverlay label="Refreshing notification preferences" />
       ) : null}
     </View>
@@ -161,5 +176,8 @@ export function NotificationsSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  offlineBanner: {
+    marginBottom: Spacing.one,
   },
 });

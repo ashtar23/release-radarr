@@ -15,7 +15,6 @@ export type NotificationsScreenReadyState = {
 };
 
 export type NotificationsScreenNonReadyState =
-  | { mode: "checking-session" }
   | { mode: "signed-out" }
   | {
       mode: "config-error";

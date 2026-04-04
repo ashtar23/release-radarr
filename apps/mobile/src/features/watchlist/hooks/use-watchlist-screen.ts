@@ -4,8 +4,10 @@ import type { TitleDetails, WatchlistItem, WatchlistSort } from "@repo/types";
 import { useAuthGate } from "@/auth/use-auth-gate";
 import { useAppPreferences } from "@/features/settings/providers/app-preferences";
 import { extractErrorMessage } from "@/lib/extract-error-message";
+import { useIsOffline } from "@/lib/react-query-online";
+import { useManualRefresh } from "@/hooks/use-manual-refresh";
 
-import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
+import { DEFAULT_WATCHLIST_SORT, sortWatchlistItems } from "../watchlist-sort";
 import { useWatchlistMutation } from "../mutations/use-watchlist-mutation";
 import { watchlistConfigError } from "../data-access/watchlist";
 import { useWatchlistQuery } from "../queries/use-watchlist-query";
@@ -17,6 +19,7 @@ import {
 const EMPTY_WATCHLIST_ITEMS: WatchlistItem[] = [];
 
 export function useWatchlistScreen() {
+  const isOffline = useIsOffline();
   const {
     state: authGateState,
     isSignedIn,
@@ -27,7 +30,6 @@ export function useWatchlistScreen() {
 
   const [selectedSort, setSelectedSort] = useState<WatchlistSort | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const resolvedDefaultSort = arePreferencesHydrated
     ? defaultWatchlistSort
@@ -42,6 +44,7 @@ export function useWatchlistScreen() {
     isFetching,
     isPending,
     isPlaceholderData,
+    isRefetching,
     refetch: refetchWatchlist,
   } = useWatchlistQuery(sort);
 
@@ -49,19 +52,35 @@ export function useWatchlistScreen() {
 
   const configError = authConfigError ?? watchlistConfigError;
   const canRefresh = authGateState === "ready" && isSignedIn;
-  const items =
+  const rawItems =
     authGateState === "ready" && isSignedIn
       ? (watchlistData?.items ?? EMPTY_WATCHLIST_ITEMS)
       : EMPTY_WATCHLIST_ITEMS;
+  const items = useMemo(() => {
+    if (rawItems.length === 0) {
+      return EMPTY_WATCHLIST_ITEMS;
+    }
+
+    return sortWatchlistItems(rawItems, sort);
+  }, [rawItems, sort]);
   const hasWatchlistData = watchlistData !== undefined;
+  const {
+    isRefreshing: isManualRefreshing,
+    canRefresh: canManualRefresh,
+    refresh: refreshWatchlist,
+  } = useManualRefresh({
+    enabled: canRefresh,
+    hasData: hasWatchlistData,
+    isOffline,
+    refreshAction: refetchWatchlist,
+  });
   const isInitialLoading =
     isPending && !hasWatchlistData && !isManualRefreshing;
-  const hasBlockingRequestError = !hasWatchlistData && hasWatchlistError;
-
   const requestErrorMessage = extractErrorMessage(
     watchlistError,
     "Something went wrong while loading your watchlist.",
   );
+  const hasBlockingRequestError = !hasWatchlistData && hasWatchlistError;
   const isMutating = addMutation.isPending || removeMutation.isPending;
   const isUpdatingSort =
     canRefresh && isFetching && isPlaceholderData && !isManualRefreshing;
@@ -79,19 +98,6 @@ export function useWatchlistScreen() {
     );
   }, [items, normalizedSearchQuery]);
 
-  const refreshWatchlist = useCallback(async () => {
-    if (isManualRefreshing) {
-      return;
-    }
-
-    setIsManualRefreshing(true);
-    try {
-      await refetchWatchlist();
-    } finally {
-      setIsManualRefreshing(false);
-    }
-  }, [isManualRefreshing, refetchWatchlist]);
-
   const retryWatchlist = useCallback(() => {
     void refreshWatchlist();
   }, [refreshWatchlist]);
@@ -102,7 +108,7 @@ export function useWatchlistScreen() {
     items,
     filteredItems,
     refreshing: isManualRefreshing && canRefresh,
-    onRefresh: canRefresh ? retryWatchlist : undefined,
+    onRefresh: canManualRefresh ? retryWatchlist : undefined,
   };
 
   const state = deriveWatchlistScreenState({
@@ -116,7 +122,7 @@ export function useWatchlistScreen() {
     searchQuery: trimmedSearchQuery,
     filteredItemsCount: filteredItems.length,
     readyState,
-    retrying: isManualRefreshing,
+    retrying: !hasWatchlistData && isRefetching,
     onRetry: canRefresh ? retryWatchlist : undefined,
   });
 
@@ -158,6 +164,8 @@ export function useWatchlistScreen() {
 
   return {
     state,
+    retry: retryWatchlist,
+    retrying: !hasWatchlistData && isRefetching,
     sort,
     setSort: updateSort,
     setSearchQuery,

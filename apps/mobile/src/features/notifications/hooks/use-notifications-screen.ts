@@ -1,8 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import type { NotificationRecord } from "@repo/types";
 
 import { useAuthGate } from "@/auth/use-auth-gate";
+import { useManualRefresh } from "@/hooks/use-manual-refresh";
 import { extractErrorMessage } from "@/lib/extract-error-message";
+import { useIsOffline } from "@/lib/react-query-online";
 
 import { notificationsConfigError } from "../data-access/notifications";
 import { useMarkAllNotificationsReadMutation } from "../mutations/use-mark-all-notifications-read-mutation";
@@ -17,19 +19,19 @@ import {
 const EMPTY_NOTIFICATIONS: NotificationRecord[] = [];
 
 export function useNotificationsScreen() {
+  const isOffline = useIsOffline();
   const {
     state: authGateState,
     isSignedIn,
     configError: authConfigError,
   } = useAuthGate();
 
-  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
-
   const {
     data: notificationsData,
     error: notificationsError,
     isError: hasNotificationsError,
     isPending: isNotificationsPending,
+    isRefetching: isNotificationsRefetching,
     refetch: refetchNotifications,
     fetchNextPage: fetchNextNotificationsPage,
     hasNextPage: hasNextNotificationsPage,
@@ -40,6 +42,7 @@ export function useNotificationsScreen() {
     data: unreadCountData,
     error: unreadCountError,
     isError: hasUnreadCountError,
+    isRefetching: isUnreadCountRefetching,
     refetch: refetchUnreadCount,
   } = useNotificationUnreadCountQuery();
 
@@ -67,30 +70,26 @@ export function useNotificationsScreen() {
 
   const hasNotificationsData = notificationsData !== undefined;
   const isInitialLoading = isNotificationsPending && !hasNotificationsData;
-  const hasBlockingRequestError =
-    !hasNotificationsData && (hasNotificationsError || hasUnreadCountError);
   const requestErrorMessage = extractErrorMessage(
     notificationsError ?? unreadCountError,
     "Something went wrong while loading notifications.",
   );
-
-  const refreshNotifications = useCallback(async () => {
-    if (!canRefresh || isManualRefreshing) {
-      return;
-    }
-
-    setIsManualRefreshing(true);
-    try {
-      await Promise.all([refetchNotifications(), refetchUnreadCount()]);
-    } finally {
-      setIsManualRefreshing(false);
-    }
-  }, [
-    canRefresh,
-    isManualRefreshing,
-    refetchNotifications,
-    refetchUnreadCount,
-  ]);
+  const hasBlockingRequestError =
+    !hasNotificationsData && (hasNotificationsError || hasUnreadCountError);
+  const refreshNotificationsAction = useCallback(
+    () => Promise.all([refetchNotifications(), refetchUnreadCount()]),
+    [refetchNotifications, refetchUnreadCount],
+  );
+  const {
+    isRefreshing: isManualRefreshing,
+    canRefresh: canManualRefresh,
+    refresh: refreshNotifications,
+  } = useManualRefresh({
+    enabled: canRefresh,
+    hasData: hasNotificationsData,
+    isOffline,
+    refreshAction: refreshNotificationsAction,
+  });
 
   const retryNotifications = useCallback(() => {
     void refreshNotifications();
@@ -124,7 +123,7 @@ export function useNotificationsScreen() {
     notifications,
     unreadCount,
     refreshing: isManualRefreshing && notifications.length > 0,
-    onRefresh: notifications.length > 0 ? retryNotifications : undefined,
+    onRefresh: notifications.length > 0 && canManualRefresh ? retryNotifications : undefined,
     hasMoreNotifications: Boolean(hasNextNotificationsPage),
     isLoadingMore: isLoadingNextNotificationsPage,
     loadMoreNotifications,
@@ -141,9 +140,17 @@ export function useNotificationsScreen() {
     requestErrorMessage,
     notificationsCount: notifications.length,
     readyState,
-    retrying: isManualRefreshing,
+    retrying:
+      !hasNotificationsData &&
+      (isNotificationsRefetching || isUnreadCountRefetching),
     onRetry: canRefresh ? retryNotifications : undefined,
   });
 
-  return { state };
+  return {
+    state,
+    retry: retryNotifications,
+    retrying:
+      !hasNotificationsData &&
+      (isNotificationsRefetching || isUnreadCountRefetching),
+  };
 }

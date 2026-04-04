@@ -2,6 +2,8 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { StyleSheet } from "react-native";
 
+import { CenteredOfflineState } from "@/components/centered-offline-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import {
   TitleDetailsContent,
   TitleDetailsStateView,
@@ -9,6 +11,7 @@ import {
 import { HeaderActions } from "@/features/navigation/header-actions";
 import { useTitleDetailsScreen } from "@/features/title-details/hooks/use-title-details-screen";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
+import { useIsOffline } from "@/lib/react-query-online";
 
 type TitleDetailsScreenProps = {
   titleId?: string | string[];
@@ -21,25 +24,12 @@ export default function TitleDetailsScreen() {
 
   const titleId = normalizeRouteParam(rawTitleId);
   const initialTitle = normalizeRouteParam(rawTitleName);
-  const { headerActions, screenTitle, state } = useTitleDetailsScreen({
-    titleId,
-    initialTitle,
-  });
-
-  if (state.mode !== "ready") {
-    return (
-      <>
-        <Stack.Screen
-          options={{
-            title: screenTitle,
-            headerLargeTitleEnabled: false,
-          }}
-        />
-
-        <TitleDetailsStateView state={state} />
-      </>
-    );
-  }
+  const isOffline = useIsOffline();
+  const { headerActions, screenTitle, state, retry, retrying } =
+    useTitleDetailsScreen({
+      titleId,
+      initialTitle,
+    });
 
   return (
     <>
@@ -50,11 +40,29 @@ export default function TitleDetailsScreen() {
         }}
       />
 
-      <HeaderActions actions={headerActions} />
+      {isOffline && state.mode !== "ready" ? (
+        <CenteredOfflineState
+          description="Reconnect to load this title and its release details."
+          onRetry={retry}
+          retrying={retrying}
+        />
+      ) : state.mode !== "ready" ? (
+        <TitleDetailsStateView state={state} />
+      ) : (
+        <>
+          <HeaderActions actions={headerActions} />
 
-      <ScreenScrollView contentContainerStyle={styles.content}>
-        <TitleDetailsContent details={state.details} />
-      </ScreenScrollView>
+          <ScreenScrollView contentContainerStyle={styles.content}>
+            {isOffline ? (
+              <OfflineBanner
+                message="You’re offline. Showing the last loaded title details."
+                style={styles.offlineBanner}
+              />
+            ) : null}
+            <TitleDetailsContent details={state.details} />
+          </ScreenScrollView>
+        </>
+      )}
     </>
   );
 }
@@ -74,5 +82,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     paddingTop: 0,
     gap: 0,
+  },
+  offlineBanner: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
   },
 });

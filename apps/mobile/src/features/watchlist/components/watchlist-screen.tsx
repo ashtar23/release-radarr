@@ -2,9 +2,14 @@ import { Stack } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 
+import { CenteredOfflineState } from "@/components/centered-offline-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import { ScreenLoadingOverlay } from "@/components/screen-loading-overlay";
 import { useSheetController } from "@/components/sheets";
+import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useIsOffline } from "@/lib/react-query-online";
+import { useProtectedOfflineRetry } from "@/lib/offline-screen";
 import {
   HeaderActions,
   type HeaderAction,
@@ -24,14 +29,25 @@ import {
 export function WatchlistScreen() {
   const theme = useTheme();
   const { openSheet } = useSheetController();
+  const isOffline = useIsOffline();
   const {
     sort,
     setSort,
     setSearchQuery,
     shouldShowControls,
     state,
+    retry,
+    retrying,
     isUpdatingSort,
   } = useWatchlistScreen();
+  const offlineRetry = useProtectedOfflineRetry({
+    onRetryReady: retry,
+    retrying,
+  });
+  const canKeepShowingContentOffline =
+    state.mode === "ready" ||
+    state.mode === "empty" ||
+    state.mode === "search-empty";
 
   const handleSearchChange = useCallback(
     (event: { nativeEvent: { text: string } }) => {
@@ -90,6 +106,16 @@ export function WatchlistScreen() {
     ];
   }, [openSheet, setSort, shouldShowControls, sort, theme.text]);
 
+  if (isOffline && !canKeepShowingContentOffline) {
+    return (
+      <CenteredOfflineState
+        description="Reconnect to load your watchlist and manage tracked games."
+        onRetry={offlineRetry.onRetry}
+        retrying={offlineRetry.retrying}
+      />
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboardAvoidingView}
@@ -114,6 +140,14 @@ export function WatchlistScreen() {
           items={state.filteredItems}
           refreshing={state.refreshing}
           onRefresh={state.onRefresh}
+          listHeader={
+            isOffline ? (
+              <OfflineBanner
+                message="You’re offline. Showing your last loaded watchlist state."
+                style={styles.offlineBanner}
+              />
+            ) : null
+          }
         />
       ) : (
         <WatchlistStateView state={state} />
@@ -127,5 +161,8 @@ export function WatchlistScreen() {
 const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
+  },
+  offlineBanner: {
+    marginBottom: Spacing.two,
   },
 });

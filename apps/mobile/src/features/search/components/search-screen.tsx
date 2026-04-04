@@ -1,30 +1,57 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Stack } from "expo-router";
 
+import { CenteredOfflineState } from "@/components/centered-offline-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import { useTheme } from "@/hooks/use-theme";
+import { useIsOffline } from "@/lib/react-query-online";
 
 import { SearchResultsList } from "./search-results-list";
 import { SearchStateView } from "./search-state-view";
 import { useSearchScreen } from "../hooks/use-search-screen";
 
 export function SearchScreen() {
+  const isOffline = useIsOffline();
   const theme = useTheme();
-  const { setQuery, searchBarRef, state } = useSearchScreen();
+  const {
+    query,
+    setQuery,
+    searchBarRef,
+    state,
+    retry,
+    retrying,
+    canShowOfflineState,
+  } = useSearchScreen();
 
   return (
     <>
       <SearchHeader
         searchBarRef={searchBarRef}
+        query={query}
         textColor={theme.text}
         secondaryTextColor={theme.textSecondary}
         onChangeText={setQuery}
       />
 
-      {state.mode === "ready" ? (
+      {isOffline && state.mode !== "ready" && canShowOfflineState ? (
+        <CenteredOfflineState
+          description="Reconnect to search for games."
+          onRetry={retry}
+          retrying={retrying}
+        />
+      ) : state.mode === "ready" ? (
         <SearchResultsList
           searchState={state}
           onRetryLoadMore={state.loadMoreResults}
           onEndReached={state.loadMoreResults}
+          listHeader={
+            isOffline ? (
+              <OfflineBanner
+                message="You’re offline. Showing the last loaded search results."
+                style={styles.offlineBanner}
+              />
+            ) : null
+          }
         />
       ) : (
         <SearchStateView state={state} />
@@ -33,8 +60,15 @@ export function SearchScreen() {
   );
 }
 
+const styles = {
+  offlineBanner: {
+    marginBottom: 8,
+  },
+} as const;
+
 function SearchHeader({
   searchBarRef,
+  query,
   textColor,
   secondaryTextColor,
   onChangeText,
@@ -47,10 +81,20 @@ function SearchHeader({
     toggleCancelButton: (flag: boolean) => void;
     cancelSearch: () => void;
   } | null>;
+  query: string;
   textColor: string;
   secondaryTextColor: string;
   onChangeText: (query: string) => void;
 }) {
+  useEffect(() => {
+    if (query.length > 0) {
+      searchBarRef.current?.setText(query);
+      return;
+    }
+
+    searchBarRef.current?.clearText();
+  }, [query, searchBarRef]);
+
   return (
     <Stack.SearchBar
       ref={searchBarRef}

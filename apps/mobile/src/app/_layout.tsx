@@ -22,6 +22,7 @@ import { NotificationsRealtimeProvider } from "@/features/notifications/provider
 import { SearchDebugSettingsProvider } from "@/features/settings/providers/search-debug-settings";
 import { AppPreferencesProvider } from "@/features/settings/providers/app-preferences";
 import { ReactQueryNativeLifecycle } from "@/lib/react-query-native";
+import { ReactQueryOnlineManager } from "@/lib/react-query-online";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ export default function RootLayout() {
                       <AnimatedSplashOverlay />
                       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
                       <ReactQueryNativeLifecycle />
+                      <ReactQueryOnlineManager />
                       <NotificationsRealtimeProvider />
 
                       <Stack>

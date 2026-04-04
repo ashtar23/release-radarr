@@ -136,5 +136,11 @@ export function useNotificationsSettingsScreen() {
       authGateState === "ready" ? () => void refetchPreferences() : undefined,
   });
 
-  return { state };
+  return {
+    state,
+    retry: () => {
+      void refetchPreferences();
+    },
+    retrying: isFetching,
+  };
 }

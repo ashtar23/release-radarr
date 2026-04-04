@@ -14,15 +14,6 @@ type NotificationsStateViewProps = {
 };
 
 export function NotificationsStateView({ state }: NotificationsStateViewProps) {
-  if (state.mode === "checking-session") {
-    return (
-      <CenteredLoadingState
-        title="Checking your session..."
-        description="Loading your notifications access."
-      />
-    );
-  }
-
   if (state.mode === "config-error") {
     return (
       <CenteredConfigErrorState

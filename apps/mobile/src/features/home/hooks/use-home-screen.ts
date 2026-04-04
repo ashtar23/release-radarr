@@ -49,5 +49,9 @@ export function useHomeScreen() {
     readyState,
   });
 
-  return { state };
+  const retry = () => {
+    void refetch();
+  };
+
+  return { state, retry, retrying: isRefetching };
 }

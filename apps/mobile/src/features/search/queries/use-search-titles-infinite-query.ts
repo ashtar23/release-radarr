@@ -53,6 +53,7 @@ export interface SearchTitlesInfiniteQueryState {
   hasInitialError: boolean;
   initialErrorMessage: string | null;
   configError: string | null;
+  refetchSearch: () => void;
 }
 
 export function useSearchTitlesInfiniteQuery(
@@ -75,6 +76,7 @@ export function useSearchTitlesInfiniteQuery(
     isFetching,
     isFetchingNextPage,
     isFetchNextPageError,
+    refetch,
   } = useInfiniteQuery({
     queryKey: [
       "titles",
@@ -166,5 +168,8 @@ export function useSearchTitlesInfiniteQuery(
     initialErrorMessage:
       showSearchResults && isError && !data ? toErrorMessage(error) : null,
     configError: searchConfigError,
+    refetchSearch: () => {
+      void refetch();
+    },
   };
 }
