@@ -12,6 +12,7 @@ import { HeaderActions } from "@/features/navigation/header-actions";
 import { useTitleDetailsScreen } from "@/features/title-details/hooks/use-title-details-screen";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { useIsOffline } from "@/lib/react-query-online";
+import { Spacing } from "@/constants/theme";
 
 type TitleDetailsScreenProps = {
   titleId?: string | string[];
@@ -84,8 +85,8 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   offlineBanner: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
+    marginHorizontal: Spacing.three,
+    marginTop: Spacing.four,
+    marginBottom: Spacing.two,
   },
 });
