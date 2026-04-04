@@ -22,6 +22,6 @@ export const env = {
   host: process.env.HOST?.trim() || "0.0.0.0",
   port: getOptionalIntegerEnv("PORT", 3001),
   rawgApiKey: process.env.RAWG_API_KEY?.trim() || null,
-  supabaseServiceRoleKey: getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+  supabaseSecretKey: getRequiredEnv("SUPABASE_SECRET_KEY"),
   supabaseUrl: getRequiredEnv("SUPABASE_URL"),
 } as const;

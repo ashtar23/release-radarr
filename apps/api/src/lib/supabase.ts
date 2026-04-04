@@ -5,7 +5,7 @@ import { env } from "./env";
 
 export const supabaseAdmin = createClient<Database>(
   env.supabaseUrl,
-  env.supabaseServiceRoleKey,
+  env.supabaseSecretKey,
   {
     auth: {
       autoRefreshToken: false,

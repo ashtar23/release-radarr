@@ -13,7 +13,7 @@ more consistent latency than the current Supabase Edge Functions path.
 Copy `.env.example` to `.env` and provide:
 
 - `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SECRET_KEY`
 - `RAWG_API_KEY`
 
 Optional:
@@ -38,7 +38,7 @@ Create at least:
 Set these variables in each environment:
 
 - `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SECRET_KEY`
 - `RAWG_API_KEY`
 - `APP_ENV`
 - `PORT` (Railway usually injects this automatically)
@@ -46,15 +46,21 @@ Set these variables in each environment:
 ## Railway deploy
 
 1. Create a new Railway service from this repo.
-2. Set the root directory to `apps/api`.
-3. Railway should detect the Node service automatically.
+2. Set the root directory to `/` so the workspace packages remain available.
+3. Use explicit `pnpm --dir apps/api ...` commands.
 4. Set the environment variables above in `staging` first.
 5. Deploy and confirm `GET /health` works before wiring mobile.
+
+Recommended build command:
+
+```bash
+pnpm --dir apps/api check-types
+```
 
 Recommended start command:
 
 ```bash
-pnpm start
+pnpm --dir apps/api start
 ```
 
 Recommended health check path:
