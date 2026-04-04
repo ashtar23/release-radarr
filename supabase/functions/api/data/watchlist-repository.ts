@@ -1,6 +1,7 @@
 import type {
   AdminClient,
   PlatformRelease,
+  WatchlistListResult,
   WatchlistInsertRow,
   WatchlistItem,
   WatchlistRow,
@@ -15,52 +16,69 @@ export type WatchlistSort =
   | "name-asc"
   | "name-desc";
 
+const DEFAULT_PAGE_LIMIT = 20;
+const MAX_PAGE_LIMIT = 50;
+
+export interface ListWatchlistParams {
+  readonly sort: WatchlistSort;
+  readonly cursor?: string;
+  readonly limit?: number;
+}
+
 export async function listWatchlistItems(
   client: AdminClient,
   userId: string,
-  sort: WatchlistSort,
-): Promise<WatchlistItem[]> {
-  const baseQuery = client.from("watchlist_items").select("*").eq("user_id", userId);
-
-  const query = (() => {
-    switch (sort) {
-      case "added-asc":
-        return baseQuery
-          .order("added_at", { ascending: true })
-          .order("id", { ascending: true });
-      case "release-asc":
-        return baseQuery.order("earliest_release_date", {
-          ascending: true,
-          nullsFirst: false,
-        });
-      case "release-desc":
-        return baseQuery.order("earliest_release_date", {
-          ascending: false,
-          nullsFirst: false,
-        });
-      case "name-asc":
-        return baseQuery
-          .order("name", { ascending: true })
-          .order("id", { ascending: true });
-      case "name-desc":
-        return baseQuery
-          .order("name", { ascending: false })
-          .order("id", { ascending: true });
-      case "added-desc":
-      default:
-        return baseQuery
-          .order("added_at", { ascending: false })
-          .order("id", { ascending: true });
-    }
-  })();
-
-  const { data, error } = await query;
+  params: ListWatchlistParams,
+): Promise<WatchlistListResult> {
+  const pageLimit = normalizeLimit(params.limit);
+  const decodedCursor = params.cursor
+    ? decodeCursor(params.cursor, params.sort)
+    : null;
+  const { data, error } = await client.rpc("list_watchlist_items_page", {
+    p_user_id: userId,
+    p_sort: params.sort,
+    p_limit: pageLimit,
+    p_added_at_cursor:
+      decodedCursor &&
+      (decodedCursor.sort === "added-asc" ||
+        decodedCursor.sort === "added-desc")
+        ? decodedCursor.value
+        : null,
+    p_id_cursor: decodedCursor?.id ?? null,
+    p_search_name_cursor:
+      decodedCursor &&
+      (decodedCursor.sort === "name-asc" || decodedCursor.sort === "name-desc")
+        ? decodedCursor.value
+        : null,
+    p_release_date_cursor:
+      decodedCursor &&
+      (decodedCursor.sort === "release-asc" ||
+        decodedCursor.sort === "release-desc")
+        ? decodedCursor.value
+        : null,
+    p_release_bucket_cursor:
+      decodedCursor &&
+      (decodedCursor.sort === "release-asc" ||
+        decodedCursor.sort === "release-desc")
+        ? decodedCursor.bucket
+        : null,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as WatchlistViewRow[]).map(mapWatchlistItem);
+  const rows = (data ?? []) as WatchlistViewRow[];
+  const pageRows = rows.slice(0, pageLimit);
+  const nextCursor =
+    rows.length > pageLimit
+      ? encodeCursor(pageRows[pageRows.length - 1]!, params.sort)
+      : null;
+
+  return {
+    items: pageRows.map(mapWatchlistItem),
+    nextCursor,
+  };
 }
 
 export async function upsertWatchlistItem(
@@ -125,6 +143,110 @@ export async function removeWatchlistItem(
   }
 }
 
+function normalizeLimit(limit: number | undefined) {
+  if (!Number.isInteger(limit) || limit == null) {
+    return DEFAULT_PAGE_LIMIT;
+  }
+
+  return Math.min(Math.max(limit, 1), MAX_PAGE_LIMIT);
+}
+
+type DecodedCursor =
+  | {
+      sort: "added-asc" | "added-desc";
+      value: string;
+      id: string;
+    }
+  | {
+      sort: "release-asc" | "release-desc";
+      bucket: 0 | 1;
+      value: string | null;
+      id: string;
+    }
+  | {
+      sort: "name-asc" | "name-desc";
+      value: string;
+      id: string;
+    };
+
+function encodeCursor(row: WatchlistViewRow, sort: WatchlistSort) {
+  assertWatchlistViewRow(row);
+  const releaseSortBucket = row.release_sort_bucket === 1 ? 1 : 0;
+  const payload =
+    sort === "added-asc" || sort === "added-desc"
+      ? { sort, value: row.added_at, id: row.id }
+      : sort === "release-asc" || sort === "release-desc"
+        ? {
+            sort,
+            bucket: releaseSortBucket,
+            value: row.earliest_release_date,
+            id: row.id,
+          }
+        : { sort, value: row.search_name, id: row.id };
+
+  return toBase64Url(JSON.stringify(payload));
+}
+
+function decodeCursor(
+  cursor: string,
+  sort: WatchlistSort,
+): DecodedCursor | null {
+  try {
+    const parsed = JSON.parse(fromBase64Url(cursor)) as Record<string, unknown>;
+    if (!parsed || parsed.sort !== sort || typeof parsed.id !== "string") {
+      return null;
+    }
+
+    switch (sort) {
+      case "added-asc":
+      case "added-desc":
+      case "name-asc":
+      case "name-desc":
+        if (typeof parsed.value !== "string") {
+          return null;
+        }
+
+        return {
+          sort,
+          value: parsed.value,
+          id: parsed.id,
+        };
+      case "release-asc":
+      case "release-desc":
+        if (parsed.bucket !== 0 && parsed.bucket !== 1) {
+          return null;
+        }
+
+        if (parsed.value !== null && typeof parsed.value !== "string") {
+          return null;
+        }
+
+        return {
+          sort,
+          bucket: parsed.bucket,
+          value: parsed.value ?? null,
+          id: parsed.id,
+        };
+    }
+  } catch {
+    return null;
+  }
+}
+
+function toBase64Url(value: string) {
+  return btoa(value)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+}
+
+function fromBase64Url(value: string) {
+  const padding = (4 - (value.length % 4 || 4)) % 4;
+  const normalized =
+    value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat(padding);
+  return atob(normalized);
+}
+
 export async function titleExists(
   client: AdminClient,
   titleId: string,
@@ -179,6 +301,7 @@ function assertWatchlistViewRow(
   external_id: string;
   slug: string;
   name: string;
+  search_name: string;
   added_at: string;
 } {
   if (
@@ -189,6 +312,7 @@ function assertWatchlistViewRow(
     typeof row.external_id !== "string" ||
     typeof row.slug !== "string" ||
     typeof row.name !== "string" ||
+    typeof row.search_name !== "string" ||
     typeof row.added_at !== "string"
   ) {
     throw new Error("Watchlist view row is invalid.");

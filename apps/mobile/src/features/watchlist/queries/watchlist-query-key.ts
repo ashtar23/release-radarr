@@ -1,12 +1,19 @@
 import type { WatchlistSort } from "@repo/types";
 
-export function getWatchlistQueryScope(userId: string | null) {
-  return ["watchlist", userId] as const;
+export function getWatchlistListQueryScope(userId: string | null) {
+  return ["watchlist", userId, "infinite"] as const;
 }
 
-export function getWatchlistQueryKey(
+export function getWatchlistListQueryKey(
   userId: string | null,
   sort: WatchlistSort,
 ) {
-  return [...getWatchlistQueryScope(userId), sort] as const;
+  return [...getWatchlistListQueryScope(userId), sort] as const;
+}
+
+export function getWatchlistMembershipQueryKey(
+  userId: string | null,
+  titleId: string,
+) {
+  return ["watchlist-membership", userId, titleId] as const;
 }

@@ -9,6 +9,7 @@ import type { TitleDetails } from "@repo/types";
 import type { TitleSearchResult } from "@repo/types";
 import type { TitleSummary } from "@repo/types";
 import type { WatchlistListResult } from "@repo/types";
+import type { WatchlistMembershipResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
 
 import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
@@ -28,9 +29,11 @@ import { searchTitles, type SearchTitlesParams } from "./search";
 import { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 import {
   addWatchlistItem,
+  getWatchlistMembership,
   listWatchlist,
   removeWatchlistItem,
   type AddWatchlistItemParams,
+  type GetWatchlistMembershipParams,
   type ListWatchlistParams,
   type RemoveWatchlistItemParams,
 } from "./watchlist";
@@ -65,6 +68,9 @@ export interface ReleaseRadarApiClient {
     params: UpdateNotificationPreferencesParams,
   ): Promise<NotificationPreferencesResult>;
   listWatchlist(params?: ListWatchlistParams): Promise<WatchlistListResult>;
+  getWatchlistMembership(
+    params: GetWatchlistMembershipParams,
+  ): Promise<WatchlistMembershipResult>;
   addWatchlistItem(
     params: AddWatchlistItemParams,
   ): Promise<WatchlistUpsertResult>;
@@ -140,6 +146,12 @@ export function createReleaseRadarApiClient(
     },
     async listWatchlist(params = {}) {
       return listWatchlist({
+        context,
+        params,
+      });
+    },
+    async getWatchlistMembership(params) {
+      return getWatchlistMembership({
         context,
         params,
       });

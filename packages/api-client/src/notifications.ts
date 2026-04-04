@@ -31,8 +31,7 @@ export interface MarkAllNotificationsReadParams {
   readonly signal?: AbortSignal;
 }
 
-export interface UpdateNotificationPreferencesParams
-  extends UpdateNotificationPreferencesInput {
+export interface UpdateNotificationPreferencesParams extends UpdateNotificationPreferencesInput {
   readonly signal?: AbortSignal;
 }
 
@@ -83,7 +82,8 @@ export function listNotifications({
     searchParams.set("limit", String(params.limit));
   }
 
-  const query = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+  const queryString = searchParams.toString();
+  const query = queryString ? `?${queryString}` : "";
 
   return requestJson({
     context,
@@ -176,7 +176,8 @@ export function updateNotificationPreferences({
       timingPresets: params.timingPresets,
     }),
     validate: isNotificationPreferencesResult,
-    invalidPayloadMessage: "Notification preferences update payload is invalid.",
+    invalidPayloadMessage:
+      "Notification preferences update payload is invalid.",
     failureMessage: "Update notification preferences request failed.",
   });
 }

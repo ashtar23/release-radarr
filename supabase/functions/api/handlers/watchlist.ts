@@ -1,8 +1,10 @@
 import {
+  findWatchlistItem,
   listWatchlistItems,
   removeWatchlistItem,
   titleExists,
   upsertWatchlistItem,
+  type ListWatchlistParams,
   type WatchlistSort,
 } from "../data/watchlist-repository.ts";
 import type { AdminClient } from "../types.ts";
@@ -13,8 +15,30 @@ export async function handleWatchlistListRequest(
   userId: string,
   url: URL,
 ) {
-  const items = await listWatchlistItems(client, userId, parseWatchlistSort(url));
-  return jsonResponse({ items });
+  const sort = parseWatchlistSort(url);
+  const cursor = parseCursor(url);
+  const limit = parseLimit(url);
+  const result = await listWatchlistItems(client, userId, {
+    sort,
+    cursor,
+    limit,
+  });
+
+  return jsonResponse(result);
+}
+
+export async function handleWatchlistMembershipRequest(
+  client: AdminClient,
+  userId: string,
+  titleId: string,
+) {
+  const normalizedTitleId = titleId.trim();
+  if (!normalizedTitleId) {
+    return jsonResponse({ error: "titleId is required." }, 400);
+  }
+
+  const item = await findWatchlistItem(client, userId, normalizedTitleId);
+  return jsonResponse({ isInWatchlist: item != null });
 }
 
 export async function handleWatchlistAddRequest(
@@ -93,4 +117,19 @@ function parseWatchlistSort(url: URL): WatchlistSort {
     default:
       return "added-desc";
   }
+}
+
+function parseCursor(url: URL): ListWatchlistParams["cursor"] {
+  const value = url.searchParams.get("cursor");
+  return value && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function parseLimit(url: URL): ListWatchlistParams["limit"] {
+  const value = url.searchParams.get("limit");
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) ? parsed : undefined;
 }

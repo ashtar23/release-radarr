@@ -1,16 +1,17 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import type { TitleDetails, WatchlistItem, WatchlistSort } from "@repo/types";
 
 import { useAuthGate } from "@/auth/use-auth-gate";
 import { useAppPreferences } from "@/features/settings/providers/app-preferences";
+import { useManualRefresh } from "@/hooks/use-manual-refresh";
 import { extractErrorMessage } from "@/lib/extract-error-message";
 import { useIsOffline } from "@/lib/react-query-online";
-import { useManualRefresh } from "@/hooks/use-manual-refresh";
 
-import { DEFAULT_WATCHLIST_SORT, sortWatchlistItems } from "../watchlist-sort";
+import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
 import { useWatchlistMutation } from "../mutations/use-watchlist-mutation";
 import { watchlistConfigError } from "../data-access/watchlist";
 import { useWatchlistQuery } from "../queries/use-watchlist-query";
+import { useWatchlistSearch } from "./use-watchlist-search";
 import {
   deriveWatchlistScreenState,
   type WatchlistScreenReadyState,
@@ -29,7 +30,6 @@ export function useWatchlistScreen() {
     useAppPreferences();
 
   const [selectedSort, setSelectedSort] = useState<WatchlistSort | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const resolvedDefaultSort = arePreferencesHydrated
     ? defaultWatchlistSort
@@ -42,27 +42,24 @@ export function useWatchlistScreen() {
     error: watchlistError,
     isError: hasWatchlistError,
     isFetching,
-    isPending,
+    isFetchingNextPage,
     isPlaceholderData,
+    fetchNextPage,
+    hasNextPage,
+    isPending,
     isRefetching,
     refetch: refetchWatchlist,
   } = useWatchlistQuery(sort);
 
-  const { addMutation, removeMutation } = useWatchlistMutation(sort);
+  const { addMutation, removeMutation } = useWatchlistMutation();
 
   const configError = authConfigError ?? watchlistConfigError;
   const canRefresh = authGateState === "ready" && isSignedIn;
-  const rawItems =
+  const items =
     authGateState === "ready" && isSignedIn
-      ? (watchlistData?.items ?? EMPTY_WATCHLIST_ITEMS)
+      ? (watchlistData?.pages.flatMap((page) => page.items) ??
+        EMPTY_WATCHLIST_ITEMS)
       : EMPTY_WATCHLIST_ITEMS;
-  const items = useMemo(() => {
-    if (rawItems.length === 0) {
-      return EMPTY_WATCHLIST_ITEMS;
-    }
-
-    return sortWatchlistItems(rawItems, sort);
-  }, [rawItems, sort]);
   const hasWatchlistData = watchlistData !== undefined;
   const {
     isRefreshing: isManualRefreshing,
@@ -82,33 +79,29 @@ export function useWatchlistScreen() {
   );
   const hasBlockingRequestError = !hasWatchlistData && hasWatchlistError;
   const isMutating = addMutation.isPending || removeMutation.isPending;
-  const isUpdatingSort =
-    canRefresh && isFetching && isPlaceholderData && !isManualRefreshing;
-  const normalizedSearchQuery = normalizeWatchlistSearchText(searchQuery);
-
-  const filteredItems = useMemo(() => {
-    if (!normalizedSearchQuery) {
-      return items;
-    }
-
-    return items.filter((item) =>
-      normalizeWatchlistSearchText(item.title.name).includes(
-        normalizedSearchQuery,
-      ),
-    );
-  }, [items, normalizedSearchQuery]);
+  const { setSearchQuery, trimmedSearchQuery, filteredItems } =
+    useWatchlistSearch(items);
 
   const retryWatchlist = useCallback(() => {
     void refreshWatchlist();
   }, [refreshWatchlist]);
 
-  const trimmedSearchQuery = searchQuery.trim();
+  const loadMoreItems = useCallback(() => {
+    if (isOffline || !hasNextPage || isFetchingNextPage) {
+      return;
+    }
+
+    void fetchNextPage({ cancelRefetch: false });
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isOffline]);
   const readyState: WatchlistScreenReadyState = {
     mode: "ready",
     items,
     filteredItems,
     refreshing: isManualRefreshing && canRefresh,
     onRefresh: canManualRefresh ? retryWatchlist : undefined,
+    hasMoreItems: !isOffline && Boolean(hasNextPage),
+    isLoadingMore: isFetchingNextPage,
+    loadMoreItems,
   };
 
   const state = deriveWatchlistScreenState({
@@ -154,13 +147,23 @@ export function useWatchlistScreen() {
 
   const updateSort = useCallback(
     (nextSort: WatchlistSort) => {
+      if (isOffline) {
+        return;
+      }
+
       setSelectedSort(nextSort === defaultWatchlistSort ? null : nextSort);
     },
-    [defaultWatchlistSort],
+    [defaultWatchlistSort, isOffline],
   );
 
   const shouldShowControls =
     canRefresh && (state.mode === "ready" || state.mode === "search-empty");
+  const showLoadingOverlay =
+    isPlaceholderData &&
+    isFetching &&
+    !isFetchingNextPage &&
+    hasWatchlistData &&
+    !isManualRefreshing;
 
   return {
     state,
@@ -170,21 +173,11 @@ export function useWatchlistScreen() {
     setSort: updateSort,
     setSearchQuery,
     shouldShowControls,
+    showLoadingOverlay,
     canUseWatchlist: isSignedIn,
     isMutating,
-    isUpdatingSort,
     isInWatchlist,
     addToWatchlist,
     removeFromWatchlist,
   };
-}
-
-function normalizeWatchlistSearchText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/['’`]/g, "")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .toLocaleLowerCase()
-    .trim();
 }

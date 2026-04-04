@@ -7,8 +7,7 @@ import { useAppHaptics } from "@/features/settings/hooks/use-app-haptics";
 import { useIsOffline } from "@/lib/react-query-online";
 
 import { useWatchlistMutation } from "../mutations/use-watchlist-mutation";
-import { useWatchlistQuery } from "../queries/use-watchlist-query";
-import { DEFAULT_WATCHLIST_SORT } from "../watchlist-sort";
+import { useWatchlistMembershipQuery } from "../queries/use-watchlist-query";
 
 export function useTitleWatchlist(
   titleId: string,
@@ -17,10 +16,9 @@ export function useTitleWatchlist(
   const { isSignedIn } = useAuthGate();
   const haptics = useAppHaptics();
   const isOffline = useIsOffline();
-  const { data: watchlistData } = useWatchlistQuery(DEFAULT_WATCHLIST_SORT);
+  const { data: membershipData } = useWatchlistMembershipQuery(titleId);
   const { addMutation, removeMutation } = useWatchlistMutation();
-  const watchlistItems = watchlistData?.items ?? [];
-  const isInWatchlist = watchlistItems.some((item) => item.title.id === titleId);
+  const isInWatchlist = membershipData?.isInWatchlist ?? false;
   const canToggleWatchlist =
     !isOffline && (isInWatchlist || Boolean(titleDetails));
 

@@ -13,6 +13,9 @@ type WatchlistListProps = {
   items: WatchlistItem[];
   refreshing: boolean;
   onRefresh?: () => void;
+  hasMoreItems: boolean;
+  isLoadingMore: boolean;
+  onEndReached: () => void;
   listHeader?: ReactElement | null;
 };
 
@@ -20,6 +23,9 @@ export function WatchlistList({
   items,
   refreshing,
   onRefresh,
+  hasMoreItems,
+  isLoadingMore,
+  onEndReached,
   listHeader,
 }: WatchlistListProps) {
   const renderItem = useCallback(
@@ -46,9 +52,17 @@ export function WatchlistList({
       refreshing={refreshing}
       onRefresh={onRefresh}
       ListHeaderComponent={listHeader}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
       ItemSeparatorComponent={ItemSeparator}
       drawDistance={320}
-      ListFooterComponent={<WatchlistFooter itemCount={items.length} />}
+      ListFooterComponent={
+        <WatchlistFooter
+          itemCount={items.length}
+          hasMoreItems={hasMoreItems}
+          isLoadingMore={isLoadingMore}
+        />
+      }
     />
   );
 }

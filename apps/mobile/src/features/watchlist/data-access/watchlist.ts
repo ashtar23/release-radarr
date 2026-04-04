@@ -6,15 +6,33 @@ export const watchlistConfigError = apiClientConfigError;
 function listWatchlist({
   signal,
   sort,
+  cursor,
+  limit,
 }: {
   signal: AbortSignal;
   sort: WatchlistSort;
+  cursor?: string;
+  limit?: number;
 }) {
   if (!apiClient) {
     throw new Error(watchlistConfigError ?? "Watchlist API is not configured.");
   }
 
-  return apiClient.listWatchlist({ signal, sort });
+  return apiClient.listWatchlist({ signal, sort, cursor, limit });
+}
+
+function getWatchlistMembership({
+  titleId,
+  signal,
+}: {
+  titleId: string;
+  signal?: AbortSignal;
+}) {
+  if (!apiClient) {
+    throw new Error(watchlistConfigError ?? "Watchlist API is not configured.");
+  }
+
+  return apiClient.getWatchlistMembership({ titleId, signal });
 }
 
 function addWatchlistItem({
@@ -45,4 +63,9 @@ function removeWatchlistItem({
   return apiClient.removeWatchlistItem({ titleId, signal });
 }
 
-export { listWatchlist, addWatchlistItem, removeWatchlistItem };
+export {
+  listWatchlist,
+  getWatchlistMembership,
+  addWatchlistItem,
+  removeWatchlistItem,
+};

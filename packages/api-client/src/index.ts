@@ -27,9 +27,11 @@ export { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 export { searchTitles, type SearchTitlesParams } from "./search";
 export {
   addWatchlistItem,
+  getWatchlistMembership,
   listWatchlist,
   removeWatchlistItem,
   type AddWatchlistItemParams,
+  type GetWatchlistMembershipParams,
   type ListWatchlistParams,
   type RemoveWatchlistItemParams,
 } from "./watchlist";

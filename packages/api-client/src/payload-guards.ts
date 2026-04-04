@@ -12,6 +12,7 @@ import type { TitleSearchResult } from "@repo/types";
 import type { TitleSummary } from "@repo/types";
 import type { WatchlistItem } from "@repo/types";
 import type { WatchlistListResult } from "@repo/types";
+import type { WatchlistMembershipResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
 import {
   notificationDestinationKindValues,
@@ -22,7 +23,9 @@ import {
   searchServedByValues,
 } from "@repo/types";
 
-const NOTIFICATION_EVENT_TYPE_SET = new Set<string>(notificationEventTypeValues);
+const NOTIFICATION_EVENT_TYPE_SET = new Set<string>(
+  notificationEventTypeValues,
+);
 const NOTIFICATION_DESTINATION_KIND_SET = new Set<string>(
   notificationDestinationKindValues,
 );
@@ -35,7 +38,9 @@ const SEARCH_PROVIDER_USED_TRIGGER_SET = new Set<string>(
   searchProviderUsedTriggerValues,
 );
 
-export function isTitleSearchResult(value: unknown): value is TitleSearchResult {
+export function isTitleSearchResult(
+  value: unknown,
+): value is TitleSearchResult {
   if (!isRecord(value)) {
     return false;
   }
@@ -54,21 +59,15 @@ export function isTitleSearchResult(value: unknown): value is TitleSearchResult 
     value.limit >= 1 &&
     typeof value.hasMore === "boolean" &&
     value.results.every(isTitleSummary) &&
-    (
-      value.servedBy === undefined ||
+    (value.servedBy === undefined ||
       (typeof value.servedBy === "string" &&
-        SEARCH_SERVED_BY_SET.has(value.servedBy))
-    ) &&
-    (
-      value.decisionReason === undefined ||
+        SEARCH_SERVED_BY_SET.has(value.servedBy))) &&
+    (value.decisionReason === undefined ||
       (typeof value.decisionReason === "string" &&
-        SEARCH_DECISION_REASON_SET.has(value.decisionReason))
-    ) &&
-    (
-      value.providerUsedTrigger === undefined ||
+        SEARCH_DECISION_REASON_SET.has(value.decisionReason))) &&
+    (value.providerUsedTrigger === undefined ||
       (typeof value.providerUsedTrigger === "string" &&
-        SEARCH_PROVIDER_USED_TRIGGER_SET.has(value.providerUsedTrigger))
-    )
+        SEARCH_PROVIDER_USED_TRIGGER_SET.has(value.providerUsedTrigger)))
   );
 }
 
@@ -86,16 +85,18 @@ export function isTitleDetails(value: unknown): value is TitleDetails {
   );
 }
 
-export function isWatchlistListResult(value: unknown): value is WatchlistListResult {
+export function isWatchlistListResult(
+  value: unknown,
+): value is WatchlistListResult {
   if (!isRecord(value)) {
     return false;
   }
 
-  if (!Array.isArray(value.items)) {
-    return false;
-  }
-
-  return value.items.every(isWatchlistItem);
+  return (
+    Array.isArray(value.items) &&
+    value.items.every(isWatchlistItem) &&
+    (value.nextCursor === null || typeof value.nextCursor === "string")
+  );
 }
 
 export function isWatchlistUpsertResult(
@@ -106,6 +107,12 @@ export function isWatchlistUpsertResult(
   }
 
   return isWatchlistItem(value.item);
+}
+
+export function isWatchlistMembershipResult(
+  value: unknown,
+): value is WatchlistMembershipResult {
+  return isRecord(value) && typeof value.isInWatchlist === "boolean";
 }
 
 export function isNotificationRecordListResult(
@@ -243,9 +250,7 @@ function isNotificationPayload(
   return false;
 }
 
-function isNotificationPreferences(
-  value: Record<string, unknown>,
-): boolean {
+function isNotificationPreferences(value: Record<string, unknown>): boolean {
   return (
     isRecord(value.channels) &&
     typeof value.channels.inApp === "boolean" &&

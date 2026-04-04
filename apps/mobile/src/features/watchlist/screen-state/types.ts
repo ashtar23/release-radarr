@@ -6,6 +6,9 @@ export type WatchlistScreenReadyState = {
   filteredItems: WatchlistItem[];
   refreshing: boolean;
   onRefresh?: () => void;
+  hasMoreItems: boolean;
+  isLoadingMore: boolean;
+  loadMoreItems: () => void;
 };
 
 export type WatchlistScreenNonReadyState =

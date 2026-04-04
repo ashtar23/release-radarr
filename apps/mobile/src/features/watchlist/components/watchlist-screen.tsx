@@ -35,10 +35,10 @@ export function WatchlistScreen() {
     setSort,
     setSearchQuery,
     shouldShowControls,
+    showLoadingOverlay,
     state,
     retry,
     retrying,
-    isUpdatingSort,
   } = useWatchlistScreen();
   const offlineRetry = useProtectedOfflineRetry({
     onRetryReady: retry,
@@ -79,8 +79,10 @@ export function WatchlistScreen() {
                   : "chevron.down"
                 : undefined,
             isOn: getWatchlistSortFamily(sort) === option.family,
+            disabled: isOffline,
             onPress: () => setSort(toggleWatchlistSort(sort, option.family)),
           })),
+          disabled: isOffline,
         },
       ];
     }
@@ -93,6 +95,7 @@ export function WatchlistScreen() {
         iosIcon: "arrow.up.arrow.down.circle",
         androidIcon: "swap_vert",
         tintColor: theme.text,
+        disabled: isOffline,
         onPress: () => {
           openSheet({
             component: ({ close }) => (
@@ -104,7 +107,7 @@ export function WatchlistScreen() {
         },
       },
     ];
-  }, [openSheet, setSort, shouldShowControls, sort, theme.text]);
+  }, [isOffline, openSheet, setSort, shouldShowControls, sort, theme.text]);
 
   if (isOffline && !canKeepShowingContentOffline) {
     return (
@@ -140,6 +143,9 @@ export function WatchlistScreen() {
           items={state.filteredItems}
           refreshing={state.refreshing}
           onRefresh={state.onRefresh}
+          hasMoreItems={state.hasMoreItems}
+          isLoadingMore={state.isLoadingMore}
+          onEndReached={state.loadMoreItems}
           listHeader={
             isOffline ? (
               <OfflineBanner
@@ -153,7 +159,12 @@ export function WatchlistScreen() {
         <WatchlistStateView state={state} />
       )}
 
-      {isUpdatingSort ? <ScreenLoadingOverlay /> : null}
+      {showLoadingOverlay ? (
+        <ScreenLoadingOverlay
+          pointerEvents="none"
+          label="Updating watchlist..."
+        />
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
