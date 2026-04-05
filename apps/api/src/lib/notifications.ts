@@ -1,7 +1,11 @@
 import type {
+  NotificationPreferences,
+  NotificationPreferencesResult,
   NotificationPayload,
   NotificationRecord,
   NotificationRecordListResult,
+  NotificationTimingPreset,
+  UpdateNotificationPreferencesInput,
   NotificationUnreadCountResult,
 } from "@repo/types";
 
@@ -26,8 +30,35 @@ type NotificationRecordRow = {
   read_at: string | null;
 };
 
+type NotificationPreferencesRow = {
+  in_app_enabled: boolean;
+  push_enabled: boolean;
+  release_date_changed_enabled: boolean;
+  release_approaching_enabled: boolean;
+  timing_presets: string[];
+  updated_at: string;
+};
+
 const DEFAULT_PAGE_LIMIT = 20;
 const MAX_PAGE_LIMIT = 50;
+const VALID_TIMING_PRESETS: NotificationTimingPreset[] = [
+  "on_day",
+  "hours_24_before",
+  "days_7_before",
+  "days_30_before",
+];
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  channels: {
+    inApp: true,
+    push: false,
+  },
+  events: {
+    releaseDateChanged: true,
+    releaseApproaching: true,
+  },
+  timingPresets: ["on_day"],
+  updatedAt: new Date(0).toISOString(),
+};
 
 export interface ListNotificationsParams {
   readonly cursor?: string;
@@ -108,6 +139,93 @@ export async function listNotificationRecords(
   return { items, nextCursor };
 }
 
+export async function getNotificationPreferences(
+  userId: string,
+): Promise<NotificationPreferencesResult> {
+  const pool = getPostgresPool();
+  const result = await pool.query<NotificationPreferencesRow>(
+    `
+      select
+        in_app_enabled,
+        push_enabled,
+        release_date_changed_enabled,
+        release_approaching_enabled,
+        timing_presets,
+        updated_at
+      from notification_preferences
+      where user_id = $1::uuid
+      limit 1
+    `,
+    [userId],
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return {
+      preferences: { ...DEFAULT_NOTIFICATION_PREFERENCES },
+    };
+  }
+
+  return {
+    preferences: mapNotificationPreferencesRow(row),
+  };
+}
+
+export async function updateNotificationPreferences(
+  userId: string,
+  input: UpdateNotificationPreferencesInput,
+): Promise<NotificationPreferencesResult> {
+  const pool = getPostgresPool();
+  const timingPresets = normalizeTimingPresets(input.timingPresets);
+  const result = await pool.query<NotificationPreferencesRow>(
+    `
+      insert into notification_preferences (
+        user_id,
+        in_app_enabled,
+        push_enabled,
+        release_date_changed_enabled,
+        release_approaching_enabled,
+        timing_presets,
+        updated_at
+      ) values (
+        $1::uuid,
+        $2::boolean,
+        $3::boolean,
+        $4::boolean,
+        $5::boolean,
+        $6::text[],
+        timezone('utc', now())
+      )
+      on conflict (user_id) do update set
+        in_app_enabled = excluded.in_app_enabled,
+        push_enabled = excluded.push_enabled,
+        release_date_changed_enabled = excluded.release_date_changed_enabled,
+        release_approaching_enabled = excluded.release_approaching_enabled,
+        timing_presets = excluded.timing_presets,
+        updated_at = timezone('utc', now())
+      returning
+        in_app_enabled,
+        push_enabled,
+        release_date_changed_enabled,
+        release_approaching_enabled,
+        timing_presets,
+        updated_at
+    `,
+    [
+      userId,
+      input.channels.inApp,
+      input.channels.push,
+      input.events.releaseDateChanged,
+      input.events.releaseApproaching,
+      timingPresets,
+    ],
+  );
+
+  return {
+    preferences: mapNotificationPreferencesRow(result.rows[0]!),
+  };
+}
+
 function mapNotificationRecord(row: NotificationRecordRow): NotificationRecord {
   return {
     id: row.id,
@@ -123,6 +241,44 @@ function mapNotificationRecord(row: NotificationRecordRow): NotificationRecord {
     createdAt: row.created_at,
     readAt: row.read_at,
   };
+}
+
+function mapNotificationPreferencesRow(
+  row: NotificationPreferencesRow,
+): NotificationPreferences {
+  return {
+    channels: {
+      inApp: row.in_app_enabled,
+      push: row.push_enabled,
+    },
+    events: {
+      releaseDateChanged: row.release_date_changed_enabled,
+      releaseApproaching: row.release_approaching_enabled,
+    },
+    timingPresets: normalizeTimingPresets(row.timing_presets),
+    updatedAt: row.updated_at,
+  };
+}
+
+function normalizeTimingPresets(values: string[]): NotificationTimingPreset[] {
+  const unique = new Set<NotificationTimingPreset>();
+  for (const value of values) {
+    if (isNotificationTimingPreset(value)) {
+      unique.add(value);
+    }
+  }
+
+  if (unique.size === 0) {
+    return ["on_day"];
+  }
+
+  return Array.from(unique);
+}
+
+function isNotificationTimingPreset(
+  value: string,
+): value is NotificationTimingPreset {
+  return (VALID_TIMING_PRESETS as string[]).includes(value);
 }
 
 function normalizeLimit(limit: number | undefined) {

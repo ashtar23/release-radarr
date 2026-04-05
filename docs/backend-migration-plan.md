@@ -164,7 +164,7 @@ Current phase 1 routing rule:
 
 - default app backend remains Supabase
 - only `home/discovery` is allowed to override to the custom API through env
-- the phase-1 notifications override may also route `GET /notifications` and `GET /notifications/unread-count` to the custom API once deployed
+- the phase-1 notifications override may also route `GET /notifications`, `GET /notifications/unread-count`, and `GET/PUT /notification-preferences` to the custom API once deployed
 
 ## Key Decisions
 

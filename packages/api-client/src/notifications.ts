@@ -162,10 +162,16 @@ export function getNotificationPreferences({
   context,
   signal,
 }: GetNotificationPreferencesRequestParams): Promise<NotificationPreferencesResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/notification-preferences`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notification-preferences`
+        : "/notification-preferences",
     signal,
     validate: isNotificationPreferencesResult,
     invalidPayloadMessage: "Notification preferences payload is invalid.",
@@ -177,10 +183,16 @@ export function updateNotificationPreferences({
   context,
   params,
 }: UpdateNotificationPreferencesRequestParams): Promise<NotificationPreferencesResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "PUT",
-    path: `${API_PATH_PREFIX}/notification-preferences`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notification-preferences`
+        : "/notification-preferences",
     signal: params.signal,
     body: JSON.stringify({
       channels: params.channels,

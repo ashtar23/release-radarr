@@ -135,10 +135,11 @@ For phase 1 home only:
 
 - `titles_rows.sql`
 
-For the phase-1 notifications slice (`GET /notifications` and
-`GET /notifications/unread-count`):
+For the phase-1 notifications slice (`GET /notifications`,
+`GET /notifications/unread-count`, and `GET/PUT /notification-preferences`):
 
 - `notification_events_rows.sql`
+- `notification_preferences_rows.sql`
 - `notification_records_rows.sql`
 
 If your export contains bare `ARRAY[]` values, patch it first:
