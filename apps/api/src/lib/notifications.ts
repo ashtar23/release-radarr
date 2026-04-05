@@ -1,4 +1,6 @@
 import type {
+  MarkAllNotificationsReadResult,
+  MarkNotificationReadResult,
   NotificationPreferences,
   NotificationPreferencesResult,
   NotificationPayload,
@@ -287,6 +289,87 @@ function normalizeLimit(limit: number | undefined) {
   }
 
   return Math.min(Math.max(limit, 1), MAX_PAGE_LIMIT);
+}
+
+export async function markAllAsRead(
+  userId: string,
+): Promise<MarkAllNotificationsReadResult> {
+  const pool = getPostgresPool();
+  const result = await pool.query(
+    `
+      update notification_records
+      set read_at = timezone('utc', now())
+      where user_id = $1::uuid
+        and read_at is null
+    `,
+    [userId],
+  );
+
+  return { markedCount: result.rowCount ?? 0 };
+}
+
+export async function markAsRead(
+  userId: string,
+  notificationId: string,
+): Promise<MarkNotificationReadResult | null> {
+  const pool = getPostgresPool();
+  const result = await pool.query<NotificationRecordRow>(
+    `
+      with existing as (
+        select
+          id,
+          title_id,
+          event_type,
+          destination_kind,
+          destination_title_id,
+          title_name,
+          title_artwork_url,
+          message,
+          subtitle,
+          payload,
+          created_at,
+          read_at
+        from notification_records
+        where user_id = $1::uuid
+          and id = $2::text
+      ),
+      updated as (
+        update notification_records
+        set read_at = timezone('utc', now())
+        where user_id = $1::uuid
+          and id = $2::text
+          and read_at is null
+        returning
+          id,
+          title_id,
+          event_type,
+          destination_kind,
+          destination_title_id,
+          title_name,
+          title_artwork_url,
+          message,
+          subtitle,
+          payload,
+          created_at,
+          read_at
+      )
+      select * from updated
+      union all
+      select * from existing
+      where not exists (select 1 from updated)
+      limit 1
+    `,
+    [userId, notificationId],
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  return {
+    notification: mapNotificationRecord(row),
+  };
 }
 
 function encodeCursor(createdAt: string, id: string) {

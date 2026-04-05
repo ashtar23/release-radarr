@@ -12,11 +12,11 @@ The mobile app is configured through `apps/mobile/app.config.ts` and selected wi
 
 Each hosted environment has its own installable app identity so staging and production can coexist on the same device.
 
-| APP_ENV | App name | Scheme | iOS bundle identifier | Android package |
-| --- | --- | --- | --- | --- |
-| `development` | `Release Radar Dev` | `releaseradar-dev` | `com.ashtar23.releaseradar.dev` | `com.ashtar23.releaseradar.dev` |
-| `staging` | `Release Radar Staging` | `releaseradar-staging` | `com.ashtar23.releaseradar.staging` | `com.ashtar23.releaseradar.staging` |
-| `production` | `Release Radar` | `releaseradar` | `com.ashtar23.releaseradar` | `com.ashtar23.releaseradar` |
+| APP_ENV       | App name                | Scheme                 | iOS bundle identifier               | Android package                     |
+| ------------- | ----------------------- | ---------------------- | ----------------------------------- | ----------------------------------- |
+| `development` | `Release Radar Dev`     | `releaseradar-dev`     | `com.ashtar23.releaseradar.dev`     | `com.ashtar23.releaseradar.dev`     |
+| `staging`     | `Release Radar Staging` | `releaseradar-staging` | `com.ashtar23.releaseradar.staging` | `com.ashtar23.releaseradar.staging` |
+| `production`  | `Release Radar`         | `releaseradar`         | `com.ashtar23.releaseradar`         | `com.ashtar23.releaseradar`         |
 
 ## Backend targets
 
@@ -51,7 +51,7 @@ Runtime behavior:
 - `APP_ENV` selects the app identity and build target
 - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` select the backend the app talks to
 - `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery` to use the custom API
-- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides the migrated notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, and `GET/PUT /notification-preferences`
+- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides the migrated notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:notificationId/read`, `POST /notifications/read-all`, and `GET/PUT /notification-preferences`
 
 Only publishable client credentials belong in the mobile app. Do not put service role or secret keys in Expo env vars.
 

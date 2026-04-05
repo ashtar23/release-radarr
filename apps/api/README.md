@@ -71,11 +71,11 @@ Phase 1 API runtime contract:
 Transitional envs that remain available but are not part of the current
 `home/discovery` route:
 
-| Var                   | Why it still exists                                                                                             |
-| --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `SUPABASE_URL`        | required for migrated authenticated routes that verify Supabase-issued access tokens                             |
-| `SUPABASE_SECRET_KEY` | same as above                                                                                                   |
-| `RAWG_API_KEY`        | future enrichment/search phases may still use RAWG outside the phase 1 home request path                        |
+| Var                   | Why it still exists                                                                      |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`        | required for migrated authenticated routes that verify Supabase-issued access tokens     |
+| `SUPABASE_SECRET_KEY` | same as above                                                                            |
+| `RAWG_API_KEY`        | future enrichment/search phases may still use RAWG outside the phase 1 home request path |
 
 ## Railway deploy
 
@@ -136,7 +136,8 @@ For phase 1 home only:
 - `titles_rows.sql`
 
 For the phase-1 notifications slice (`GET /notifications`,
-`GET /notifications/unread-count`, and `GET/PUT /notification-preferences`):
+`GET /notifications/unread-count`, `POST /notifications/:notificationId/read`,
+`POST /notifications/read-all`, and `GET/PUT /notification-preferences`):
 
 - `notification_events_rows.sql`
 - `notification_preferences_rows.sql`
@@ -173,11 +174,11 @@ Leave it unset to keep `home/discovery` on the current hosted backend.
 
 Phase 1 mobile env matrix:
 
-| Environment      | Required vars                                                                             | Optional vars                                                        |
-| ---------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001` |
+| Environment      | Required vars                                                                             | Optional vars                                                                                                                                       |
+| ---------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001`                               |
 | staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app` |
-| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover |
+| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover                                                                                                |
 
 ## Current phase goal
 

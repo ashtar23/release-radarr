@@ -3,13 +3,16 @@
 This is the frontend-facing contract for the Supabase Edge Function API.
 
 ## Base URL
+
 - Production: `https://<project-ref>.supabase.co/functions/v1/api`
 - Local: `http://127.0.0.1:54321/functions/v1/api`
 
 Path prefix constant:
+
 - `API_PATH_PREFIX = "/functions/v1/api"`
 
 ## Auth Model
+
 - Public title endpoints do not require user auth.
 - Watchlist endpoints require a valid user bearer token.
 - Notifications endpoints require a valid user bearer token.
@@ -20,6 +23,7 @@ Path prefix constant:
 The shared API client handles this header strategy.
 
 ## Response/Error Shape
+
 - Success: JSON payload per endpoint contract.
 - Error: `{ "error": string }`
 - Common statuses:
@@ -32,6 +36,7 @@ The shared API client handles this header strategy.
 ## Endpoint Catalog
 
 ### 1) Search Titles
+
 - Method: `GET`
 - Path: `/titles`
 - Query:
@@ -43,11 +48,13 @@ The shared API client handles this header strategy.
 - Returns: `TitleSearchResult`
 
 Example:
+
 ```http
 GET /functions/v1/api/titles?query=elden&page=1&limit=20
 ```
 
 Type:
+
 ```ts
 interface TitleSearchResult {
   query: string;
@@ -63,17 +70,20 @@ interface TitleSearchResult {
 ```
 
 ### 2) Get Title Details
+
 - Method: `GET`
 - Path: `/titles/{id}` (URL-encoded)
 - Auth: optional
 - Returns: `TitleDetails`
 
 Example:
+
 ```http
 GET /functions/v1/api/titles/rawg%3A3498
 ```
 
 Type:
+
 ```ts
 interface TitleDetails extends TitleSummary {
   description: string | null;
@@ -86,18 +96,21 @@ interface TitleDetails extends TitleSummary {
 ```
 
 ### 3) List Watchlist
+
 - Method: `GET`
 - Path: `/watchlist`
 - Auth: required
 - Returns: `WatchlistListResult`
 
 Example:
+
 ```http
 GET /functions/v1/api/watchlist
 Authorization: Bearer <access_token>
 ```
 
 Type:
+
 ```ts
 interface WatchlistListResult {
   items: WatchlistItem[];
@@ -105,16 +118,20 @@ interface WatchlistListResult {
 ```
 
 ### 4) Add Watchlist Item
+
 - Method: `POST`
 - Path: `/watchlist`
 - Auth: required
 - Body:
+
 ```json
 { "titleId": "rawg:3498" }
 ```
+
 - Returns: `WatchlistUpsertResult` (`201`)
 
 Type:
+
 ```ts
 interface WatchlistUpsertResult {
   item: WatchlistItem;
@@ -122,26 +139,31 @@ interface WatchlistUpsertResult {
 ```
 
 Notes:
+
 - `titleId` is required and trimmed.
 - Returns `404` if the title does not exist in the titles table.
 
 ### 5) Remove Watchlist Item
+
 - Method: `DELETE`
 - Path: `/watchlist/{titleId}` (URL-encoded)
 - Auth: required
 - Returns: `200` with `{ "removed": true }`
 
 Example:
+
 ```http
 DELETE /functions/v1/api/watchlist/rawg%3A3498
 Authorization: Bearer <access_token>
 ```
 
 Notes:
+
 - Safe to treat as idempotent on FE.
 - The shared API client exposes this as `Promise<void>`.
 
 ### 6) List Notifications
+
 - Method: `GET`
 - Path: `/notifications`
 - Auth: required
@@ -151,12 +173,14 @@ Notes:
 - Returns: `NotificationRecordListResult`
 
 Example:
+
 ```http
 GET /functions/v1/api/notifications?limit=20
 Authorization: Bearer <access_token>
 ```
 
 Type:
+
 ```ts
 interface NotificationRecordListResult {
   items: NotificationRecord[];
@@ -165,22 +189,26 @@ interface NotificationRecordListResult {
 ```
 
 Sorting:
+
 - newest first
 - backend order is `createdAt DESC, id DESC`
 
 ### 7) Get Notification Unread Count
+
 - Method: `GET`
 - Path: `/notifications/unread-count`
 - Auth: required
 - Returns: `NotificationUnreadCountResult`
 
 Example:
+
 ```http
 GET /functions/v1/api/notifications/unread-count
 Authorization: Bearer <access_token>
 ```
 
 Type:
+
 ```ts
 interface NotificationUnreadCountResult {
   unreadCount: number;
@@ -188,18 +216,21 @@ interface NotificationUnreadCountResult {
 ```
 
 ### 8) Mark Notification Read
+
 - Method: `POST`
 - Path: `/notifications/{notificationId}/read` (URL-encoded)
 - Auth: required
 - Returns: `MarkNotificationReadResult`
 
 Example:
+
 ```http
 POST /functions/v1/api/notifications/notification-record%3Aevent%3A123%3Auser%3A456/read
 Authorization: Bearer <access_token>
 ```
 
 Type:
+
 ```ts
 interface MarkNotificationReadResult {
   notification: NotificationRecord;
@@ -207,22 +238,53 @@ interface MarkNotificationReadResult {
 ```
 
 Notes:
+
 - idempotent for FE use
 - returns `404` if the notification is not owned by the caller or does not exist
 
-### 9) Get Notification Preferences
+### 9) Mark All Notifications Read
+
+- Method: `POST`
+- Path: `/notifications/read-all`
+- Auth: required
+- Returns: `MarkAllNotificationsReadResult`
+
+Example:
+
+```http
+POST /functions/v1/api/notifications/read-all
+Authorization: Bearer <access_token>
+```
+
+Type:
+
+```ts
+interface MarkAllNotificationsReadResult {
+  markedCount: number;
+}
+```
+
+Notes:
+
+- idempotent for FE use
+- `markedCount` is the number of unread records updated in this request
+
+### 10) Get Notification Preferences
+
 - Method: `GET`
 - Path: `/notification-preferences`
 - Auth: required
 - Returns: `NotificationPreferencesResult`
 
 Example:
+
 ```http
 GET /functions/v1/api/notification-preferences
 Authorization: Bearer <access_token>
 ```
 
 Type:
+
 ```ts
 interface NotificationPreferencesResult {
   preferences: NotificationPreferences;
@@ -230,13 +292,16 @@ interface NotificationPreferencesResult {
 ```
 
 Notes:
+
 - if no row exists yet, backend returns default preferences instead of `404`
 
-### 10) Update Notification Preferences
+### 11) Update Notification Preferences
+
 - Method: `PUT`
 - Path: `/notification-preferences`
 - Auth: required
 - Body:
+
 ```json
 {
   "channels": { "inApp": true, "push": false },
@@ -247,9 +312,11 @@ Notes:
   "timingPresets": ["on_day", "days_7_before"]
 }
 ```
+
 - Returns: `NotificationPreferencesResult`
 
 Notes:
+
 - upsert semantics by `user_id`
 - invalid payload returns `400`
 
@@ -257,11 +324,30 @@ Notes:
 
 ```ts
 interface ReleaseRadarApiClient {
-  searchTitles(params: { query: string; page?: number; limit?: number; forceRefresh?: boolean; signal?: AbortSignal }): Promise<TitleSearchResult>;
-  getTitleDetails(params: { id: string; signal?: AbortSignal }): Promise<TitleDetails>;
-  listNotifications(params?: { cursor?: string; limit?: number; signal?: AbortSignal }): Promise<NotificationRecordListResult>;
+  searchTitles(params: {
+    query: string;
+    page?: number;
+    limit?: number;
+    forceRefresh?: boolean;
+    signal?: AbortSignal;
+  }): Promise<TitleSearchResult>;
+  getTitleDetails(params: {
+    id: string;
+    signal?: AbortSignal;
+  }): Promise<TitleDetails>;
+  listNotifications(params?: {
+    cursor?: string;
+    limit?: number;
+    signal?: AbortSignal;
+  }): Promise<NotificationRecordListResult>;
   getNotificationUnreadCount(): Promise<NotificationUnreadCountResult>;
-  markNotificationRead(params: { notificationId: string; signal?: AbortSignal }): Promise<MarkNotificationReadResult>;
+  markAllNotificationsRead(params?: {
+    signal?: AbortSignal;
+  }): Promise<MarkAllNotificationsReadResult>;
+  markNotificationRead(params: {
+    notificationId: string;
+    signal?: AbortSignal;
+  }): Promise<MarkNotificationReadResult>;
   getNotificationPreferences(): Promise<NotificationPreferencesResult>;
   updateNotificationPreferences(params: {
     channels: { inApp: boolean; push: boolean };
@@ -269,17 +355,24 @@ interface ReleaseRadarApiClient {
     timingPresets: NotificationTimingPreset[];
     signal?: AbortSignal;
   }): Promise<NotificationPreferencesResult>;
-  listWatchlist(params?: { signal?: AbortSignal }): Promise<WatchlistListResult>;
-  addWatchlistItem(params: { titleId: string; signal?: AbortSignal }): Promise<WatchlistUpsertResult>;
-  removeWatchlistItem(params: { titleId: string; signal?: AbortSignal }): Promise<void>;
+  listWatchlist(params?: {
+    signal?: AbortSignal;
+  }): Promise<WatchlistListResult>;
+  addWatchlistItem(params: {
+    titleId: string;
+    signal?: AbortSignal;
+  }): Promise<WatchlistUpsertResult>;
+  removeWatchlistItem(params: {
+    titleId: string;
+    signal?: AbortSignal;
+  }): Promise<void>;
 }
 ```
 
 Supporting notification types:
+
 ```ts
-type NotificationEventType =
-  | "release_date_changed"
-  | "release_approaching";
+type NotificationEventType = "release_date_changed" | "release_approaching";
 
 type NotificationDestinationKind = "title";
 
@@ -329,6 +422,7 @@ interface NotificationPreferences {
 ```
 
 Important:
+
 - `health()` exists in the interface but is not implemented yet (throws).
 
 ## FE Usage Example
@@ -376,6 +470,7 @@ class ApiClientError extends Error {
 ```
 
 Recommended FE handling:
+
 - `401`: prompt sign-in / refresh auth state
 - `400`: show validation message
 - `404`: show not-found state

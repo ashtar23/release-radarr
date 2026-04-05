@@ -127,6 +127,7 @@ export function markNotificationRead({
   context,
   params,
 }: MarkNotificationReadRequestParams): Promise<MarkNotificationReadResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
   const notificationId = params.notificationId.trim();
   if (!notificationId) {
     throw new Error("notificationId is required.");
@@ -134,8 +135,12 @@ export function markNotificationRead({
 
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "POST",
-    path: `${API_PATH_PREFIX}/notifications/${encodeURIComponent(notificationId)}/read`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notifications/${encodeURIComponent(notificationId)}/read`
+        : `/notifications/${encodeURIComponent(notificationId)}/read`,
     signal: params.signal,
     validate: isMarkNotificationReadResult,
     invalidPayloadMessage: "Notification read payload is invalid.",
@@ -147,10 +152,16 @@ export function markAllNotificationsRead({
   context,
   params,
 }: MarkAllNotificationsReadRequestParams): Promise<MarkAllNotificationsReadResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "POST",
-    path: `${API_PATH_PREFIX}/notifications/read-all`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notifications/read-all`
+        : "/notifications/read-all",
     signal: params?.signal,
     validate: isMarkAllNotificationsReadResult,
     invalidPayloadMessage: "Mark all notifications read payload is invalid.",

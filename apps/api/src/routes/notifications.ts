@@ -1,13 +1,30 @@
 import type { FastifyInstance } from "fastify";
-import type { NotificationTimingPreset } from "@repo/types";
+import type {
+  NotificationTimingPreset,
+  UpdateNotificationPreferencesInput,
+} from "@repo/types";
 
 import {
   getNotificationPreferences,
   getNotificationUnreadCount,
   listNotificationRecords,
+  markAllAsRead,
+  markAsRead,
   updateNotificationPreferences,
 } from "../lib/notifications";
 import { authenticateRouteRequest, sendInternalServerError } from "./shared";
+
+interface NotificationsQuerystring {
+  cursor?: string;
+  limit?: string;
+}
+
+interface NotificationReadParams {
+  notificationId: string;
+}
+
+type NotificationChannelsInput = UpdateNotificationPreferencesInput["channels"];
+type NotificationEventsInput = UpdateNotificationPreferencesInput["events"];
 
 export function registerNotificationRoutes(server: FastifyInstance) {
   server.get("/notifications/unread-count", async (request, reply) => {
@@ -27,7 +44,9 @@ export function registerNotificationRoutes(server: FastifyInstance) {
     }
   });
 
-  server.get("/notifications", async (request, reply) => {
+  server.get<{
+    Querystring: NotificationsQuerystring;
+  }>("/notifications", async (request, reply) => {
     const user = await authenticateRouteRequest(
       server,
       reply,
@@ -38,20 +57,17 @@ export function registerNotificationRoutes(server: FastifyInstance) {
     }
 
     try {
-      const query = request.query as {
-        cursor?: string;
-        limit?: string;
-      };
+      const { cursor, limit } = request.query;
 
       return await listNotificationRecords(user.id, {
         cursor:
-          typeof query.cursor === "string" && query.cursor.trim().length > 0
-            ? query.cursor
+          typeof cursor === "string" && cursor.trim().length > 0
+            ? cursor
             : undefined,
         limit:
-          typeof query.limit === "string" &&
-          Number.isInteger(Number.parseInt(query.limit, 10))
-            ? Number.parseInt(query.limit, 10)
+          typeof limit === "string" &&
+          Number.isInteger(Number.parseInt(limit, 10))
+            ? Number.parseInt(limit, 10)
             : undefined,
       });
     } catch (error) {
@@ -71,6 +87,53 @@ export function registerNotificationRoutes(server: FastifyInstance) {
 
     try {
       return await getNotificationPreferences(user.id);
+    } catch (error) {
+      return sendInternalServerError(server, reply, error);
+    }
+  });
+
+  server.post<{
+    Params: NotificationReadParams;
+  }>("/notifications/:notificationId/read", async (request, reply) => {
+    const user = await authenticateRouteRequest(
+      server,
+      reply,
+      request.headers.authorization,
+    );
+    if (!user) {
+      return;
+    }
+
+    const notificationId = request.params.notificationId.trim();
+
+    if (!notificationId) {
+      return reply.status(400).send({ error: "notificationId is required." });
+    }
+
+    try {
+      const result = await markAsRead(user.id, notificationId);
+      if (!result) {
+        return reply.status(404).send({ error: "Notification not found." });
+      }
+
+      return result;
+    } catch (error) {
+      return sendInternalServerError(server, reply, error);
+    }
+  });
+
+  server.post("/notifications/read-all", async (request, reply) => {
+    const user = await authenticateRouteRequest(
+      server,
+      reply,
+      request.headers.authorization,
+    );
+    if (!user) {
+      return;
+    }
+
+    try {
+      return await markAllAsRead(user.id);
     } catch (error) {
       return sendInternalServerError(server, reply, error);
     }
@@ -101,49 +164,28 @@ export function registerNotificationRoutes(server: FastifyInstance) {
   });
 }
 
-function parseNotificationPreferencesBody(body: unknown): {
-  channels: { inApp: boolean; push: boolean };
-  events: { releaseDateChanged: boolean; releaseApproaching: boolean };
-  timingPresets: NotificationTimingPreset[];
-} | null {
-  if (!body || typeof body !== "object") {
+function parseNotificationPreferencesBody(
+  body: unknown,
+): UpdateNotificationPreferencesInput | null {
+  if (!isRecord(body)) {
     return null;
   }
 
-  const record = body as Record<string, unknown>;
-  const channels =
-    record.channels && typeof record.channels === "object"
-      ? (record.channels as Record<string, unknown>)
-      : null;
-  const events =
-    record.events && typeof record.events === "object"
-      ? (record.events as Record<string, unknown>)
-      : null;
-  const timingPresets = Array.isArray(record.timingPresets)
-    ? record.timingPresets.flatMap((value) => parseTimingPreset(value))
+  const channels = isNotificationChannelsInput(body.channels)
+    ? body.channels
+    : null;
+  const events = isNotificationEventsInput(body.events) ? body.events : null;
+  const timingPresets = Array.isArray(body.timingPresets)
+    ? body.timingPresets.flatMap((value) => parseTimingPreset(value))
     : null;
 
-  if (
-    !channels ||
-    !events ||
-    typeof channels.inApp !== "boolean" ||
-    typeof channels.push !== "boolean" ||
-    typeof events.releaseDateChanged !== "boolean" ||
-    typeof events.releaseApproaching !== "boolean" ||
-    !timingPresets
-  ) {
+  if (!channels || !events || !timingPresets) {
     return null;
   }
 
   return {
-    channels: {
-      inApp: channels.inApp,
-      push: channels.push,
-    },
-    events: {
-      releaseDateChanged: events.releaseDateChanged,
-      releaseApproaching: events.releaseApproaching,
-    },
+    channels,
+    events,
     timingPresets,
   };
 }
@@ -158,4 +200,28 @@ function parseTimingPreset(value: unknown): NotificationTimingPreset[] {
     default:
       return [];
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isNotificationChannelsInput(
+  value: unknown,
+): value is NotificationChannelsInput {
+  return (
+    isRecord(value) &&
+    typeof value.inApp === "boolean" &&
+    typeof value.push === "boolean"
+  );
+}
+
+function isNotificationEventsInput(
+  value: unknown,
+): value is NotificationEventsInput {
+  return (
+    isRecord(value) &&
+    typeof value.releaseDateChanged === "boolean" &&
+    typeof value.releaseApproaching === "boolean"
+  );
 }
