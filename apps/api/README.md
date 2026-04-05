@@ -6,6 +6,10 @@ Phase 1 starts with:
 
 - `GET /health`
 - `GET /home/discovery`
+- `GET /watchlist`
+- `GET /watchlist/:titleId`
+- `POST /watchlist`
+- `DELETE /watchlist/:titleId`
 - `GET /notifications/stream` (websocket)
 
 The hosted API package also includes a manual generation command for the
@@ -186,6 +190,13 @@ also apply the watchlists schema bootstrap first:
 psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-watchlists-schema.sql
 ```
 
+If you want the hosted watchlist routes to return full watchlist items with
+cursor pagination, also apply the watchlist items projection bootstrap:
+
+```bash
+psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-watchlist-items-schema.sql
+```
+
 4. import the exported rows needed for the active migrated routes
 
 For phase 1 home only:
@@ -207,6 +218,12 @@ database also has:
 - watchlist rows
 - title rows with `earliest_release_date`
 - notification preference rows when you want non-default opt-in behavior
+
+If you are migrating the watchlist page to Railway, make sure the Railway
+database also has:
+
+- the `watchlist_items` view and `list_watchlist_items_page(...)` function from `apps/api/sql/phase1-watchlist-items-schema.sql`
+- title rows with populated `search_name`, `platforms`, and `releases`
 
 If your export contains bare `ARRAY[]` values, patch it first:
 
@@ -234,6 +251,7 @@ In the mobile app env, set:
 
 - `EXPO_PUBLIC_HOME_API_BASE_URL=https://your-railway-service.up.railway.app`
 - `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://your-railway-service.up.railway.app`
+- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://your-railway-service.up.railway.app`
 
 Leave it unset to keep `home/discovery` on the current hosted backend.
 
@@ -241,8 +259,8 @@ Phase 1 mobile env matrix:
 
 | Environment      | Required vars                                                                             | Optional vars                                                                                                                                       |
 | ---------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001`                               |
-| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app` |
+| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=http://127.0.0.1:3001` |
+| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://<api-staging>.up.railway.app` |
 | production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover                                                                                                |
 
 ## Current phase goal

@@ -12,6 +12,7 @@ import { closePostgresPool } from "./lib/postgres";
 import { registerHomeRoutes } from "./routes/home";
 import { registerNotificationsRealtimeRoutes } from "./routes/notifications-realtime";
 import { registerNotificationRoutes } from "./routes/notifications";
+import { registerWatchlistRoutes } from "./routes/watchlist";
 
 const server = Fastify({
   logger: env.appEnv !== "test",
@@ -43,6 +44,7 @@ async function bootstrap() {
 
     registerHomeRoutes(server);
     registerNotificationRoutes(server);
+    registerWatchlistRoutes(server);
     registerNotificationsRealtimeRoutes(server);
 
     await startNotificationsRealtime(server.log);

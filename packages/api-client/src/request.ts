@@ -8,6 +8,7 @@ export interface RequestContext {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
   readonly notificationsBaseUrl?: string;
+  readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
   readonly onUnauthorized?: () => Promise<boolean> | boolean;
