@@ -14,6 +14,7 @@ EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 EXPO_PUBLIC_HOME_API_BASE_URL=
 EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=
+EXPO_PUBLIC_TITLES_API_BASE_URL=
 EXPO_PUBLIC_WATCHLIST_API_BASE_URL=
 ```
 
@@ -28,10 +29,11 @@ Do not use:
 - secret keys
 - any server-only credential
 
-`EXPO_PUBLIC_HOME_API_BASE_URL`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, and
-`EXPO_PUBLIC_WATCHLIST_API_BASE_URL` are optional migration overrides. When
-set, the mobile app routes only those migrated slices to the custom API and
-keeps all other requests on Supabase Functions.
+`EXPO_PUBLIC_HOME_API_BASE_URL`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`,
+`EXPO_PUBLIC_TITLES_API_BASE_URL`, and `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`
+are optional migration overrides. When set, the mobile app routes only those
+migrated slices to the custom API and keeps all other requests on Supabase
+Functions.
 
 ## Environment model
 

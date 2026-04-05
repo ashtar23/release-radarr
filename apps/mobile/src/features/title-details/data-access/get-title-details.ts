@@ -1,3 +1,4 @@
+import type { TitleDetailsResult } from "@repo/types";
 import { apiClient, apiClientConfigError } from "@/lib/api-client";
 
 export const titleDetailsConfigError = apiClientConfigError;
@@ -7,7 +8,10 @@ type GetTitleDetailsParams = {
   signal?: AbortSignal;
 };
 
-function getTitleDetails({ id, signal }: GetTitleDetailsParams) {
+function getTitleDetails({
+  id,
+  signal,
+}: GetTitleDetailsParams): Promise<TitleDetailsResult> {
   if (!id) {
     throw new Error("Title ID cannot be empty.");
   }

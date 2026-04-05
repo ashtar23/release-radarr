@@ -73,3 +73,8 @@ export interface TitleDetails extends TitleSummary {
   websiteUrl: string | null;
   releases: PlatformRelease[];
 }
+
+export interface TitleDetailsResult {
+  details: TitleDetails;
+  isInWatchlist: boolean;
+}

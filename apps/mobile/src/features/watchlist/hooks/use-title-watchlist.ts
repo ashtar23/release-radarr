@@ -12,11 +12,15 @@ import { useWatchlistMembershipQuery } from "../queries/use-watchlist-query";
 export function useTitleWatchlist(
   titleId: string,
   titleDetails?: TitleDetails,
+  initialIsInWatchlist?: boolean,
 ) {
   const { isSignedIn } = useAuthGate();
   const haptics = useAppHaptics();
   const isOffline = useIsOffline();
-  const { data: membershipData } = useWatchlistMembershipQuery(titleId);
+  const { data: membershipData } = useWatchlistMembershipQuery(
+    titleId,
+    initialIsInWatchlist,
+  );
   const { addMutation, removeMutation } = useWatchlistMutation();
   const isInWatchlist = membershipData?.isInWatchlist ?? false;
   const canToggleWatchlist =

@@ -8,6 +8,7 @@ import type {
 } from "@repo/types";
 import type { HomeDiscoveryResult } from "@repo/types";
 import type { TitleDetails } from "@repo/types";
+import type { TitleDetailsResult } from "@repo/types";
 import type { TitleSearchResult } from "@repo/types";
 import type { TitleSummary } from "@repo/types";
 import type { WatchlistItem } from "@repo/types";
@@ -82,6 +83,16 @@ export function isTitleDetails(value: unknown): value is TitleDetails {
     Array.isArray(value.platforms) &&
     Array.isArray(value.releases) &&
     hasValidRawgRichMetadata(value)
+  );
+}
+
+export function isTitleDetailsResult(
+  value: unknown,
+): value is TitleDetailsResult {
+  return (
+    isRecord(value) &&
+    isTitleDetails(value.details) &&
+    typeof value.isInWatchlist === "boolean"
   );
 }
 

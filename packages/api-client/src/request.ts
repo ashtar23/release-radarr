@@ -8,6 +8,7 @@ export interface RequestContext {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
   readonly notificationsBaseUrl?: string;
+  readonly titlesBaseUrl?: string;
   readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
@@ -49,10 +50,7 @@ export async function requestJson<T>({
 }: RequestJsonParams<T>): Promise<T> {
   const fetchFn = context.fetchFn;
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const accessToken = await resolveAccessToken(
-      context.publishableKey,
-      context.getAccessToken,
-    );
+    const accessToken = await resolveAccessToken(context.getAccessToken);
     const requestSignal = createRequestSignal(signal);
     const response = await fetchWithRequestSignal({
       fetchFn,
@@ -120,10 +118,7 @@ export async function requestVoid({
 }: RequestVoidParams): Promise<void> {
   const fetchFn = context.fetchFn;
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const accessToken = await resolveAccessToken(
-      context.publishableKey,
-      context.getAccessToken,
-    );
+    const accessToken = await resolveAccessToken(context.getAccessToken);
     const requestSignal = createRequestSignal(signal);
     const response = await fetchWithRequestSignal({
       fetchFn,

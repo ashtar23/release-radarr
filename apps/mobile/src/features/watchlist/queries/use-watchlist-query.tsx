@@ -45,18 +45,26 @@ function useWatchlistQuery(sort: WatchlistSort, query: string) {
   });
 }
 
-function useWatchlistMembershipQuery(titleId: string) {
+function useWatchlistMembershipQuery(
+  titleId: string,
+  initialIsInWatchlist?: boolean,
+) {
   const { user, isReady } = useAuth();
   const userId = user?.id ?? null;
+  const hasInitialValue = typeof initialIsInWatchlist === "boolean";
 
   return useQuery({
     queryKey: getWatchlistMembershipQueryKey(userId, titleId),
     enabled:
       titleId.trim().length > 0 &&
       Boolean(userId) &&
+      !hasInitialValue &&
       watchlistConfigError === null &&
       isReady,
     staleTime: WATCHLIST_STALE_TIME,
+    initialData: hasInitialValue
+      ? { isInWatchlist: initialIsInWatchlist }
+      : undefined,
     queryFn: ({ signal }) => getWatchlistMembership({ titleId, signal }),
   });
 }

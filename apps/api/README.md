@@ -6,6 +6,7 @@ Phase 1 starts with:
 
 - `GET /health`
 - `GET /home/discovery`
+- `GET /titles/:titleId`
 - `GET /watchlist`
 - `GET /watchlist/:titleId`
 - `POST /watchlist`
@@ -251,19 +252,20 @@ In the mobile app env, set:
 
 - `EXPO_PUBLIC_HOME_API_BASE_URL=https://your-railway-service.up.railway.app`
 - `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://your-railway-service.up.railway.app`
+- `EXPO_PUBLIC_TITLES_API_BASE_URL=https://your-railway-service.up.railway.app`
 - `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://your-railway-service.up.railway.app`
 
 Leave it unset to keep `home/discovery` on the current hosted backend.
 
 Phase 1 mobile env matrix:
 
-| Environment      | Required vars                                                                             | Optional vars                                                                                                                                       |
-| ---------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=http://127.0.0.1:3001` |
-| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://<api-staging>.up.railway.app` |
-| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover                                                                                                |
+| Environment      | Required vars                                                                             | Optional vars                                                                                                                                                                                                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_TITLES_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=http://127.0.0.1:3001`                                                             |
+| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_TITLES_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://<api-staging>.up.railway.app` |
+| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover                                                                                                                                                                                                                                                   |
 
 ## Current phase goal
 
-Point only `home/discovery` at this service first, validate hosted performance,
-then migrate additional routes one by one.
+The mobile app can now migrate `home/discovery`, notifications, title details,
+and watchlist independently by setting only the matching override env vars.

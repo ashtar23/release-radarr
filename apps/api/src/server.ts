@@ -12,6 +12,7 @@ import { closePostgresPool } from "./lib/postgres";
 import { registerHomeRoutes } from "./routes/home";
 import { registerNotificationsRealtimeRoutes } from "./routes/notifications-realtime";
 import { registerNotificationRoutes } from "./routes/notifications";
+import { registerTitleRoutes } from "./routes/titles";
 import { registerWatchlistRoutes } from "./routes/watchlist";
 
 const server = Fastify({
@@ -43,6 +44,7 @@ async function bootstrap() {
     await server.register(websocket);
 
     registerHomeRoutes(server);
+    registerTitleRoutes(server);
     registerNotificationRoutes(server);
     registerWatchlistRoutes(server);
     registerNotificationsRealtimeRoutes(server);

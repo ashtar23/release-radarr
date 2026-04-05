@@ -6,6 +6,11 @@ type AuthenticatedUser = NonNullable<
   Awaited<ReturnType<typeof authenticateAccessToken>>
 >;
 
+type OptionalRouteAuthenticationResult =
+  | { status: "guest" }
+  | { status: "authenticated"; user: AuthenticatedUser }
+  | { status: "failed" };
+
 export async function authenticateRouteRequest(
   server: FastifyInstance,
   reply: FastifyReply,
@@ -28,6 +33,30 @@ export async function authenticateRouteRequest(
   } catch (error) {
     sendInternalServerError(server, reply, error);
     return null;
+  }
+}
+
+export async function authenticateOptionalRouteRequest(
+  server: FastifyInstance,
+  reply: FastifyReply,
+  authorizationHeader: string | string[] | undefined,
+): Promise<OptionalRouteAuthenticationResult> {
+  const accessToken = extractAccessToken(authorizationHeader);
+  if (!accessToken) {
+    return { status: "guest" };
+  }
+
+  try {
+    const user = await authenticateAccessToken(accessToken);
+    if (!user) {
+      reply.status(401).send({ error: "Authentication failed." });
+      return { status: "failed" };
+    }
+
+    return { status: "authenticated", user };
+  } catch (error) {
+    sendInternalServerError(server, reply, error);
+    return { status: "failed" };
   }
 }
 

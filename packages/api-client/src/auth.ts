@@ -2,21 +2,20 @@ export type AccessTokenProvider =
   | (() => Promise<string | null> | string | null)
   | undefined;
 
-export async function resolveAccessToken(
-  fallbackToken: string,
-  getAccessToken: AccessTokenProvider,
-) {
+export async function resolveAccessToken(getAccessToken: AccessTokenProvider) {
   if (!getAccessToken) {
-    return fallbackToken;
+    return null;
   }
 
-  const token = await getAccessToken();
-  return token ?? fallbackToken;
+  return (await getAccessToken()) ?? null;
 }
 
-export function buildAuthHeaders(publishableKey: string, accessToken: string) {
+export function buildAuthHeaders(
+  publishableKey: string,
+  accessToken: string | null,
+) {
   return {
     apikey: publishableKey,
-    Authorization: `Bearer ${accessToken}`,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   };
 }

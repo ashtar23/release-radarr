@@ -5,7 +5,7 @@ import type { MarkAllNotificationsReadResult } from "@repo/types";
 import type { MarkNotificationReadResult } from "@repo/types";
 import type { HomeDiscoveryResult } from "@repo/types";
 import type { HealthStatus } from "@repo/types";
-import type { TitleDetails } from "@repo/types";
+import type { TitleDetailsResult } from "@repo/types";
 import type { TitleSearchResult } from "@repo/types";
 import type { TitleSummary } from "@repo/types";
 import type { WatchlistListResult } from "@repo/types";
@@ -42,6 +42,7 @@ export interface ReleaseRadarApiClientOptions {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
   readonly notificationsBaseUrl?: string;
+  readonly titlesBaseUrl?: string;
   readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
@@ -55,7 +56,7 @@ export interface ReleaseRadarApiClient {
     params?: GetHomeDiscoveryParams,
   ): Promise<HomeDiscoveryResult<TitleSummary>>;
   searchTitles(params: SearchTitlesParams): Promise<TitleSearchResult>;
-  getTitleDetails(params: GetTitleDetailsParams): Promise<TitleDetails>;
+  getTitleDetails(params: GetTitleDetailsParams): Promise<TitleDetailsResult>;
   listNotifications(
     params?: ListNotificationsParams,
   ): Promise<NotificationRecordListResult>;
@@ -87,6 +88,7 @@ export function createReleaseRadarApiClient(
     baseUrl: options.baseUrl,
     homeBaseUrl: options.homeBaseUrl,
     notificationsBaseUrl: options.notificationsBaseUrl,
+    titlesBaseUrl: options.titlesBaseUrl,
     watchlistBaseUrl: options.watchlistBaseUrl,
     publishableKey: options.publishableKey,
     getAccessToken: options.getAccessToken,

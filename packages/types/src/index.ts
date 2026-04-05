@@ -40,6 +40,7 @@ export type {
   ReleaseDatePrecision,
   SearchDecisionReason,
   TitleDetails,
+  TitleDetailsResult,
   TitleSearchQueryInput,
   TitlePlatform,
   TitleSearchResult,

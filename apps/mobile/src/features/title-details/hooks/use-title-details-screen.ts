@@ -23,18 +23,13 @@ export function useTitleDetailsScreen({
 }: UseTitleDetailsScreenParams) {
   const theme = useTheme();
   const headerTitle = initialTitle.length > 0 ? initialTitle : "Title";
-  const {
-    data: details,
-    error,
-    isError,
-    isPending,
-    isRefetching,
-    refetch,
-  } = useTitleDetailsQuery({ titleId });
+  const { data, error, isError, isPending, isRefetching, refetch } =
+    useTitleDetailsQuery({ titleId });
+  const details = data?.details;
   const screenTitle = details?.name?.trim() || headerTitle;
 
   const { isInWatchlist, canToggleWatchlist, isMutating, toggleWatchlist } =
-    useTitleWatchlist(titleId, details);
+    useTitleWatchlist(titleId, details, data?.isInWatchlist);
 
   const isBookmarkActive = isInWatchlist;
   const bookmarkTintColor = isBookmarkActive
