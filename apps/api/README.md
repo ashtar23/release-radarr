@@ -6,6 +6,12 @@ Phase 1 starts with:
 
 - `GET /health`
 - `GET /home/discovery`
+- `GET /notifications/stream` (websocket)
+
+The hosted API package also includes a manual generation command for the
+notifications migration:
+
+- `pnpm --dir apps/api generate:release-approaching`
 
 ## Local env
 
@@ -39,6 +45,47 @@ DATABASE_URL=postgresql://release_radar:release_radar@127.0.0.1:5433/release_rad
 ```
 
 The API reads directly from Postgres through `DATABASE_URL`.
+
+## Hosted notification generation
+
+Run the hosted `release_approaching` generation job manually with:
+
+```bash
+pnpm --dir apps/api generate:release-approaching
+```
+
+Optional run date override:
+
+```bash
+pnpm --dir apps/api generate:release-approaching --run-date=2026-04-05
+```
+
+This command executes the same due-title-window, timing-preset, and deduped
+event fan-out behavior currently modeled in the Supabase SQL migration, but it
+is owned by the Fastify backend package and runs against `DATABASE_URL`.
+
+## Hosted notifications realtime
+
+When `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL` points at the Railway API, the
+mobile notifications feature can use the hosted websocket endpoint at:
+
+```text
+GET /notifications/stream
+```
+
+The websocket flow is:
+
+1. client connects to the Railway API websocket route
+2. client sends `{ "type": "auth", "accessToken": "..." }`
+3. API validates the Supabase-issued token
+4. API subscribes the socket to user-scoped notification events
+5. Postgres trigger functions emit `pg_notify` messages on inserts or relevant updates to:
+
+- `notification_records`
+- `notification_preferences`
+
+The hosted API listens to that `LISTEN/NOTIFY` channel and forwards compact
+events to connected clients.
 
 ## Local dev
 
@@ -129,6 +176,9 @@ psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-home-schema.s
 psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-notifications-schema.sql
 ```
 
+That schema file now also installs the notifications realtime trigger functions
+and triggers required by the hosted websocket stream.
+
 4. import the exported rows needed for the active migrated routes
 
 For phase 1 home only:
@@ -142,6 +192,13 @@ For the phase-1 notifications slice (`GET /notifications`,
 - `notification_events_rows.sql`
 - `notification_preferences_rows.sql`
 - `notification_records_rows.sql`
+
+If you are testing hosted notification generation, make sure the Railway
+database also has:
+
+- watchlist rows
+- title rows with `earliest_release_date`
+- notification preference rows when you want non-default opt-in behavior
 
 If your export contains bare `ARRAY[]` values, patch it first:
 

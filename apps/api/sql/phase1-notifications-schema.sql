@@ -59,3 +59,64 @@ create index if not exists notification_records_user_created_at_idx
 create index if not exists notification_records_user_unread_idx
   on public.notification_records (user_id, created_at desc, id desc)
   where read_at is null;
+
+create or replace function public.notify_notification_records_change()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'INSERT' then
+    perform pg_notify(
+      'notifications_realtime',
+      json_build_object(
+        'userId', new.user_id::text,
+        'scope', 'records'
+      )::text
+    );
+    return null;
+  end if;
+
+  if tg_op = 'UPDATE' and new.read_at is distinct from old.read_at then
+    perform pg_notify(
+      'notifications_realtime',
+      json_build_object(
+        'userId', new.user_id::text,
+        'scope', 'records'
+      )::text
+    );
+  end if;
+
+  return null;
+end;
+$$;
+
+drop trigger if exists notification_records_realtime_trigger on public.notification_records;
+
+create trigger notification_records_realtime_trigger
+after insert or update on public.notification_records
+for each row
+execute function public.notify_notification_records_change();
+
+create or replace function public.notify_notification_preferences_change()
+returns trigger
+language plpgsql
+as $$
+begin
+  perform pg_notify(
+    'notifications_realtime',
+    json_build_object(
+      'userId', new.user_id::text,
+      'scope', 'preferences'
+    )::text
+  );
+
+  return null;
+end;
+$$;
+
+drop trigger if exists notification_preferences_realtime_trigger on public.notification_preferences;
+
+create trigger notification_preferences_realtime_trigger
+after insert or update on public.notification_preferences
+for each row
+execute function public.notify_notification_preferences_change();

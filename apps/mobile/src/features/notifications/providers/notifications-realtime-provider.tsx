@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useAuthGate } from "@/auth/use-auth-gate";
+import { notificationsRealtimeUrl } from "@/lib/api-client";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -64,11 +65,11 @@ export function NotificationsRealtimeProvider() {
   const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const client = supabase;
-
-    if (!client || !userId) {
+    if (!userId) {
       return;
     }
+
+    const client = supabase;
 
     const invalidateNotificationQueries = () => {
       void queryClient.invalidateQueries({
@@ -97,6 +98,102 @@ export function NotificationsRealtimeProvider() {
 
       queryClient.setQueryData(queryKey, nextPreferences);
     };
+
+    if (notificationsRealtimeUrl) {
+      if (!client) {
+        return;
+      }
+
+      let socket: WebSocket | null = null;
+      let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+      let disposed = false;
+
+      const invalidateNotificationPreferences = () => {
+        void queryClient.invalidateQueries({
+          queryKey: getNotificationPreferencesQueryKey(userId),
+        });
+      };
+
+      const scheduleReconnect = () => {
+        if (disposed || reconnectTimeout) {
+          return;
+        }
+
+        reconnectTimeout = setTimeout(() => {
+          reconnectTimeout = null;
+          connect();
+        }, 2_000);
+      };
+
+      const connect = () => {
+        socket = new WebSocket(
+          `${notificationsRealtimeUrl}/notifications/stream`,
+        );
+
+        socket.onopen = async () => {
+          const { data } = await client.auth.getSession();
+          const accessToken = data.session?.access_token;
+
+          if (!accessToken) {
+            socket?.close();
+            return;
+          }
+
+          socket?.send(
+            JSON.stringify({
+              type: "auth",
+              accessToken,
+            }),
+          );
+        };
+
+        socket.onmessage = (event) => {
+          const payload = parseRealtimeMessage(event.data);
+          if (!payload) {
+            return;
+          }
+
+          if (payload.type !== "notifications.changed") {
+            return;
+          }
+
+          if (payload.scope === "records") {
+            invalidateNotificationQueries();
+            return;
+          }
+
+          if (payload.scope === "preferences") {
+            invalidateNotificationPreferences();
+          }
+        };
+
+        socket.onerror = () => {
+          socket?.close();
+        };
+
+        socket.onclose = () => {
+          if (!disposed) {
+            scheduleReconnect();
+          }
+        };
+      };
+
+      connect();
+
+      return () => {
+        disposed = true;
+
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+        }
+
+        socket?.close();
+      };
+    }
+
+    if (!client) {
+      return;
+    }
 
     const channel = client
       .channel(`notifications:${userId}`)
@@ -196,6 +293,59 @@ export function NotificationsRealtimeProvider() {
       queryFn: () => getNotificationPreferences(),
     });
   }, [queryClient, userId]);
+
+  return null;
+}
+
+type NotificationsRealtimeMessage =
+  | {
+      type: "ready";
+    }
+  | {
+      type: "pong";
+    }
+  | {
+      type: "error";
+      message: string;
+    }
+  | {
+      type: "notifications.changed";
+      scope: "records" | "preferences";
+    };
+
+function parseRealtimeMessage(
+  value: string | Blob | ArrayBuffer | ArrayBufferView,
+): NotificationsRealtimeMessage | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+
+    if (parsed.type === "ready" || parsed.type === "pong") {
+      return { type: parsed.type };
+    }
+
+    if (parsed.type === "error" && typeof parsed.message === "string") {
+      return {
+        type: "error",
+        message: parsed.message,
+      };
+    }
+
+    if (
+      parsed.type === "notifications.changed" &&
+      (parsed.scope === "records" || parsed.scope === "preferences")
+    ) {
+      return {
+        type: "notifications.changed",
+        scope: parsed.scope,
+      };
+    }
+  } catch {
+    return null;
+  }
 
   return null;
 }
