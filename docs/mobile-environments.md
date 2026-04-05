@@ -51,7 +51,7 @@ Runtime behavior:
 - `APP_ENV` selects the app identity and build target
 - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` select the backend the app talks to
 - `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery` to use the custom API
-- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides the migrated notifications slice such as `notifications/unread-count`
+- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides the migrated notifications slice such as `GET /notifications` and `GET /notifications/unread-count`
 
 Only publishable client credentials belong in the mobile app. Do not put service role or secret keys in Expo env vars.
 

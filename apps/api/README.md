@@ -135,7 +135,8 @@ For phase 1 home only:
 
 - `titles_rows.sql`
 
-For `notifications/unread-count` as the next migrated slice:
+For the phase-1 notifications slice (`GET /notifications` and
+`GET /notifications/unread-count`):
 
 - `notification_events_rows.sql`
 - `notification_records_rows.sql`

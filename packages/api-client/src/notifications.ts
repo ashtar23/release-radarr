@@ -69,6 +69,7 @@ export function listNotifications({
   context,
   params,
 }: ListNotificationsRequestParams): Promise<NotificationRecordListResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
   const searchParams = new URLSearchParams();
   if (typeof params?.cursor === "string" && params.cursor.trim()) {
     searchParams.set("cursor", params.cursor.trim());
@@ -84,11 +85,16 @@ export function listNotifications({
 
   const queryString = searchParams.toString();
   const query = queryString ? `?${queryString}` : "";
+  const requestPath =
+    notificationsBaseUrl == null
+      ? `${API_PATH_PREFIX}/notifications${query}`
+      : `/notifications${query}`;
 
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/notifications${query}`,
+    path: requestPath,
     signal: params?.signal,
     validate: isNotificationRecordListResult,
     invalidPayloadMessage: "Notifications payload is invalid.",
