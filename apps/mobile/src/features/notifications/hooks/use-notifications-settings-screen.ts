@@ -47,7 +47,6 @@ export function useNotificationsSettingsScreen() {
   const preferences = data?.preferences ?? FALLBACK_NOTIFICATION_PREFERENCES;
   const isInitialLoading = !hasLoadedPreferences && isPending;
   const hasBlockingRequestError = !hasLoadedPreferences && error != null;
-  const isRefreshing = hasLoadedPreferences && isFetching;
   const hasRefreshError = hasLoadedPreferences && error != null;
   const isInAppEnabled = preferences.channels.inApp;
   const isReleaseApproachingEnabled = preferences.events.releaseApproaching;
@@ -114,7 +113,6 @@ export function useNotificationsSettingsScreen() {
     isInAppEnabled,
     areEventSettingsDisabled,
     areTimingPresetsDisabled,
-    isRefreshing,
     hasRefreshError,
     updateInAppChannel,
     updateReleaseApproachingEvent,

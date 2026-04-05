@@ -4,17 +4,40 @@ import type { WebSocket } from "ws";
 
 import { env } from "./env";
 
-type NotificationRealtimeScope = "records" | "preferences";
-
-type NotificationRealtimePayload = {
-  userId: string;
-  scope: NotificationRealtimeScope;
+type NotificationPreferencesRealtimePayload = {
+  channels: {
+    inApp: boolean;
+    push: boolean;
+  };
+  events: {
+    releaseApproaching: boolean;
+    releaseDateChanged: boolean;
+  };
+  timingPresets: string[];
+  updatedAt: string;
 };
 
-type NotificationRealtimeEvent = {
-  type: "notifications.changed";
-  scope: NotificationRealtimeScope;
-};
+type NotificationRealtimePayload =
+  | {
+      userId: string;
+      scope: "records";
+    }
+  | {
+      userId: string;
+      scope: "preferences";
+      preferences?: NotificationPreferencesRealtimePayload;
+    };
+
+type NotificationRealtimeEvent =
+  | {
+      type: "notifications.changed";
+      scope: "records";
+    }
+  | {
+      type: "notifications.changed";
+      scope: "preferences";
+      preferences?: NotificationPreferencesRealtimePayload;
+    };
 
 const NOTIFICATIONS_REALTIME_CHANNEL = "notifications_realtime";
 const OPEN_SOCKET_STATE = 1;
@@ -173,15 +196,54 @@ function handleDatabaseNotification(
       continue;
     }
 
+    if (parsed.scope === "preferences") {
+      sendJson(socket, {
+        type: "notifications.changed",
+        scope: "preferences",
+        ...(isNotificationPreferencesRealtimePayload(parsed.preferences)
+          ? { preferences: parsed.preferences }
+          : {}),
+      } satisfies NotificationRealtimeEvent);
+      continue;
+    }
+
     sendJson(socket, {
       type: "notifications.changed",
-      scope: parsed.scope,
+      scope: "records",
     } satisfies NotificationRealtimeEvent);
   }
 
   if (sockets.size === 0) {
     socketsByUserId.delete(parsed.userId);
   }
+}
+
+function isNotificationPreferencesRealtimePayload(
+  value: unknown,
+): value is NotificationPreferencesRealtimePayload {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  const channels = record.channels;
+  const events = record.events;
+
+  return (
+    channels != null &&
+    typeof channels === "object" &&
+    typeof (channels as Record<string, unknown>).inApp === "boolean" &&
+    typeof (channels as Record<string, unknown>).push === "boolean" &&
+    events != null &&
+    typeof events === "object" &&
+    typeof (events as Record<string, unknown>).releaseApproaching ===
+      "boolean" &&
+    typeof (events as Record<string, unknown>).releaseDateChanged ===
+      "boolean" &&
+    Array.isArray(record.timingPresets) &&
+    record.timingPresets.every((preset) => typeof preset === "string") &&
+    typeof record.updatedAt === "string"
+  );
 }
 
 function sendJson(socket: WebSocket, payload: object) {

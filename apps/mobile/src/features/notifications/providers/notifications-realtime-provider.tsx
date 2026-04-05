@@ -1,15 +1,16 @@
 import type {
+  NotificationPreferences,
   NotificationPreferencesResult,
   NotificationRecordListResult,
   NotificationTimingPreset,
 } from "@repo/types";
-import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
+import { notificationTimingPresetValues } from "@repo/types";
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { useAuth } from "@/auth/auth-provider";
 import { useAuthGate } from "@/auth/use-auth-gate";
 import { notificationsRealtimeUrl } from "@/lib/api-client";
-import { supabase } from "@/lib/supabase";
 
 import {
   getNotificationPreferences,
@@ -25,51 +26,28 @@ import {
 } from "../queries/notifications-query-key";
 import { NOTIFICATIONS_PAGE_SIZE } from "../queries/use-notifications-query";
 
-type NotificationRecordRealtimeRow = {
-  read_at: string | null;
-};
-
-type NotificationPreferencesRealtimeRow = {
-  in_app_enabled: boolean;
-  push_enabled: boolean;
-  release_approaching_enabled: boolean;
-  release_date_changed_enabled: boolean;
-  timing_presets: string[];
-  updated_at: string;
-  user_id: string;
-};
-
-function mapNotificationPreferencesRealtimeRow(
-  row: NotificationPreferencesRealtimeRow,
-): NotificationPreferencesResult {
-  return {
-    preferences: {
-      channels: {
-        inApp: row.in_app_enabled,
-        push: row.push_enabled,
-      },
-      events: {
-        releaseApproaching: row.release_approaching_enabled,
-        releaseDateChanged: row.release_date_changed_enabled,
-      },
-      timingPresets: row.timing_presets as NotificationTimingPreset[],
-      updatedAt: row.updated_at,
-    },
-  };
-}
+type NotificationsRealtimeMessage =
+  | { type: "ready" }
+  | { type: "pong" }
+  | { type: "error"; message: string }
+  | { type: "notifications.changed"; scope: "records" }
+  | {
+      type: "notifications.changed";
+      scope: "preferences";
+      preferences?: NotificationPreferencesResult;
+    };
 
 export function NotificationsRealtimeProvider() {
   const queryClient = useQueryClient();
+  const { session } = useAuth();
   const { state, user } = useAuthGate();
   const userId = state === "ready" ? (user?.id ?? null) : null;
   const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!userId) {
+    if (!userId || !notificationsRealtimeUrl) {
       return;
     }
-
-    const client = supabase;
 
     const invalidateNotificationQueries = () => {
       void queryClient.invalidateQueries({
@@ -81,10 +59,9 @@ export function NotificationsRealtimeProvider() {
     };
 
     const syncNotificationPreferences = (
-      row: NotificationPreferencesRealtimeRow,
+      nextPreferences: NotificationPreferencesResult,
     ) => {
       const queryKey = getNotificationPreferencesQueryKey(userId);
-      const nextPreferences = mapNotificationPreferencesRealtimeRow(row);
       const cachedPreferences =
         queryClient.getQueryData<NotificationPreferencesResult>(queryKey);
 
@@ -99,164 +76,89 @@ export function NotificationsRealtimeProvider() {
       queryClient.setQueryData(queryKey, nextPreferences);
     };
 
-    if (notificationsRealtimeUrl) {
-      if (!client) {
+    const invalidateNotificationPreferences = () => {
+      void queryClient.invalidateQueries({
+        queryKey: getNotificationPreferencesQueryKey(userId),
+      });
+    };
+
+    let socket: WebSocket | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    let disposed = false;
+
+    const scheduleReconnect = () => {
+      if (disposed || reconnectTimeout) {
         return;
       }
 
-      let socket: WebSocket | null = null;
-      let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-      let disposed = false;
+      reconnectTimeout = setTimeout(() => {
+        reconnectTimeout = null;
+        connect();
+      }, 2_000);
+    };
 
-      const invalidateNotificationPreferences = () => {
-        void queryClient.invalidateQueries({
-          queryKey: getNotificationPreferencesQueryKey(userId),
-        });
-      };
+    const connect = () => {
+      socket = new WebSocket(
+        `${notificationsRealtimeUrl}/notifications/stream`,
+      );
 
-      const scheduleReconnect = () => {
-        if (disposed || reconnectTimeout) {
+      socket.onopen = () => {
+        const accessToken = session?.access_token;
+        if (!accessToken) {
+          socket?.close();
           return;
         }
 
-        reconnectTimeout = setTimeout(() => {
-          reconnectTimeout = null;
-          connect();
-        }, 2_000);
-      };
-
-      const connect = () => {
-        socket = new WebSocket(
-          `${notificationsRealtimeUrl}/notifications/stream`,
+        socket?.send(
+          JSON.stringify({
+            type: "auth",
+            accessToken,
+          }),
         );
-
-        socket.onopen = async () => {
-          const { data } = await client.auth.getSession();
-          const accessToken = data.session?.access_token;
-
-          if (!accessToken) {
-            socket?.close();
-            return;
-          }
-
-          socket?.send(
-            JSON.stringify({
-              type: "auth",
-              accessToken,
-            }),
-          );
-        };
-
-        socket.onmessage = (event) => {
-          const payload = parseRealtimeMessage(event.data);
-          if (!payload) {
-            return;
-          }
-
-          if (payload.type !== "notifications.changed") {
-            return;
-          }
-
-          if (payload.scope === "records") {
-            invalidateNotificationQueries();
-            return;
-          }
-
-          if (payload.scope === "preferences") {
-            invalidateNotificationPreferences();
-          }
-        };
-
-        socket.onerror = () => {
-          socket?.close();
-        };
-
-        socket.onclose = () => {
-          if (!disposed) {
-            scheduleReconnect();
-          }
-        };
       };
 
-      connect();
-
-      return () => {
-        disposed = true;
-
-        if (reconnectTimeout) {
-          clearTimeout(reconnectTimeout);
+      socket.onmessage = (event) => {
+        const payload = parseRealtimeMessage(event.data);
+        if (!payload || payload.type !== "notifications.changed") {
+          return;
         }
 
+        if (payload.scope === "records") {
+          invalidateNotificationQueries();
+          return;
+        }
+
+        if (payload.preferences) {
+          syncNotificationPreferences(payload.preferences);
+          return;
+        }
+
+        invalidateNotificationPreferences();
+      };
+
+      socket.onerror = () => {
         socket?.close();
       };
-    }
 
-    if (!client) {
-      return;
-    }
+      socket.onclose = () => {
+        if (!disposed) {
+          scheduleReconnect();
+        }
+      };
+    };
 
-    const channel = client
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notification_records",
-          filter: `user_id=eq.${userId}`,
-        },
-        invalidateNotificationQueries,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "notification_records",
-          filter: `user_id=eq.${userId}`,
-        },
-        (
-          payload: RealtimePostgresUpdatePayload<NotificationRecordRealtimeRow>,
-        ) => {
-          if (payload.old.read_at === payload.new.read_at) {
-            return;
-          }
-
-          invalidateNotificationQueries();
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notification_preferences",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: { new: NotificationPreferencesRealtimeRow }) => {
-          syncNotificationPreferences(payload.new);
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "notification_preferences",
-          filter: `user_id=eq.${userId}`,
-        },
-        (
-          payload: RealtimePostgresUpdatePayload<NotificationPreferencesRealtimeRow>,
-        ) => {
-          syncNotificationPreferences(payload.new);
-        },
-      )
-      .subscribe();
+    connect();
 
     return () => {
-      void client.removeChannel(channel);
+      disposed = true;
+
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+
+      socket?.close();
     };
-  }, [queryClient, userId]);
+  }, [queryClient, session?.access_token, userId]);
 
   useEffect(() => {
     const previousUserId = previousUserIdRef.current;
@@ -297,22 +199,6 @@ export function NotificationsRealtimeProvider() {
   return null;
 }
 
-type NotificationsRealtimeMessage =
-  | {
-      type: "ready";
-    }
-  | {
-      type: "pong";
-    }
-  | {
-      type: "error";
-      message: string;
-    }
-  | {
-      type: "notifications.changed";
-      scope: "records" | "preferences";
-    };
-
 function parseRealtimeMessage(
   value: string | Blob | ArrayBuffer | ArrayBufferView,
 ): NotificationsRealtimeMessage | null {
@@ -334,13 +220,27 @@ function parseRealtimeMessage(
       };
     }
 
+    if (parsed.type === "notifications.changed" && parsed.scope === "records") {
+      return {
+        type: "notifications.changed",
+        scope: "records",
+      };
+    }
+
     if (
       parsed.type === "notifications.changed" &&
-      (parsed.scope === "records" || parsed.scope === "preferences")
+      parsed.scope === "preferences"
     ) {
       return {
         type: "notifications.changed",
-        scope: parsed.scope,
+        scope: "preferences",
+        ...(isNotificationPreferencesPayload(parsed.preferences)
+          ? {
+              preferences: {
+                preferences: parsed.preferences,
+              },
+            }
+          : {}),
       };
     }
   } catch {
@@ -348,4 +248,38 @@ function parseRealtimeMessage(
   }
 
   return null;
+}
+
+function isNotificationPreferencesPayload(
+  value: unknown,
+): value is NotificationPreferences {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  const channels = record.channels;
+  const events = record.events;
+
+  return (
+    channels != null &&
+    typeof channels === "object" &&
+    typeof (channels as Record<string, unknown>).inApp === "boolean" &&
+    typeof (channels as Record<string, unknown>).push === "boolean" &&
+    events != null &&
+    typeof events === "object" &&
+    typeof (events as Record<string, unknown>).releaseApproaching ===
+      "boolean" &&
+    typeof (events as Record<string, unknown>).releaseDateChanged ===
+      "boolean" &&
+    Array.isArray(record.timingPresets) &&
+    record.timingPresets.every(
+      (preset) =>
+        typeof preset === "string" &&
+        notificationTimingPresetValues.includes(
+          preset as NotificationTimingPreset,
+        ),
+    ) &&
+    typeof record.updatedAt === "string"
+  );
 }

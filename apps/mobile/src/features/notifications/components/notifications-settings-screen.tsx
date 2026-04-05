@@ -13,7 +13,6 @@ import { ListSwitchRow } from "@/components/list-switch-row";
 import { OfflineBanner } from "@/components/offline-banner";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { ThemedText } from "@/components/themed-text";
-import { ScreenLoadingOverlay } from "@/components/screen-loading-overlay";
 import { Spacing } from "@/constants/theme";
 import { useProtectedOfflineRetry } from "@/lib/offline-screen";
 import { useIsOffline } from "@/lib/react-query-online";
@@ -165,10 +164,6 @@ export function NotificationsSettingsScreen() {
           </ThemedText>
         ) : null}
       </ScreenScrollView>
-
-      {state.isRefreshing ? (
-        <ScreenLoadingOverlay label="Refreshing notification preferences" />
-      ) : null}
     </View>
   );
 }

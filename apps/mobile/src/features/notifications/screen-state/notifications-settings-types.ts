@@ -9,7 +9,6 @@ export type NotificationsSettingsScreenReadyState = {
   isInAppEnabled: boolean;
   areEventSettingsDisabled: boolean;
   areTimingPresetsDisabled: boolean;
-  isRefreshing: boolean;
   hasRefreshError: boolean;
   updateInAppChannel: (inApp: boolean) => void;
   updateReleaseApproachingEvent: (releaseApproaching: boolean) => void;
