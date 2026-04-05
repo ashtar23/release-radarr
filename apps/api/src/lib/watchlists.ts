@@ -309,7 +309,7 @@ function mapWatchlistItem(row: WatchlistViewRow): WatchlistItem {
       slug: row.slug,
       name: row.name,
       coverImageUrl: row.cover_image_url,
-      earliestReleaseDate: row.earliest_release_date,
+      earliestReleaseDate: toIsoDateOrNull(row.earliest_release_date),
       platforms: parsePlatforms(row.platforms),
       rawgRating: row.rawg_rating,
       rawgRatingsCount: row.rawg_ratings_count,
@@ -320,7 +320,7 @@ function mapWatchlistItem(row: WatchlistViewRow): WatchlistItem {
       rawgRatingTop: row.rawg_rating_top,
     },
     releases: parseReleases(row.releases),
-    addedAt: row.added_at,
+    addedAt: toIsoDateTimeString(row.added_at),
   };
 }
 
@@ -335,7 +335,7 @@ function assertWatchlistViewRow(
   slug: string;
   name: string;
   search_name: string;
-  added_at: string;
+  added_at: string | Date;
 } {
   if (
     typeof row.id !== "string" ||
@@ -346,10 +346,30 @@ function assertWatchlistViewRow(
     typeof row.slug !== "string" ||
     typeof row.name !== "string" ||
     typeof row.search_name !== "string" ||
-    typeof row.added_at !== "string"
+    !isStringOrDate(row.added_at)
   ) {
     throw new Error("Watchlist view row is invalid.");
   }
+}
+
+function isStringOrDate(value: unknown): value is string | Date {
+  return typeof value === "string" || value instanceof Date;
+}
+
+function toIsoDateTimeString(value: string | Date) {
+  return value instanceof Date ? value.toISOString() : value;
+}
+
+function toIsoDateOrNull(value: unknown) {
+  if (value == null) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  return typeof value === "string" ? value : null;
 }
 
 function parsePlatforms(value: unknown): WatchlistItem["title"]["platforms"] {
