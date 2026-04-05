@@ -54,6 +54,8 @@ Set these variables on the API service:
 
 - `DATABASE_URL`
 - `APP_ENV=staging`
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
 - `PORT` (Railway usually injects this automatically, so only set it if needed)
 
 ## API environment matrix
@@ -71,7 +73,7 @@ Transitional envs that remain available but are not part of the current
 
 | Var                   | Why it still exists                                                                                             |
 | --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `SUPABASE_URL`        | future authenticated routes may verify Supabase Auth or temporarily use Supabase-backed access during migration |
+| `SUPABASE_URL`        | required for migrated authenticated routes that verify Supabase-issued access tokens                             |
 | `SUPABASE_SECRET_KEY` | same as above                                                                                                   |
 | `RAWG_API_KEY`        | future enrichment/search phases may still use RAWG outside the phase 1 home request path                        |
 
@@ -121,7 +123,22 @@ After Railway Postgres is provisioned:
 psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-home-schema.sql
 ```
 
-3. import the exported `titles` rows
+3. apply the phase-1 notifications schema SQL before migrating notification routes
+
+```bash
+psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-notifications-schema.sql
+```
+
+4. import the exported rows needed for the active migrated routes
+
+For phase 1 home only:
+
+- `titles_rows.sql`
+
+For `notifications/unread-count` as the next migrated slice:
+
+- `notification_events_rows.sql`
+- `notification_records_rows.sql`
 
 If your export contains bare `ARRAY[]` values, patch it first:
 
@@ -148,6 +165,7 @@ Before wiring mobile:
 In the mobile app env, set:
 
 - `EXPO_PUBLIC_HOME_API_BASE_URL=https://your-railway-service.up.railway.app`
+- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://your-railway-service.up.railway.app`
 
 Leave it unset to keep `home/discovery` on the current hosted backend.
 
@@ -155,9 +173,9 @@ Phase 1 mobile env matrix:
 
 | Environment      | Required vars                                                                             | Optional vars                                                        |
 | ---------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`                |
-| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app` |
-| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave `EXPO_PUBLIC_HOME_API_BASE_URL` unset until production cutover |
+| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001` |
+| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app` |
+| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover |
 
 ## Current phase goal
 

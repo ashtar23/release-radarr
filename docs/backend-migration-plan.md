@@ -142,14 +142,15 @@ not in Supabase Edge Functions.
 | Environment | Required vars | Transitional vars |
 | --- | --- | --- |
 | local | `DATABASE_URL`, `APP_ENV=development` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `RAWG_API_KEY` |
-| staging | `DATABASE_URL`, `APP_ENV=staging` | same transitional vars if needed for later routes |
-| production | `DATABASE_URL`, `APP_ENV=production` | same transitional vars if needed for later routes |
+| staging | `DATABASE_URL`, `APP_ENV=staging` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `RAWG_API_KEY` |
+| production | `DATABASE_URL`, `APP_ENV=production` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `RAWG_API_KEY` |
 
 Phase 1 expectation:
 
 - migrated routes use `DATABASE_URL`
 - transitional Supabase/RAWG envs are not part of the `home/discovery` hot path
 - valid `APP_ENV` values are `development`, `staging`, `production`, and `test`
+- migrated authenticated routes still verify Supabase-issued access tokens with `SUPABASE_URL` and `SUPABASE_SECRET_KEY`
 
 ### Mobile
 
@@ -163,6 +164,7 @@ Current phase 1 routing rule:
 
 - default app backend remains Supabase
 - only `home/discovery` is allowed to override to the custom API through env
+- `notifications/unread-count` may also override once the authenticated Railway slice is deployed
 
 ## Key Decisions
 

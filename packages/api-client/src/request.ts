@@ -7,6 +7,7 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 8_000;
 export interface RequestContext {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
+  readonly notificationsBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
   readonly onUnauthorized?: () => Promise<boolean> | boolean;

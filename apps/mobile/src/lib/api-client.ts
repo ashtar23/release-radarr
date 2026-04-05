@@ -6,6 +6,8 @@ import { supabase } from "./supabase";
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const homeApiBaseUrl = process.env.EXPO_PUBLIC_HOME_API_BASE_URL;
+const notificationsApiBaseUrl =
+  process.env.EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL;
 
 const OFFLINE_AUTH_ERROR_PATTERNS = [
   "failed to fetch",
@@ -37,6 +39,8 @@ export const apiClient =
     ? createReleaseRadarApiClient({
         baseUrl: normalizeBaseUrl(supabaseUrl!) ?? supabaseUrl!,
         homeBaseUrl: normalizeBaseUrl(homeApiBaseUrl) ?? undefined,
+        notificationsBaseUrl:
+          normalizeBaseUrl(notificationsApiBaseUrl) ?? undefined,
         publishableKey: supabasePublishableKey!,
         async getAccessToken() {
           if (!supabase) {

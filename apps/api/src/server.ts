@@ -2,8 +2,10 @@ import "dotenv/config";
 
 import Fastify from "fastify";
 
+import { authenticateAccessToken, extractAccessToken } from "./lib/auth";
 import { env } from "./lib/env";
 import { getHomeDiscovery } from "./lib/home-discovery";
+import { getNotificationUnreadCount } from "./lib/notifications";
 import { closePostgresPool } from "./lib/postgres";
 
 const server = Fastify({
@@ -21,6 +23,29 @@ server.get("/health", async () => {
 server.get("/home/discovery", async (_request, reply) => {
   try {
     const payload = await getHomeDiscovery();
+    return payload;
+  } catch (error) {
+    requestLogError(error);
+    return reply.status(500).send({
+      error:
+        error instanceof Error ? error.message : "Unexpected server error.",
+    });
+  }
+});
+
+server.get("/notifications/unread-count", async (request, reply) => {
+  try {
+    const accessToken = extractAccessToken(request.headers.authorization);
+    if (!accessToken) {
+      return reply.status(401).send({ error: "Authorization is required." });
+    }
+
+    const user = await authenticateAccessToken(accessToken);
+    if (!user) {
+      return reply.status(401).send({ error: "Authentication failed." });
+    }
+
+    const payload = await getNotificationUnreadCount(user.id);
     return payload;
   } catch (error) {
     requestLogError(error);

@@ -41,6 +41,7 @@ import {
 export interface ReleaseRadarApiClientOptions {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
+  readonly notificationsBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
   readonly onUnauthorized?: () => Promise<boolean> | boolean;
@@ -84,6 +85,7 @@ export function createReleaseRadarApiClient(
   const context = {
     baseUrl: options.baseUrl,
     homeBaseUrl: options.homeBaseUrl,
+    notificationsBaseUrl: options.notificationsBaseUrl,
     publishableKey: options.publishableKey,
     getAccessToken: options.getAccessToken,
     onUnauthorized: options.onUnauthorized,

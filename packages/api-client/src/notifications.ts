@@ -100,10 +100,16 @@ export function getNotificationUnreadCount({
   context,
   signal,
 }: GetNotificationUnreadCountRequestParams): Promise<NotificationUnreadCountResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/notifications/unread-count`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notifications/unread-count`
+        : "/notifications/unread-count",
     signal,
     validate: isNotificationUnreadCountResult,
     invalidPayloadMessage: "Notification unread count payload is invalid.",
