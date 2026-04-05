@@ -105,23 +105,32 @@ export async function generateReleaseApproachingNotifications(
           )
         from distinct_events de
         on conflict (event_key) do nothing
+        returning id as event_id, event_key
       ),
       resolved_events as (
         select
-          ne.id as event_id,
+          coalesce(ie.event_id, ne.id) as event_id,
           de.title_id,
           de.title_name,
           de.title_artwork_url,
           de.target_release_date,
           de.timing_preset
         from distinct_events de
-        join notification_events ne
+        left join inserted_events ie
+          on ie.event_key = format(
+            'release_approaching:%s:%s:%s',
+            de.title_id,
+            de.target_release_date::text,
+            de.timing_preset
+          )
+        left join notification_events ne
           on ne.event_key = format(
             'release_approaching:%s:%s:%s',
             de.title_id,
             de.target_release_date::text,
             de.timing_preset
           )
+        where coalesce(ie.event_id, ne.id) is not null
       ),
       inserted_records as (
         insert into notification_records (

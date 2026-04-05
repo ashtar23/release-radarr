@@ -179,6 +179,13 @@ psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-notifications
 That schema file now also installs the notifications realtime trigger functions
 and triggers required by the hosted websocket stream.
 
+If you want hosted notification generation to run against real watchlist data,
+also apply the watchlists schema bootstrap first:
+
+```bash
+psql "<railway-postgres-connection-string>" -f apps/api/sql/phase1-watchlists-schema.sql
+```
+
 4. import the exported rows needed for the active migrated routes
 
 For phase 1 home only:
@@ -196,6 +203,7 @@ For the phase-1 notifications slice (`GET /notifications`,
 If you are testing hosted notification generation, make sure the Railway
 database also has:
 
+- the `watchlists` table from `apps/api/sql/phase1-watchlists-schema.sql`
 - watchlist rows
 - title rows with `earliest_release_date`
 - notification preference rows when you want non-default opt-in behavior
