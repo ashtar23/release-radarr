@@ -21,6 +21,7 @@ export async function searchTitles({
   context,
   params,
 }: SearchTitlesRequestParams): Promise<TitleSearchResult> {
+  const searchBaseUrl = context.searchBaseUrl;
   const normalizedQuery = params.query.trim();
   const page = normalizePage(params.page);
   const limit = normalizeLimit(params.limit);
@@ -47,10 +48,16 @@ export async function searchTitles({
     searchParams.set("forceRefresh", "1");
   }
 
+  const requestPath =
+    searchBaseUrl == null
+      ? `${API_PATH_PREFIX}/titles?${searchParams.toString()}`
+      : `/titles?${searchParams.toString()}`;
+
   const payload = await requestJson({
     context,
+    baseUrl: searchBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/titles?${searchParams.toString()}`,
+    path: requestPath,
     signal: params.signal,
     validate: isTitleSearchResult,
     invalidPayloadMessage: "Search response payload is invalid.",

@@ -30,6 +30,7 @@ During the backend migration, `home/discovery` can be pointed at the custom API
 without changing the rest of the app backend by setting:
 
 - `EXPO_PUBLIC_HOME_API_BASE_URL`
+- `EXPO_PUBLIC_SEARCH_API_BASE_URL`
 - `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`
 - `EXPO_PUBLIC_TITLES_API_BASE_URL`
 - `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`
@@ -45,6 +46,7 @@ APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 EXPO_PUBLIC_HOME_API_BASE_URL=
+EXPO_PUBLIC_SEARCH_API_BASE_URL=
 EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=
 EXPO_PUBLIC_TITLES_API_BASE_URL=
 EXPO_PUBLIC_WATCHLIST_API_BASE_URL=
@@ -55,6 +57,7 @@ Runtime behavior:
 - `APP_ENV` selects the app identity and build target
 - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` select the backend the app talks to
 - `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery` to use the custom API
+- `EXPO_PUBLIC_SEARCH_API_BASE_URL`, when set, overrides the migrated search slice such as `GET /titles?query=...`
 - `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides the migrated notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:notificationId/read`, `POST /notifications/read-all`, and `GET/PUT /notification-preferences`
 - `EXPO_PUBLIC_TITLES_API_BASE_URL`, when set, overrides the migrated title-details slice such as `GET /titles/:titleId`
 - `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`, when set, overrides the migrated watchlist slice such as `GET /watchlist`, `GET /watchlist/:titleId`, `POST /watchlist`, and `DELETE /watchlist/:titleId`

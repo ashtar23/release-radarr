@@ -42,6 +42,7 @@ export interface ReleaseRadarApiClientOptions {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
   readonly notificationsBaseUrl?: string;
+  readonly searchBaseUrl?: string;
   readonly titlesBaseUrl?: string;
   readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;
@@ -88,6 +89,7 @@ export function createReleaseRadarApiClient(
     baseUrl: options.baseUrl,
     homeBaseUrl: options.homeBaseUrl,
     notificationsBaseUrl: options.notificationsBaseUrl,
+    searchBaseUrl: options.searchBaseUrl,
     titlesBaseUrl: options.titlesBaseUrl,
     watchlistBaseUrl: options.watchlistBaseUrl,
     publishableKey: options.publishableKey,

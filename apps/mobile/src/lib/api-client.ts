@@ -6,10 +6,14 @@ import { supabase } from "./supabase";
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const homeApiBaseUrl = process.env.EXPO_PUBLIC_HOME_API_BASE_URL;
+const rawSearchApiBaseUrl = process.env.EXPO_PUBLIC_SEARCH_API_BASE_URL;
 const rawTitlesApiBaseUrl = process.env.EXPO_PUBLIC_TITLES_API_BASE_URL;
 const rawNotificationsApiBaseUrl =
   process.env.EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL;
 const rawWatchlistApiBaseUrl = process.env.EXPO_PUBLIC_WATCHLIST_API_BASE_URL;
+
+export const searchApiBaseUrl =
+  normalizeBaseUrl(rawSearchApiBaseUrl) ?? undefined;
 
 export const titlesApiBaseUrl =
   normalizeBaseUrl(rawTitlesApiBaseUrl) ?? undefined;
@@ -54,6 +58,7 @@ export const apiClient =
     ? createReleaseRadarApiClient({
         baseUrl: normalizeBaseUrl(supabaseUrl!) ?? supabaseUrl!,
         homeBaseUrl: normalizeBaseUrl(homeApiBaseUrl) ?? undefined,
+        searchBaseUrl: searchApiBaseUrl,
         notificationsBaseUrl: notificationsApiBaseUrl,
         titlesBaseUrl: titlesApiBaseUrl,
         watchlistBaseUrl: watchlistApiBaseUrl,

@@ -8,6 +8,7 @@ export interface RequestContext {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
   readonly notificationsBaseUrl?: string;
+  readonly searchBaseUrl?: string;
   readonly titlesBaseUrl?: string;
   readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;

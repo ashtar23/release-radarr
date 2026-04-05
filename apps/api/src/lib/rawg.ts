@@ -57,6 +57,51 @@ export async function fetchRawgDiscoveryResults(params: {
   return (payload.results ?? []).map(mapRawgSearchGameToSummary);
 }
 
+export async function fetchRawgSearchResults(params: {
+  rawgApiKey: string;
+  query: string;
+  page: number;
+  pageSize: number;
+  precise: boolean;
+  exact: boolean;
+}): Promise<{
+  totalCount: number | null;
+  results: TitleSummary[];
+}> {
+  const searchUrl = new URL(RAWG_BASE_URL);
+  searchUrl.searchParams.set("key", params.rawgApiKey);
+  searchUrl.searchParams.set("search", params.query);
+  searchUrl.searchParams.set("page", String(params.page));
+  searchUrl.searchParams.set("page_size", String(params.pageSize));
+
+  if (params.precise) {
+    searchUrl.searchParams.set("search_precise", "true");
+  }
+
+  if (params.exact) {
+    searchUrl.searchParams.set("search_exact", "true");
+  }
+
+  const response = await fetch(searchUrl);
+  if (!response.ok) {
+    throw new Error(`RAWG search failed with status ${response.status}.`);
+  }
+
+  const payload = (await response.json()) as RawgSearchResponse & {
+    count?: number;
+  };
+
+  return {
+    totalCount:
+      typeof payload.count === "number" &&
+      Number.isFinite(payload.count) &&
+      payload.count >= 0
+        ? payload.count
+        : null,
+    results: (payload.results ?? []).map(mapRawgSearchGameToSummary),
+  };
+}
+
 function mapRawgSearchGameToSummary(game: RawgSearchGame): TitleSummary {
   const externalId = String(game.id);
   const slug = game.slug ?? game.name.toLowerCase().replace(/\s+/g, "-");
