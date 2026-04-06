@@ -5,24 +5,28 @@ import { supabase } from "./supabase";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const homeApiBaseUrl = process.env.EXPO_PUBLIC_HOME_API_BASE_URL;
+const canonicalApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+const rawHomeApiBaseUrl = process.env.EXPO_PUBLIC_HOME_API_BASE_URL;
 const rawSearchApiBaseUrl = process.env.EXPO_PUBLIC_SEARCH_API_BASE_URL;
 const rawTitlesApiBaseUrl = process.env.EXPO_PUBLIC_TITLES_API_BASE_URL;
 const rawNotificationsApiBaseUrl =
   process.env.EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL;
 const rawWatchlistApiBaseUrl = process.env.EXPO_PUBLIC_WATCHLIST_API_BASE_URL;
 
+const apiBaseUrl = normalizeBaseUrl(canonicalApiBaseUrl) ?? undefined;
+const homeApiBaseUrl = normalizeBaseUrl(rawHomeApiBaseUrl) ?? apiBaseUrl;
+
 export const searchApiBaseUrl =
-  normalizeBaseUrl(rawSearchApiBaseUrl) ?? undefined;
+  normalizeBaseUrl(rawSearchApiBaseUrl) ?? apiBaseUrl;
 
 export const titlesApiBaseUrl =
-  normalizeBaseUrl(rawTitlesApiBaseUrl) ?? undefined;
+  normalizeBaseUrl(rawTitlesApiBaseUrl) ?? apiBaseUrl;
 
 export const notificationsApiBaseUrl =
-  normalizeBaseUrl(rawNotificationsApiBaseUrl) ?? undefined;
+  normalizeBaseUrl(rawNotificationsApiBaseUrl) ?? apiBaseUrl;
 
 export const watchlistApiBaseUrl =
-  normalizeBaseUrl(rawWatchlistApiBaseUrl) ?? undefined;
+  normalizeBaseUrl(rawWatchlistApiBaseUrl) ?? apiBaseUrl;
 
 export const notificationsRealtimeUrl = notificationsApiBaseUrl
   ? toWebSocketUrl(notificationsApiBaseUrl)
@@ -57,7 +61,7 @@ export const apiClient =
   apiClientConfigError === null
     ? createReleaseRadarApiClient({
         baseUrl: normalizeBaseUrl(supabaseUrl!) ?? supabaseUrl!,
-        homeBaseUrl: normalizeBaseUrl(homeApiBaseUrl) ?? undefined,
+        homeBaseUrl: homeApiBaseUrl,
         searchBaseUrl: searchApiBaseUrl,
         notificationsBaseUrl: notificationsApiBaseUrl,
         titlesBaseUrl: titlesApiBaseUrl,

@@ -26,8 +26,13 @@ Hosted environment routing:
 - `staging` -> staging Supabase project
 - `production` -> production Supabase project
 
-During the backend migration, `home/discovery` can be pointed at the custom API
-without changing the rest of the app backend by setting:
+Supabase remains the auth provider for the mobile app. The migrated app data
+slices should use the hosted Railway API through one canonical public base URL:
+
+- `EXPO_PUBLIC_API_BASE_URL`
+
+Per-slice overrides are still supported for migration safety or deliberate
+traffic splitting, but they should normally be left unset:
 
 - `EXPO_PUBLIC_HOME_API_BASE_URL`
 - `EXPO_PUBLIC_SEARCH_API_BASE_URL`
@@ -45,22 +50,19 @@ The mobile app currently needs:
 APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-EXPO_PUBLIC_HOME_API_BASE_URL=
-EXPO_PUBLIC_SEARCH_API_BASE_URL=
-EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=
-EXPO_PUBLIC_TITLES_API_BASE_URL=
-EXPO_PUBLIC_WATCHLIST_API_BASE_URL=
+EXPO_PUBLIC_API_BASE_URL=
 ```
 
 Runtime behavior:
 
 - `APP_ENV` selects the app identity and build target
-- `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` select the backend the app talks to
-- `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery` to use the custom API
-- `EXPO_PUBLIC_SEARCH_API_BASE_URL`, when set, overrides the migrated search slice such as `GET /titles?query=...`
-- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides the migrated notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:notificationId/read`, `POST /notifications/read-all`, and `GET/PUT /notification-preferences`
-- `EXPO_PUBLIC_TITLES_API_BASE_URL`, when set, overrides the migrated title-details slice such as `GET /titles/:titleId`
-- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`, when set, overrides the migrated watchlist slice such as `GET /watchlist`, `GET /watchlist/:titleId`, `POST /watchlist`, and `DELETE /watchlist/:titleId`
+- `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` configure the Supabase auth client used for sign-in and session refresh
+- `EXPO_PUBLIC_API_BASE_URL`, when set, is the default hosted API base URL for the migrated slices: home, search, title details, notifications, and watchlist
+- `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery`
+- `EXPO_PUBLIC_SEARCH_API_BASE_URL`, when set, overrides only the search slice such as `GET /titles?query=...`
+- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides only the notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:notificationId/read`, `POST /notifications/read-all`, and `GET/PUT /notification-preferences`
+- `EXPO_PUBLIC_TITLES_API_BASE_URL`, when set, overrides only the title-details slice such as `GET /titles/:titleId`
+- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`, when set, overrides only the watchlist slice such as `GET /watchlist`, `GET /watchlist/:titleId`, `POST /watchlist`, and `DELETE /watchlist/:titleId`
 
 Only publishable client credentials belong in the mobile app. Do not put service role or secret keys in Expo env vars.
 
@@ -87,7 +89,7 @@ The EAS environment mapping is explicit:
 - `production` profile -> `production`
 
 Remote builds read `EXPO_PUBLIC_*` values from EAS environment variables, not from GitHub Actions job env alone.
-GitHub secrets handle workflow authentication and deploy credentials; EAS environment variables handle the app config bundled into the remote build.
+GitHub secrets handle workflow authentication and deploy credentials; EAS environment variables handle the app config bundled into the remote build. If GitHub also passes `EXPO_PUBLIC_API_BASE_URL` for build-time consistency, keep it aligned with the corresponding EAS environment value.
 
 ## Supabase separation
 
@@ -109,6 +111,16 @@ Recommended GitHub secrets for workflows:
 - `SUPABASE_PRODUCTION_URL`
 - `SUPABASE_PRODUCTION_PUBLISHABLE_KEY`
 - `EXPO_TOKEN`
+
+Optional public mobile build URL secrets if GitHub Actions is used to mirror the
+EAS environment configuration:
+
+- `EXPO_PUBLIC_STAGING_API_BASE_URL`
+- `EXPO_PUBLIC_PRODUCTION_API_BASE_URL`
+
+These values are public app config, not server secrets. Prefer storing them in
+EAS environments and only duplicate them into GitHub when the workflow needs the
+same value during `eas build` invocation.
 
 ## Branching and release policy
 
