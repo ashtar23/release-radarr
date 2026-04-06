@@ -23,7 +23,6 @@ function useNotificationPreferencesQuery() {
     gcTime: NOTIFICATION_PREFERENCES_GC_TIME,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
   });
 }
 

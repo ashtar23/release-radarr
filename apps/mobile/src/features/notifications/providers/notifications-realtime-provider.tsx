@@ -82,6 +82,11 @@ export function NotificationsRealtimeProvider() {
       });
     };
 
+    const catchUpAfterRealtimeReconnect = () => {
+      invalidateNotificationQueries();
+      invalidateNotificationPreferences();
+    };
+
     let socket: WebSocket | null = null;
     let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
@@ -119,7 +124,16 @@ export function NotificationsRealtimeProvider() {
 
       socket.onmessage = (event) => {
         const payload = parseRealtimeMessage(event.data);
-        if (!payload || payload.type !== "notifications.changed") {
+        if (!payload) {
+          return;
+        }
+
+        if (payload.type === "ready") {
+          catchUpAfterRealtimeReconnect();
+          return;
+        }
+
+        if (payload.type !== "notifications.changed") {
           return;
         }
 
