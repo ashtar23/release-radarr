@@ -3,6 +3,7 @@ import type { TitleSearchResult } from "@repo/types";
 import { env } from "../env";
 import { MIN_QUERY_LENGTH } from "./constants";
 import {
+  enrichProviderSearchResults,
   fetchLocalSearchResults,
   fetchProviderSearchCandidates,
   mergeUniqueResults,
@@ -98,6 +99,13 @@ export async function searchTitles(
     await upsertProviderSearchResults(
       providerSearch.results.map((result) => result.summary),
     );
+
+    void enrichProviderSearchResults({
+      results: providerSearch.results,
+      rawgApiKey: env.rawgApiKey,
+    }).catch((error: unknown) => {
+      console.error("Provider detail enrichment failed.", error);
+    });
 
     const mergedResults = rankResults(
       mergeUniqueResults(rankedLocalResults, providerSearch.results),

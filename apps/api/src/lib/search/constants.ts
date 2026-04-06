@@ -5,6 +5,7 @@ export const MIN_QUERY_LENGTH = 2;
 export const MIN_LOCAL_CANDIDATES = 120;
 export const MAX_LOCAL_CANDIDATES = 1000;
 export const MAX_PROVIDER_PAGES = 3;
+export const PROVIDER_DETAIL_ENRICHMENT_LIMIT = 5;
 export const BROAD_LOW_QUALITY_THRESHOLD = 0.16;
 export const STRONG_COVERAGE_THRESHOLD = 0.66;
 

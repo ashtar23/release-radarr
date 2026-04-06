@@ -1,4 +1,4 @@
-import type { TitleSummary } from "@repo/types";
+import type { TitleDetails, TitleSummary } from "@repo/types";
 
 const RAWG_BASE_URL = "https://api.rawg.io/api/games";
 
@@ -27,6 +27,21 @@ type RawgSearchGame = {
       id?: number;
       name?: string;
     };
+  }>;
+};
+
+type RawgDetailGame = RawgSearchGame & {
+  description_raw?: string | null;
+  genres?: Array<{ name?: string }>;
+  developers?: Array<{ name?: string }>;
+  publishers?: Array<{ name?: string }>;
+  website?: string | null;
+  platforms?: Array<{
+    platform?: {
+      id?: number;
+      name?: string;
+    };
+    released_at?: string | null;
   }>;
 };
 
@@ -102,6 +117,32 @@ export async function fetchRawgSearchResults(params: {
   };
 }
 
+export async function fetchRawgDetail(params: {
+  rawgApiKey: string;
+  externalId: string;
+}): Promise<TitleDetails> {
+  const detailUrl = new URL(`${RAWG_BASE_URL}/${params.externalId}`);
+  detailUrl.searchParams.set("key", params.rawgApiKey);
+
+  const response = await fetch(detailUrl);
+  if (!response.ok) {
+    throw new Error(`RAWG detail failed with status ${response.status}.`);
+  }
+
+  const game = (await response.json()) as RawgDetailGame;
+  const summary = mapRawgSearchGameToSummary(game);
+
+  return {
+    ...summary,
+    description: game.description_raw ?? null,
+    genres: mapNamedList(game.genres),
+    developers: mapNamedList(game.developers),
+    publishers: mapNamedList(game.publishers),
+    websiteUrl: normalizeWebsiteUrl(game.website),
+    releases: normalizeRawgReleases(game.platforms),
+  };
+}
+
 function mapRawgSearchGameToSummary(game: RawgSearchGame): TitleSummary {
   const externalId = String(game.id);
   const slug = game.slug ?? game.name.toLowerCase().replace(/\s+/g, "-");
@@ -124,6 +165,54 @@ function mapRawgSearchGameToSummary(game: RawgSearchGame): TitleSummary {
     rawgSuggestionsCount: normalizeRawgNonNegativeInt(game.suggestions_count),
     rawgRatingTop: normalizeRawgNonNegativeInt(game.rating_top),
   };
+}
+
+function mapNamedList(list: Array<{ name?: string }> | undefined): string[] {
+  if (!list?.length) {
+    return [];
+  }
+
+  return list
+    .map((item) => item.name)
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    );
+}
+
+function normalizeWebsiteUrl(value: string | null | undefined) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalizedValue = value.trim();
+  return normalizedValue.length > 0 ? normalizedValue : null;
+}
+
+function normalizeRawgReleases(
+  rawgPlatforms: RawgDetailGame["platforms"],
+): TitleDetails["releases"] {
+  if (!rawgPlatforms?.length) {
+    return [];
+  }
+
+  const deduped = new Map<string, TitleDetails["releases"][number]>();
+  for (const item of rawgPlatforms) {
+    const platformId = item.platform?.id;
+    const platformName = item.platform?.name;
+    if (!platformId || !platformName) continue;
+
+    const normalizedReleaseDate = normalizeIsoDate(item.released_at ?? null);
+    const normalizedPlatformId = `rawg-platform:${platformId}`;
+
+    deduped.set(normalizedPlatformId, {
+      platformId: normalizedPlatformId,
+      platformName,
+      releaseDate: normalizedReleaseDate,
+      releaseDatePrecision: normalizedReleaseDate ? "day" : "unknown",
+    });
+  }
+
+  return Array.from(deduped.values());
 }
 
 function normalizeIsoDate(value: string | null) {
