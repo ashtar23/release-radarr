@@ -37,25 +37,18 @@ export function NotificationsList({
   const theme = useTheme();
 
   const handleNotificationPress = useCallback(
-    async (notification: NotificationRecord) => {
-      try {
-        if (notification.readAt == null) {
-          try {
-            await onMarkAsRead(notification.id);
-          } catch (error) {
-            console.error(
-              "Failed to mark notification as read before navigation.",
-              {
-                notificationId: notification.id,
-                destinationTitleId: notification.destinationTitleId,
-                error,
-              },
-            );
-          }
-        }
-      } finally {
-        router.push(`/titles/${notification.destinationTitleId}`);
+    (notification: NotificationRecord) => {
+      if (notification.readAt == null) {
+        void onMarkAsRead(notification.id).catch((error) => {
+          console.error("Failed to mark notification as read.", {
+            notificationId: notification.id,
+            destinationTitleId: notification.destinationTitleId,
+            error,
+          });
+        });
       }
+
+      router.push(`/titles/${notification.destinationTitleId}`);
     },
     [onMarkAsRead, router],
   );
@@ -65,12 +58,13 @@ export function NotificationsList({
       <NotificationsRow
         notification={item}
         onPress={() => {
-          void handleNotificationPress(item);
+          handleNotificationPress(item);
         }}
       />
     ),
     [handleNotificationPress],
   );
+
   const keyExtractor = useCallback((item: NotificationRecord) => item.id, []);
 
   return (

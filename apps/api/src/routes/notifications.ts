@@ -26,17 +26,27 @@ interface NotificationReadParams {
 type NotificationChannelsInput = UpdateNotificationPreferencesInput["channels"];
 type NotificationEventsInput = UpdateNotificationPreferencesInput["events"];
 
-function normalizeNotificationIdParam(value: string) {
+function tryDecodeURIComponent(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function getNotificationIdCandidates(value: string) {
   const trimmedValue = value.trim();
   if (!trimmedValue) {
-    return "";
+    return [];
   }
 
-  try {
-    return decodeURIComponent(trimmedValue);
-  } catch {
-    return trimmedValue;
-  }
+  return [
+    ...new Set([
+      trimmedValue,
+      tryDecodeURIComponent(trimmedValue),
+      tryDecodeURIComponent(tryDecodeURIComponent(trimmedValue)),
+    ]),
+  ].filter(Boolean);
 }
 
 export function registerNotificationRoutes(server: FastifyInstance) {
@@ -117,22 +127,24 @@ export function registerNotificationRoutes(server: FastifyInstance) {
       return;
     }
 
-    const notificationId = normalizeNotificationIdParam(
+    const notificationIdCandidates = getNotificationIdCandidates(
       request.params.notificationId,
     );
+    const notificationId = notificationIdCandidates[0] ?? "";
 
     if (!notificationId) {
       return reply.status(400).send({ error: "notificationId is required." });
     }
 
     try {
-      const result = await markAsRead(user.id, notificationId);
+      const result = await markAsRead(user.id, notificationIdCandidates);
       if (!result) {
         server.log.warn(
           {
             userId: user.id,
             rawNotificationId: request.params.notificationId,
             notificationId,
+            notificationIdCandidates,
           },
           "Notification read request could not find a matching row.",
         );
