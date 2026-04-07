@@ -37,10 +37,10 @@ export {
   type RemoveWatchlistItemParams,
 } from "./watchlist";
 export {
-  createReleaseRadarApiClient,
-  type ReleaseRadarApiClient,
-  type ReleaseRadarApiClientOptions,
-} from "./release-radar-client";
+  createSoonrApiClient,
+  type SoonrApiClient,
+  type SoonrApiClientOptions,
+} from "./soonr-client";
 export {
   initializeSupabaseClient,
   type InitializedSupabaseClient,

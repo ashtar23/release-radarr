@@ -1,6 +1,6 @@
 # Web App
 
-This is the Vite + React web client for Release Radar.
+This is the Vite + React web client for Soonr.
 
 ## Supabase auth setup
 

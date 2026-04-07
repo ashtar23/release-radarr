@@ -85,7 +85,7 @@ Each notification row should:
 
 ### Empty state
 
-When an authenticated user has no notifications, the tab should show a neutral empty state that explains that Release Radar will surface important watchlist release changes here.
+When an authenticated user has no notifications, the tab should show a neutral empty state that explains that Soonr will surface important watchlist release changes here.
 
 ### Badge behavior
 

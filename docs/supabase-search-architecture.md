@@ -4,7 +4,7 @@ This document focuses on the Supabase-backed search pipeline and how the fronten
 
 ## Supabase setup
 
-Release Radar uses a Supabase-first backend with one public edge namespace:
+Soonr uses a Supabase-first backend with one public edge namespace:
 - `/functions/v1/api/titles`
 - `/functions/v1/api/titles/:id`
 - `/functions/v1/api/watchlist`
@@ -109,10 +109,10 @@ const payload = (await response.json()) as RawgSearchResponse;
 return (payload.results ?? []).map(mapRawgSearchGameToSummary);
 ```
 
-### `packages/api-client/src/release-radar-client.ts`
+### `packages/api-client/src/soonr-client.ts`
 
 ```ts
-export function createReleaseRadarApiClient(options: ReleaseRadarApiClientOptions) {
+export function createSoonrApiClient(options: SoonrApiClientOptions) {
   const context = {
     baseUrl: options.baseUrl,
     publishableKey: options.publishableKey,

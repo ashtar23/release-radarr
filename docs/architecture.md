@@ -2,7 +2,7 @@
 
 ## Repository shape
 
-Release Radar is a Turborepo monorepo with two apps, shared packages, and a Supabase backend.
+Soonr is a Turborepo monorepo with two apps, shared packages, and a Supabase backend.
 
 ### `apps/mobile`
 

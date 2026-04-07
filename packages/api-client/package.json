@@ -8,7 +8,7 @@
     "./auth": "./src/auth.ts",
     "./errors": "./src/errors.ts",
     "./notifications": "./src/notifications.ts",
-    "./release-radar-client": "./src/release-radar-client.ts",
+    "./soonr-client": "./src/soonr-client.ts",
     "./request": "./src/request.ts",
     "./search": "./src/search.ts",
     "./supabase-client": "./src/supabase-client.ts",

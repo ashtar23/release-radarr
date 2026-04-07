@@ -1,6 +1,6 @@
 # Deploying Supabase
 
-This note is the small operational guide for deploying Supabase changes in Release Radar.
+This note is the small operational guide for deploying Supabase changes in Soonr.
 
 ## Two separate targets
 

@@ -1,4 +1,4 @@
-project_id = "release-radarr"
+project_id = "soonr"
 
 [api]
 enabled = true

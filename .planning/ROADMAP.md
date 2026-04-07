@@ -1,7 +1,7 @@
-# Roadmap: Release Radar
+# Roadmap: Soonr
 
 **Created:** 2026-03-17
-**Project:** Release Radar
+**Project:** Soonr
 **Mode:** Brownfield MVP completion
 
 ## Summary
@@ -96,7 +96,7 @@
 
 ## Current Recommendation
 
-Start with **Phase 2: Watchlist Core**. It is the first unfinished capability that turns Release Radar from browsing into tracking, and it unlocks the later notification phases.
+Start with **Phase 2: Watchlist Core**. It is the first unfinished capability that turns Soonr from browsing into tracking, and it unlocks the later notification phases.
 
 ---
 

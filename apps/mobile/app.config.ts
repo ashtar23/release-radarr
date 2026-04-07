@@ -3,8 +3,8 @@ import path from "node:path";
 
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
-const PRODUCT_NAME = "Release Radar";
-const PRODUCT_SLUG = "release-radar";
+const PRODUCT_NAME = "Soonr";
+const PRODUCT_SLUG = "soonr";
 const mobilePackagePath = path.join(__dirname, "package.json");
 const mobilePackage = JSON.parse(
   readFileSync(mobilePackagePath, "utf8"),
@@ -36,24 +36,24 @@ function getEnvironmentConfig(appEnv: AppEnvironment): EnvironmentConfig {
     case "development":
       return {
         name: `${PRODUCT_NAME} Dev`,
-        scheme: "releaseradar-dev",
-        bundleIdentifier: "com.ashtar23.releaseradar.dev",
-        packageName: "com.ashtar23.releaseradar.dev",
+        scheme: "soonr-dev",
+        bundleIdentifier: "com.ashtar23.soonr.dev",
+        packageName: "com.ashtar23.soonr.dev",
       };
     case "staging":
       return {
         name: `${PRODUCT_NAME} Staging`,
-        scheme: "releaseradar-staging",
-        bundleIdentifier: "com.ashtar23.releaseradar.staging",
-        packageName: "com.ashtar23.releaseradar.staging",
+        scheme: "soonr-staging",
+        bundleIdentifier: "com.ashtar23.soonr.staging",
+        packageName: "com.ashtar23.soonr.staging",
       };
     case "production":
     default:
       return {
         name: PRODUCT_NAME,
-        scheme: "releaseradar",
-        bundleIdentifier: "com.ashtar23.releaseradar",
-        packageName: "com.ashtar23.releaseradar",
+        scheme: "soonr",
+        bundleIdentifier: "com.ashtar23.soonr",
+        packageName: "com.ashtar23.soonr",
       };
   }
 }
@@ -64,6 +64,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
+    owner: "ashtar23",
     name: environmentConfig.name,
     slug: PRODUCT_SLUG,
     version: mobilePackage.version,
@@ -116,7 +117,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...config.extra,
       appEnv,
       eas: {
-        projectId: "c0d49c20-e669-470c-93cc-a451f367edce",
+        projectId: "2de1fc7d-8084-4f46-8556-88ecd2010055",
       },
     },
   };

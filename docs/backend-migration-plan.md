@@ -18,7 +18,7 @@ Target direction:
 
 ## Why We Are Moving
 
-Release Radar currently routes app traffic through hosted Supabase backend
+Soonr currently routes app traffic through hosted Supabase backend
 surfaces:
 
 - Supabase Edge Functions

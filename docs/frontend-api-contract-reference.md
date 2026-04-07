@@ -323,7 +323,7 @@ Notes:
 ## Official Typed Client Surface (`@repo/api-client`)
 
 ```ts
-interface ReleaseRadarApiClient {
+interface SoonrApiClient {
   searchTitles(params: {
     query: string;
     page?: number;
@@ -428,9 +428,9 @@ Important:
 ## FE Usage Example
 
 ```ts
-import { createReleaseRadarApiClient } from "@repo/api-client";
+import { createSoonrApiClient } from "@repo/api-client";
 
-const api = createReleaseRadarApiClient({
+const api = createSoonrApiClient({
   baseUrl: import.meta.env.VITE_SUPABASE_URL,
   publishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   async getAccessToken() {

@@ -1,6 +1,6 @@
 # API Backend
 
-Fastify backend for Release Radar's migrated API routes.
+Fastify backend for Soonr's migrated API routes.
 
 Phase 1 starts with:
 
@@ -35,7 +35,7 @@ Optional:
 Spin up a local database for local API development with:
 
 ```bash
-docker run --name release-radarr-db \
+docker run --name soonr-db \
   -e POSTGRES_USER=release_radar \
   -e POSTGRES_PASSWORD=release_radar \
   -e POSTGRES_DB=release_radar \

@@ -1,4 +1,4 @@
-import { createReleaseRadarApiClient } from "@repo/api-client";
+import { createSoonrApiClient } from "@repo/api-client";
 import { SUPABASE_MOBILE_ENV } from "@repo/config";
 
 import { supabase } from "./supabase";
@@ -59,7 +59,7 @@ export const apiClientConfigError =
 
 export const apiClient =
   apiClientConfigError === null
-    ? createReleaseRadarApiClient({
+    ? createSoonrApiClient({
         baseUrl: normalizeBaseUrl(supabaseUrl!) ?? supabaseUrl!,
         homeBaseUrl: homeApiBaseUrl,
         searchBaseUrl: searchApiBaseUrl,

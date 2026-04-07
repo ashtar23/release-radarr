@@ -1,6 +1,6 @@
 # Mobile App
 
-This is the Expo SDK 55 mobile client for Release Radar.
+This is the Expo SDK 55 mobile client for Soonr.
 
 ## Supabase auth setup
 
@@ -45,9 +45,9 @@ The mobile app supports three runtime environments:
 
 `APP_ENV` selects the app identity:
 
-- `development` -> `Release Radar Dev`
-- `staging` -> `Release Radar Staging`
-- `production` -> `Release Radar`
+- `development` -> `Soonr Dev`
+- `staging` -> `Soonr Staging`
+- `production` -> `Soonr`
 
 Hosted backend mapping:
 

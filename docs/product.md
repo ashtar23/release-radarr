@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Release Radar helps users track upcoming game releases and receive notifications when important release changes occur.
+Soonr helps users track upcoming game releases and receive notifications when important release changes occur.
 
 The first version is focused on games only. Movies and TV may be added in later phases.
 

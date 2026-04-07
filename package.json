@@ -1,5 +1,5 @@
 {
-  "name": "release-radarr",
+  "name": "soonr",
   "private": true,
   "scripts": {
     "build": "turbo run build",

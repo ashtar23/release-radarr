@@ -6,7 +6,7 @@ import {
 } from "react";
 import { usePersistedSettingsState } from "@/features/settings/hooks/use-persisted-settings-state";
 
-const STORAGE_KEY = "release-radarr:search-debug-settings:v1";
+const STORAGE_KEY = "soonr:search-debug-settings:v1";
 
 const DEFAULT_SETTINGS = {
   forceRawgRefresh: false,

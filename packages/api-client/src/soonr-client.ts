@@ -38,7 +38,7 @@ import {
   type RemoveWatchlistItemParams,
 } from "./watchlist";
 
-export interface ReleaseRadarApiClientOptions {
+export interface SoonrApiClientOptions {
   readonly baseUrl: string;
   readonly homeBaseUrl?: string;
   readonly notificationsBaseUrl?: string;
@@ -51,7 +51,7 @@ export interface ReleaseRadarApiClientOptions {
   readonly fetchFn?: typeof fetch;
 }
 
-export interface ReleaseRadarApiClient {
+export interface SoonrApiClient {
   health(): Promise<HealthStatus>;
   getHomeDiscovery(
     params?: GetHomeDiscoveryParams,
@@ -82,9 +82,9 @@ export interface ReleaseRadarApiClient {
   removeWatchlistItem(params: RemoveWatchlistItemParams): Promise<void>;
 }
 
-export function createReleaseRadarApiClient(
-  options: ReleaseRadarApiClientOptions,
-): ReleaseRadarApiClient {
+export function createSoonrApiClient(
+  options: SoonrApiClientOptions,
+): SoonrApiClient {
   const context = {
     baseUrl: options.baseUrl,
     homeBaseUrl: options.homeBaseUrl,

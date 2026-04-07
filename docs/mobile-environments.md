@@ -1,6 +1,6 @@
 # Mobile Environments
 
-Release Radar mobile now uses three explicit environments:
+Soonr mobile now uses three explicit environments:
 
 - `development`
 - `staging`
@@ -14,9 +14,9 @@ Each hosted environment has its own installable app identity so staging and prod
 
 | APP_ENV       | App name                | Scheme                 | iOS bundle identifier               | Android package                     |
 | ------------- | ----------------------- | ---------------------- | ----------------------------------- | ----------------------------------- |
-| `development` | `Release Radar Dev`     | `releaseradar-dev`     | `com.ashtar23.releaseradar.dev`     | `com.ashtar23.releaseradar.dev`     |
-| `staging`     | `Release Radar Staging` | `releaseradar-staging` | `com.ashtar23.releaseradar.staging` | `com.ashtar23.releaseradar.staging` |
-| `production`  | `Release Radar`         | `releaseradar`         | `com.ashtar23.releaseradar`         | `com.ashtar23.releaseradar`         |
+| `development` | `Soonr Dev`             | `soonr-dev`            | `com.ashtar23.soonr.dev`            | `com.ashtar23.soonr.dev`            |
+| `staging`     | `Soonr Staging`         | `soonr-staging`        | `com.ashtar23.soonr.staging`        | `com.ashtar23.soonr.staging`        |
+| `production`  | `Soonr`                 | `soonr`                | `com.ashtar23.soonr`                | `com.ashtar23.soonr`                |
 
 ## Backend targets
 

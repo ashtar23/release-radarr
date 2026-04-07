@@ -8,7 +8,7 @@ import { watchlistSortValues, type WatchlistSort } from "@repo/types";
 import { usePersistedSettingsState } from "@/features/settings/hooks/use-persisted-settings-state";
 import { DEFAULT_WATCHLIST_SORT } from "@/features/watchlist/watchlist-sort";
 
-const STORAGE_KEY = "release-radarr:app-preferences:v1";
+const STORAGE_KEY = "soonr:app-preferences:v1";
 
 const DEFAULT_PREFERENCES = {
   hapticsEnabled: true,
