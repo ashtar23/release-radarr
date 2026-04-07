@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
 import type {
   NotificationTimingPreset,
   UpdateNotificationPreferencesInput,
@@ -19,35 +19,8 @@ interface NotificationsQuerystring {
   limit?: string;
 }
 
-interface NotificationReadParams {
-  notificationId: string;
-}
-
 type NotificationChannelsInput = UpdateNotificationPreferencesInput["channels"];
 type NotificationEventsInput = UpdateNotificationPreferencesInput["events"];
-
-function tryDecodeURIComponent(value: string) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
-
-function getNotificationIdCandidates(value: string) {
-  const trimmedValue = value.trim();
-  if (!trimmedValue) {
-    return [];
-  }
-
-  return [
-    ...new Set([
-      trimmedValue,
-      tryDecodeURIComponent(trimmedValue),
-      tryDecodeURIComponent(tryDecodeURIComponent(trimmedValue)),
-    ]),
-  ].filter(Boolean);
-}
 
 export function registerNotificationRoutes(server: FastifyInstance) {
   server.get("/notifications/unread-count", async (request, reply) => {
@@ -116,8 +89,8 @@ export function registerNotificationRoutes(server: FastifyInstance) {
   });
 
   server.post<{
-    Params: NotificationReadParams;
-  }>("/notifications/:notificationId/read", async (request, reply) => {
+    Body: unknown;
+  }>("/notifications/read", async (request, reply) => {
     const user = await authenticateRouteRequest(
       server,
       reply,
@@ -127,34 +100,12 @@ export function registerNotificationRoutes(server: FastifyInstance) {
       return;
     }
 
-    const notificationIdCandidates = getNotificationIdCandidates(
-      request.params.notificationId,
-    );
-    const notificationId = notificationIdCandidates[0] ?? "";
-
-    if (!notificationId) {
-      return reply.status(400).send({ error: "notificationId is required." });
-    }
-
-    try {
-      const result = await markAsRead(user.id, notificationIdCandidates);
-      if (!result) {
-        server.log.warn(
-          {
-            userId: user.id,
-            rawNotificationId: request.params.notificationId,
-            notificationId,
-            notificationIdCandidates,
-          },
-          "Notification read request could not find a matching row.",
-        );
-        return reply.status(404).send({ error: "Notification not found." });
-      }
-
-      return result;
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
+    return handleNotificationReadRequest({
+      server,
+      reply,
+      userId: user.id,
+      notificationId: parseNotificationReadBody(request.body),
+    });
   });
 
   server.post("/notifications/read-all", async (request, reply) => {
@@ -199,6 +150,40 @@ export function registerNotificationRoutes(server: FastifyInstance) {
   });
 }
 
+async function handleNotificationReadRequest({
+  server,
+  reply,
+  userId,
+  notificationId,
+}: {
+  server: FastifyInstance;
+  reply: FastifyReply;
+  userId: string;
+  notificationId: string;
+}) {
+  if (!notificationId) {
+    return reply.status(400).send({ error: "notificationId is required." });
+  }
+
+  try {
+    const result = await markAsRead(userId, notificationId);
+    if (!result) {
+      server.log.warn(
+        {
+          userId,
+          notificationId,
+        },
+        "Notification read request could not find a matching row.",
+      );
+      return reply.status(404).send({ error: "Notification not found." });
+    }
+
+    return result;
+  } catch (error) {
+    return sendInternalServerError(server, reply, error);
+  }
+}
+
 function parseNotificationPreferencesBody(
   body: unknown,
 ): UpdateNotificationPreferencesInput | null {
@@ -223,6 +208,14 @@ function parseNotificationPreferencesBody(
     events,
     timingPresets,
   };
+}
+
+function parseNotificationReadBody(body: unknown) {
+  if (!isRecord(body) || typeof body.notificationId !== "string") {
+    return "";
+  }
+
+  return body.notificationId.trim();
 }
 
 function parseTimingPreset(value: unknown): NotificationTimingPreset[] {

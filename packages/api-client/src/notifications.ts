@@ -139,9 +139,10 @@ export function markNotificationRead({
     method: "POST",
     path:
       notificationsBaseUrl == null
-        ? `${API_PATH_PREFIX}/notifications/${encodeURIComponent(notificationId)}/read`
-        : `/notifications/${encodeURIComponent(notificationId)}/read`,
+        ? `${API_PATH_PREFIX}/notifications/read`
+        : "/notifications/read",
     signal: params.signal,
+    body: JSON.stringify({ notificationId }),
     validate: isMarkNotificationReadResult,
     invalidPayloadMessage: "Notification read payload is invalid.",
     failureMessage: "Mark notification read request failed.",

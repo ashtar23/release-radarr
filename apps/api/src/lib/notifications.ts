@@ -310,13 +310,11 @@ export async function markAllAsRead(
 
 export async function markAsRead(
   userId: string,
-  notificationIds: readonly string[],
+  notificationId: string,
 ): Promise<MarkNotificationReadResult | null> {
-  const normalizedNotificationIds = Array.from(
-    new Set(notificationIds.map((value) => value.trim()).filter(Boolean)),
-  );
+  const normalizedNotificationId = notificationId.trim();
 
-  if (normalizedNotificationIds.length === 0) {
+  if (!normalizedNotificationId) {
     return null;
   }
 
@@ -339,13 +337,13 @@ export async function markAsRead(
           read_at
         from notification_records
         where user_id = $1::uuid
-          and id = any($2::text[])
+          and id = $2::text
       ),
       updated as (
         update notification_records
         set read_at = timezone('utc', now())
         where user_id = $1::uuid
-          and id = any($2::text[])
+          and id = $2::text
           and read_at is null
         returning
           id,
@@ -367,7 +365,7 @@ export async function markAsRead(
       where not exists (select 1 from updated)
       limit 1
     `,
-    [userId, normalizedNotificationIds],
+    [userId, normalizedNotificationId],
   );
 
   const row = result.rows[0];
