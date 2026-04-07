@@ -26,6 +26,19 @@ interface NotificationReadParams {
 type NotificationChannelsInput = UpdateNotificationPreferencesInput["channels"];
 type NotificationEventsInput = UpdateNotificationPreferencesInput["events"];
 
+function normalizeNotificationIdParam(value: string) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return "";
+  }
+
+  try {
+    return decodeURIComponent(trimmedValue);
+  } catch {
+    return trimmedValue;
+  }
+}
+
 export function registerNotificationRoutes(server: FastifyInstance) {
   server.get("/notifications/unread-count", async (request, reply) => {
     const user = await authenticateRouteRequest(
@@ -104,7 +117,9 @@ export function registerNotificationRoutes(server: FastifyInstance) {
       return;
     }
 
-    const notificationId = request.params.notificationId.trim();
+    const notificationId = normalizeNotificationIdParam(
+      request.params.notificationId,
+    );
 
     if (!notificationId) {
       return reply.status(400).send({ error: "notificationId is required." });
@@ -116,6 +131,7 @@ export function registerNotificationRoutes(server: FastifyInstance) {
         server.log.warn(
           {
             userId: user.id,
+            rawNotificationId: request.params.notificationId,
             notificationId,
           },
           "Notification read request could not find a matching row.",

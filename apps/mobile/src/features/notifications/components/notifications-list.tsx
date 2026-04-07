@@ -40,7 +40,18 @@ export function NotificationsList({
     async (notification: NotificationRecord) => {
       try {
         if (notification.readAt == null) {
-          await onMarkAsRead(notification.id);
+          try {
+            await onMarkAsRead(notification.id);
+          } catch (error) {
+            console.error(
+              "Failed to mark notification as read before navigation.",
+              {
+                notificationId: notification.id,
+                destinationTitleId: notification.destinationTitleId,
+                error,
+              },
+            );
+          }
         }
       } finally {
         router.push(`/titles/${notification.destinationTitleId}`);
