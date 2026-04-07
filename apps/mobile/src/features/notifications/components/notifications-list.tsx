@@ -36,17 +36,29 @@ export function NotificationsList({
   const router = useRouter();
   const theme = useTheme();
 
+  const handleNotificationPress = useCallback(
+    async (notification: NotificationRecord) => {
+      try {
+        if (notification.readAt == null) {
+          await onMarkAsRead(notification.id);
+        }
+      } finally {
+        router.push(`/titles/${notification.destinationTitleId}`);
+      }
+    },
+    [onMarkAsRead, router],
+  );
+
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<NotificationRecord>) => (
       <NotificationsRow
         notification={item}
         onPress={() => {
-          void onMarkAsRead(item.id);
-          router.push(`/titles/${item.destinationTitleId}`);
+          void handleNotificationPress(item);
         }}
       />
     ),
-    [onMarkAsRead, router],
+    [handleNotificationPress],
   );
   const keyExtractor = useCallback((item: NotificationRecord) => item.id, []);
 
