@@ -113,6 +113,13 @@ export function registerNotificationRoutes(server: FastifyInstance) {
     try {
       const result = await markAsRead(user.id, notificationId);
       if (!result) {
+        server.log.warn(
+          {
+            userId: user.id,
+            notificationId,
+          },
+          "Notification read request could not find a matching row.",
+        );
         return reply.status(404).send({ error: "Notification not found." });
       }
 

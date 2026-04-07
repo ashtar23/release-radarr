@@ -17,6 +17,7 @@ import {
   getNotificationUnreadCountQueryKey,
   getNotificationsQueryScope,
 } from "../queries/notifications-query-key";
+import { isApiClientError } from "@repo/api-client";
 
 type MarkNotificationReadVariables = {
   notificationId: string;
@@ -112,6 +113,25 @@ export function useMarkNotificationReadMutation() {
           };
         },
       );
+    },
+    onError: (error, { notificationId }) => {
+      if (isApiClientError(error)) {
+        console.error("Failed to mark notification as read", {
+          userId,
+          notificationId,
+          status: error.status,
+          method: error.method,
+          path: error.path,
+          message: error.message,
+        });
+        return;
+      }
+
+      console.error("Failed to mark notification as read", {
+        userId,
+        notificationId,
+        error,
+      });
     },
     onSettled: invalidateNotifications,
   });
