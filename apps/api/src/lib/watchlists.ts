@@ -1,12 +1,14 @@
 import type {
   WatchlistItem,
-  WatchlistListResult,
-  WatchlistMembershipResult,
   WatchlistSort,
-  WatchlistUpsertResult,
 } from "@repo/types";
 
 import type { Database } from "@shared/database-types";
+import type {
+  WatchlistListResult,
+  WatchlistMembershipResult,
+  WatchlistUpsertResult,
+} from "./contracts";
 import { getPostgresPool } from "./postgres";
 
 type WatchlistViewRow = Database["public"]["Views"]["watchlist_items"]["Row"];

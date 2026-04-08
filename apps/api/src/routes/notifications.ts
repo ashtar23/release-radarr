@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
+import type { Static } from "@sinclair/typebox";
 import type {
   NotificationTimingPreset,
   UpdateNotificationPreferencesInput,
@@ -12,142 +13,246 @@ import {
   markAsRead,
   updateNotificationPreferences,
 } from "../lib/notifications";
+import { ErrorResponseSchema } from "../schemas/common";
+import {
+  MarkAllNotificationsReadResultSchema,
+  MarkNotificationReadResultSchema,
+  NotificationPreferencesResultSchema,
+  NotificationReadBodySchema,
+  NotificationUnreadCountResultSchema,
+  NotificationsQuerySchema,
+  NotificationRecordListResultSchema,
+  UpdateNotificationPreferencesBodySchema,
+} from "../schemas/notifications";
 import { authenticateRouteRequest, sendInternalServerError } from "./shared";
-
-interface NotificationsQuerystring {
-  cursor?: string;
-  limit?: string;
-}
 
 type NotificationChannelsInput = UpdateNotificationPreferencesInput["channels"];
 type NotificationEventsInput = UpdateNotificationPreferencesInput["events"];
 
 export function registerNotificationRoutes(server: FastifyInstance) {
-  server.get("/notifications/unread-count", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+  server.get(
+    "/notifications/unread-count",
+    {
+      schema: {
+        tags: ["notifications"],
+        summary: "Get unread notification count",
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: NotificationUnreadCountResultSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    try {
-      return await getNotificationUnreadCount(user.id);
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      try {
+        return await getNotificationUnreadCount(user.id);
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 
   server.get<{
-    Querystring: NotificationsQuerystring;
-  }>("/notifications", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+    Querystring: Static<typeof NotificationsQuerySchema>;
+  }>(
+    "/notifications",
+    {
+      schema: {
+        tags: ["notifications"],
+        summary: "List notifications",
+        security: [{ bearerAuth: [] }],
+        querystring: NotificationsQuerySchema,
+        response: {
+          200: NotificationRecordListResultSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    try {
-      const { cursor, limit } = request.query;
+      try {
+        const { cursor, limit } = request.query;
 
-      return await listNotificationRecords(user.id, {
-        cursor:
-          typeof cursor === "string" && cursor.trim().length > 0
-            ? cursor
-            : undefined,
-        limit:
-          typeof limit === "string" &&
-          Number.isInteger(Number.parseInt(limit, 10))
-            ? Number.parseInt(limit, 10)
-            : undefined,
-      });
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+        return await listNotificationRecords(user.id, {
+          cursor:
+            typeof cursor === "string" && cursor.trim().length > 0
+              ? cursor
+              : undefined,
+          limit:
+            typeof limit === "string" &&
+            Number.isInteger(Number.parseInt(limit, 10))
+              ? Number.parseInt(limit, 10)
+              : undefined,
+        });
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 
-  server.get("/notification-preferences", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+  server.get(
+    "/notification-preferences",
+    {
+      schema: {
+        tags: ["notifications"],
+        summary: "Get notification preferences",
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: NotificationPreferencesResultSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    try {
-      return await getNotificationPreferences(user.id);
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      try {
+        return await getNotificationPreferences(user.id);
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 
   server.post<{
-    Body: unknown;
-  }>("/notifications/read", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+    Body: Static<typeof NotificationReadBodySchema>;
+  }>(
+    "/notifications/read",
+    {
+      schema: {
+        tags: ["notifications"],
+        summary: "Mark a notification as read",
+        security: [{ bearerAuth: [] }],
+        body: NotificationReadBodySchema,
+        response: {
+          200: MarkNotificationReadResultSchema,
+          400: ErrorResponseSchema,
+          401: ErrorResponseSchema,
+          404: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    return handleNotificationReadRequest({
-      server,
-      reply,
-      userId: user.id,
-      notificationId: parseNotificationReadBody(request.body),
-    });
-  });
+      return handleNotificationReadRequest({
+        server,
+        reply,
+        userId: user.id,
+        notificationId: parseNotificationReadBody(request.body),
+      });
+    },
+  );
 
-  server.post("/notifications/read-all", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+  server.post(
+    "/notifications/read-all",
+    {
+      schema: {
+        tags: ["notifications"],
+        summary: "Mark all notifications as read",
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: MarkAllNotificationsReadResultSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    try {
-      return await markAllAsRead(user.id);
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      try {
+        return await markAllAsRead(user.id);
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 
-  server.put("/notification-preferences", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+  server.put<{
+    Body: Static<typeof UpdateNotificationPreferencesBodySchema>;
+  }>(
+    "/notification-preferences",
+    {
+      schema: {
+        tags: ["notifications"],
+        summary: "Update notification preferences",
+        security: [{ bearerAuth: [] }],
+        body: UpdateNotificationPreferencesBodySchema,
+        response: {
+          200: NotificationPreferencesResultSchema,
+          400: ErrorResponseSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    const payload = parseNotificationPreferencesBody(request.body);
-    if (!payload) {
-      return reply
-        .status(400)
-        .send({ error: "Notification preferences payload is invalid." });
-    }
+      const payload = parseNotificationPreferencesBody(request.body);
+      if (!payload) {
+        return reply
+          .status(400)
+          .send({ error: "Notification preferences payload is invalid." });
+      }
 
-    try {
-      return await updateNotificationPreferences(user.id, payload);
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      try {
+        return await updateNotificationPreferences(user.id, payload);
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 }
 
 async function handleNotificationReadRequest({

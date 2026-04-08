@@ -40,10 +40,6 @@ export interface NotificationPreferences {
   updatedAt: IsoDateTimeString;
 }
 
-export interface NotificationPreferencesResult {
-  preferences: NotificationPreferences;
-}
-
 export interface UpdateNotificationPreferencesInput {
   channels: NotificationChannelPreferences;
   events: NotificationEventPreferences;
@@ -79,15 +75,6 @@ export interface NotificationRecord {
   readAt: IsoDateTimeString | null;
 }
 
-export interface NotificationRecordListResult {
-  items: NotificationRecord[];
-  nextCursor: string | null;
-}
-
-export interface NotificationUnreadCountResult {
-  unreadCount: number;
-}
-
 export interface ListNotificationsInput {
   cursor?: string;
   limit?: number;
@@ -95,12 +82,4 @@ export interface ListNotificationsInput {
 
 export interface MarkNotificationReadInput {
   notificationId: EntityId;
-}
-
-export interface MarkNotificationReadResult {
-  notification: NotificationRecord;
-}
-
-export interface MarkAllNotificationsReadResult {
-  markedCount: number;
 }

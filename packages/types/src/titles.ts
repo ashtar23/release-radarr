@@ -6,11 +6,7 @@ import type {
   IsoDateString,
   SourceProvider,
 } from "./core";
-import type {
-  SearchDecisionReason as SearchDecisionReasonLiteral,
-  SearchProviderUsedTrigger,
-  SearchServedBy,
-} from "./search-contract";
+import type { SearchDecisionReason as SearchDecisionReasonLiteral } from "./search-contract";
 
 export interface TitlePlatform {
   id: EntityId;
@@ -45,18 +41,6 @@ export interface TitleSummary {
   rawgRatingTop: number | null;
 }
 
-export interface TitleSearchResult {
-  query: string;
-  results: TitleSummary[];
-  totalCount: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
-  servedBy?: SearchServedBy;
-  decisionReason?: SearchDecisionReasonLiteral;
-  providerUsedTrigger?: SearchProviderUsedTrigger;
-}
-
 export type SearchDecisionReason = SearchDecisionReasonLiteral;
 
 export const titleSearchQuerySchema = z.object({
@@ -72,9 +56,4 @@ export interface TitleDetails extends TitleSummary {
   publishers: string[];
   websiteUrl: string | null;
   releases: PlatformRelease[];
-}
-
-export interface TitleDetailsResult {
-  details: TitleDetails;
-  isInWatchlist: boolean;
 }

@@ -1,12 +1,12 @@
-import type { TitleSearchResult } from "@repo/types";
+import type { TitleSearchResponse } from "@repo/api-client";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { StyleSheet, View } from "react-native";
 
 type SearchResultsHeaderProps = {
-  servedBy: TitleSearchResult["servedBy"] | null;
-  decisionReason: TitleSearchResult["decisionReason"] | null;
+  servedBy: TitleSearchResponse["servedBy"] | null;
+  decisionReason: TitleSearchResponse["decisionReason"] | null;
   showSourceBadge: boolean;
 };
 
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 export { SearchResultsHeader };
 
 function getRawgSourceSummary(
-  decisionReason: TitleSearchResult["decisionReason"] | null,
+  decisionReason: TitleSearchResponse["decisionReason"] | null,
 ) {
   if (decisionReason === "forced_refresh") {
     return "RAWG forced";

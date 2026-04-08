@@ -12,15 +12,23 @@ export interface RequestContext {
   readonly fetchFn: typeof fetch;
 }
 
-interface RequestJsonParams<T> {
+interface RequestJsonBaseParams {
   readonly context: RequestContext;
   readonly method: HttpMethod;
   readonly path: string;
   readonly signal?: AbortSignal;
   readonly body?: string;
+  readonly failureMessage: string;
+}
+
+interface RequestJsonValidatedParams<T> extends RequestJsonBaseParams {
   readonly validate: (value: unknown) => value is T;
   readonly invalidPayloadMessage: string;
-  readonly failureMessage: string;
+}
+
+interface RequestJsonTrustedParams extends RequestJsonBaseParams {
+  readonly validate?: undefined;
+  readonly invalidPayloadMessage?: undefined;
 }
 
 interface RequestVoidParams {
@@ -40,7 +48,7 @@ export async function requestJson<T>({
   validate,
   invalidPayloadMessage,
   failureMessage,
-}: RequestJsonParams<T>): Promise<T> {
+}: RequestJsonValidatedParams<T> | RequestJsonTrustedParams): Promise<T> {
   const fetchFn = context.fetchFn;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const accessToken = await resolveAccessToken(context.getAccessToken);
@@ -81,16 +89,18 @@ export async function requestJson<T>({
     }
 
     const payload: unknown = await response.json();
-    if (!validate(payload)) {
-      throw new ApiClientError({
-        message: invalidPayloadMessage,
-        status: response.status,
-        method,
-        path,
-      });
+    if (validate) {
+      if (!validate(payload)) {
+        throw new ApiClientError({
+          message: invalidPayloadMessage,
+          status: response.status,
+          method,
+          path,
+        });
+      }
     }
 
-    return payload;
+    return payload as T;
   }
 
   throw new ApiClientError({

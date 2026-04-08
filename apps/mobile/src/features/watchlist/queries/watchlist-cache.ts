@@ -1,9 +1,9 @@
 import type {
   TitleDetails,
   WatchlistItem,
-  WatchlistListResult,
   WatchlistSort,
 } from "@repo/types";
+import type { WatchlistListResponse } from "@repo/api-client";
 import type {
   InfiniteData,
   QueryClient,
@@ -17,7 +17,7 @@ import {
   getWatchlistMembershipQueryKey,
 } from "./watchlist-query-key";
 
-export type WatchlistInfiniteData = InfiniteData<WatchlistListResult>;
+export type WatchlistInfiniteData = InfiniteData<WatchlistListResponse>;
 
 export function buildOptimisticWatchlistItem(
   userId: string,

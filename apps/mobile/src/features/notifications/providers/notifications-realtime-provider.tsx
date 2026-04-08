@@ -1,9 +1,11 @@
 import type {
   NotificationPreferences,
-  NotificationPreferencesResult,
-  NotificationRecordListResult,
   NotificationTimingPreset,
 } from "@repo/types";
+import type {
+  NotificationPreferencesResponse,
+  NotificationRecordListResponse,
+} from "@repo/api-client";
 import { notificationTimingPresetValues } from "@repo/types";
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,7 +36,7 @@ type NotificationsRealtimeMessage =
   | {
       type: "notifications.changed";
       scope: "preferences";
-      preferences?: NotificationPreferencesResult;
+      preferences?: NotificationPreferencesResponse;
     };
 
 export function NotificationsRealtimeProvider() {
@@ -59,11 +61,11 @@ export function NotificationsRealtimeProvider() {
     };
 
     const syncNotificationPreferences = (
-      nextPreferences: NotificationPreferencesResult,
+      nextPreferences: NotificationPreferencesResponse,
     ) => {
       const queryKey = getNotificationPreferencesQueryKey(userId);
       const cachedPreferences =
-        queryClient.getQueryData<NotificationPreferencesResult>(queryKey);
+        queryClient.getQueryData<NotificationPreferencesResponse>(queryKey);
 
       if (
         cachedPreferences &&
@@ -200,7 +202,7 @@ export function NotificationsRealtimeProvider() {
           cursor: typeof pageParam === "string" ? pageParam : undefined,
           limit: NOTIFICATIONS_PAGE_SIZE,
         }),
-      getNextPageParam: (lastPage: NotificationRecordListResult) =>
+      getNextPageParam: (lastPage: NotificationRecordListResponse) =>
         lastPage.nextCursor ?? undefined,
     });
 

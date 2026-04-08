@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./auth": "./src/auth.ts",
     "./errors": "./src/errors.ts",
+    "./generated/openapi": "./src/generated/openapi.ts",
     "./notifications": "./src/notifications.ts",
     "./soonr-client": "./src/soonr-client.ts",
     "./request": "./src/request.ts",

@@ -1,6 +1,4 @@
-import type { TitleDetailsResult } from "@repo/types";
-
-import { isTitleDetailsResult } from "./payload-guards";
+import type { TitleDetailsResponse } from "./openapi-types";
 import { requestJson, type RequestContext } from "./request";
 
 export interface GetTitleDetailsParams {
@@ -16,19 +14,17 @@ interface GetTitleDetailsRequestParams {
 export async function getTitleDetails({
   context,
   params,
-}: GetTitleDetailsRequestParams): Promise<TitleDetailsResult> {
+}: GetTitleDetailsRequestParams): Promise<TitleDetailsResponse> {
   const normalizedId = params.id.trim();
   if (!normalizedId) {
     throw new Error("Title id is required.");
   }
 
-  return requestJson({
+  return requestJson<TitleDetailsResponse>({
     context,
     method: "GET",
     path: `/titles/${encodeURIComponent(normalizedId)}`,
     signal: params.signal,
-    validate: isTitleDetailsResult,
-    invalidPayloadMessage: "Title details payload is invalid.",
     failureMessage: "Title details request failed.",
   });
 }

@@ -10,19 +10,14 @@ export type {
 
 export type {
   ListNotificationsInput,
-  MarkAllNotificationsReadResult,
   MarkNotificationReadInput,
-  MarkNotificationReadResult,
   NotificationChannelPreferences,
   NotificationDestinationKind,
   NotificationEventPreferences,
   NotificationEventType,
   NotificationPreferences,
-  NotificationPreferencesResult,
   NotificationRecord,
-  NotificationRecordListResult,
   NotificationTimingPreset,
-  NotificationUnreadCountResult,
   NotificationPayload,
   ReleaseApproachingNotificationPayload,
   ReleaseDateChangedNotificationPayload,
@@ -33,17 +28,13 @@ export {
   notificationEventTypeValues,
   notificationTimingPresetValues,
 } from "./notifications";
-export type { HomeDiscoveryResult } from "./home";
-
 export type {
   PlatformRelease,
   ReleaseDatePrecision,
   SearchDecisionReason,
   TitleDetails,
-  TitleDetailsResult,
   TitleSearchQueryInput,
   TitlePlatform,
-  TitleSearchResult,
   TitleSummary,
 } from "./titles";
 export { titleSearchQuerySchema } from "./titles";
@@ -65,9 +56,6 @@ export type {
   RemoveWatchlistItemInput,
   WatchlistSort,
   WatchlistItem,
-  WatchlistListResult,
-  WatchlistMembershipResult,
-  WatchlistUpsertResult,
 } from "./watchlist";
 export { watchlistSortValues } from "./watchlist";
 export { authCredentialsSchema } from "./auth";

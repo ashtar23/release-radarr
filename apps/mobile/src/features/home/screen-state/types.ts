@@ -1,6 +1,6 @@
-import type { HomeDiscoveryResult, TitleSummary } from "@repo/types";
+import type { HomeDiscoveryResponse } from "@repo/api-client";
 
-export type HomeDiscoveryData = HomeDiscoveryResult<TitleSummary>;
+export type HomeDiscoveryData = HomeDiscoveryResponse;
 
 export type HomeScreenReadyState = {
   mode: "ready";

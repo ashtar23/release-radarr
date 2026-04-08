@@ -11,6 +11,19 @@ export {
   type AccessTokenProvider,
 } from "./auth";
 export { type RequestContext, requestJson, requestVoid } from "./request";
+export {
+  type HomeDiscoveryResponse,
+  type MarkAllNotificationsReadResponse,
+  type MarkNotificationReadResponse,
+  type NotificationPreferencesResponse,
+  type NotificationRecordListResponse,
+  type NotificationUnreadCountResponse,
+  type TitleDetailsResponse,
+  type TitleSearchResponse,
+  type WatchlistListResponse,
+  type WatchlistMembershipResponse,
+  type WatchlistUpsertResponse,
+} from "./openapi-types";
 export { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
 export {
   getNotificationPreferences,

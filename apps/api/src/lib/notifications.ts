@@ -1,16 +1,18 @@
 import type {
-  MarkAllNotificationsReadResult,
-  MarkNotificationReadResult,
   NotificationPreferences,
-  NotificationPreferencesResult,
   NotificationPayload,
   NotificationRecord,
-  NotificationRecordListResult,
   NotificationTimingPreset,
   UpdateNotificationPreferencesInput,
-  NotificationUnreadCountResult,
 } from "@repo/types";
 
+import type {
+  MarkAllNotificationsReadResult,
+  MarkNotificationReadResult,
+  NotificationPreferencesResult,
+  NotificationRecordListResult,
+  NotificationUnreadCountResult,
+} from "./contracts";
 import { getPostgresPool } from "./postgres";
 
 type NotificationUnreadCountRow = {

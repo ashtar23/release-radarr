@@ -1,4 +1,5 @@
-import type { WatchlistListResult, WatchlistSort } from "@repo/types";
+import type { WatchlistListResponse } from "@repo/api-client";
+import type { WatchlistSort } from "@repo/types";
 import { useAuth } from "@/auth/auth-provider";
 import {
   keepPreviousData,
@@ -22,7 +23,7 @@ function useWatchlistQuery(sort: WatchlistSort, query: string) {
   const { user, isReady } = useAuth();
   const userId = user?.id ?? null;
 
-  return useInfiniteQuery<WatchlistListResult>({
+  return useInfiniteQuery<WatchlistListResponse>({
     queryKey: getWatchlistListQueryKey(userId, sort, query),
     enabled: Boolean(userId) && watchlistConfigError === null && isReady,
     initialPageParam: null as string | null,

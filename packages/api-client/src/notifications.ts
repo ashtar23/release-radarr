@@ -1,21 +1,16 @@
 import type {
   ListNotificationsInput,
-  MarkAllNotificationsReadResult,
   MarkNotificationReadInput,
-  MarkNotificationReadResult,
-  NotificationPreferencesResult,
-  NotificationRecordListResult,
-  NotificationUnreadCountResult,
   UpdateNotificationPreferencesInput,
 } from "@repo/types";
 
-import {
-  isMarkAllNotificationsReadResult,
-  isMarkNotificationReadResult,
-  isNotificationPreferencesResult,
-  isNotificationRecordListResult,
-  isNotificationUnreadCountResult,
-} from "./payload-guards";
+import type {
+  MarkAllNotificationsReadResponse,
+  MarkNotificationReadResponse,
+  NotificationPreferencesResponse,
+  NotificationRecordListResponse,
+  NotificationUnreadCountResponse,
+} from "./openapi-types";
 import { requestJson, type RequestContext } from "./request";
 
 export interface ListNotificationsParams extends ListNotificationsInput {
@@ -67,7 +62,7 @@ interface GetNotificationUnreadCountRequestParams {
 export function listNotifications({
   context,
   params,
-}: ListNotificationsRequestParams): Promise<NotificationRecordListResult> {
+}: ListNotificationsRequestParams): Promise<NotificationRecordListResponse> {
   const searchParams = new URLSearchParams();
   if (typeof params?.cursor === "string" && params.cursor.trim()) {
     searchParams.set("cursor", params.cursor.trim());
@@ -84,13 +79,11 @@ export function listNotifications({
   const queryString = searchParams.toString();
   const query = queryString ? `?${queryString}` : "";
 
-  return requestJson({
+  return requestJson<NotificationRecordListResponse>({
     context,
     method: "GET",
     path: `/notifications${query}`,
     signal: params?.signal,
-    validate: isNotificationRecordListResult,
-    invalidPayloadMessage: "Notifications payload is invalid.",
     failureMessage: "Notifications request failed.",
   });
 }
@@ -98,14 +91,12 @@ export function listNotifications({
 export function getNotificationUnreadCount({
   context,
   signal,
-}: GetNotificationUnreadCountRequestParams): Promise<NotificationUnreadCountResult> {
-  return requestJson({
+}: GetNotificationUnreadCountRequestParams): Promise<NotificationUnreadCountResponse> {
+  return requestJson<NotificationUnreadCountResponse>({
     context,
     method: "GET",
     path: "/notifications/unread-count",
     signal,
-    validate: isNotificationUnreadCountResult,
-    invalidPayloadMessage: "Notification unread count payload is invalid.",
     failureMessage: "Notification unread count request failed.",
   });
 }
@@ -113,20 +104,18 @@ export function getNotificationUnreadCount({
 export function markNotificationRead({
   context,
   params,
-}: MarkNotificationReadRequestParams): Promise<MarkNotificationReadResult> {
+}: MarkNotificationReadRequestParams): Promise<MarkNotificationReadResponse> {
   const notificationId = params.notificationId.trim();
   if (!notificationId) {
     throw new Error("notificationId is required.");
   }
 
-  return requestJson({
+  return requestJson<MarkNotificationReadResponse>({
     context,
     method: "POST",
     path: "/notifications/read",
     signal: params.signal,
     body: JSON.stringify({ notificationId }),
-    validate: isMarkNotificationReadResult,
-    invalidPayloadMessage: "Notification read payload is invalid.",
     failureMessage: "Mark notification read request failed.",
   });
 }
@@ -134,14 +123,12 @@ export function markNotificationRead({
 export function markAllNotificationsRead({
   context,
   params,
-}: MarkAllNotificationsReadRequestParams): Promise<MarkAllNotificationsReadResult> {
-  return requestJson({
+}: MarkAllNotificationsReadRequestParams): Promise<MarkAllNotificationsReadResponse> {
+  return requestJson<MarkAllNotificationsReadResponse>({
     context,
     method: "POST",
     path: "/notifications/read-all",
     signal: params?.signal,
-    validate: isMarkAllNotificationsReadResult,
-    invalidPayloadMessage: "Mark all notifications read payload is invalid.",
     failureMessage: "Mark all notifications read request failed.",
   });
 }
@@ -149,14 +136,12 @@ export function markAllNotificationsRead({
 export function getNotificationPreferences({
   context,
   signal,
-}: GetNotificationPreferencesRequestParams): Promise<NotificationPreferencesResult> {
-  return requestJson({
+}: GetNotificationPreferencesRequestParams): Promise<NotificationPreferencesResponse> {
+  return requestJson<NotificationPreferencesResponse>({
     context,
     method: "GET",
     path: "/notification-preferences",
     signal,
-    validate: isNotificationPreferencesResult,
-    invalidPayloadMessage: "Notification preferences payload is invalid.",
     failureMessage: "Notification preferences request failed.",
   });
 }
@@ -164,8 +149,8 @@ export function getNotificationPreferences({
 export function updateNotificationPreferences({
   context,
   params,
-}: UpdateNotificationPreferencesRequestParams): Promise<NotificationPreferencesResult> {
-  return requestJson({
+}: UpdateNotificationPreferencesRequestParams): Promise<NotificationPreferencesResponse> {
+  return requestJson<NotificationPreferencesResponse>({
     context,
     method: "PUT",
     path: "/notification-preferences",
@@ -175,9 +160,6 @@ export function updateNotificationPreferences({
       events: params.events,
       timingPresets: params.timingPresets,
     }),
-    validate: isNotificationPreferencesResult,
-    invalidPayloadMessage:
-      "Notification preferences update payload is invalid.",
     failureMessage: "Update notification preferences request failed.",
   });
 }

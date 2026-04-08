@@ -7,6 +7,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "generate:api-types": "pnpm --filter api generate:openapi-spec && openapi-typescript apps/api/openapi.generated.json -o packages/api-client/src/generated/openapi.ts",
     "verify:pre-push": "pnpm --filter @repo/types check-types && pnpm --filter @repo/api-client check-types && pnpm --filter mobile check-types && pnpm lint --filter mobile && deno check --config supabase/functions/api/deno.json --lock=supabase/functions/api/deno.lock supabase/functions/api/index.ts",
     "prepare": "husky",
     "test:backend-contracts": "node supabase/tests/contracts.mjs",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
+    "openapi-typescript": "^7.10.1",
     "prettier": "^3.7.4",
     "turbo": "^2.8.14",
     "typescript": "5.9.2"

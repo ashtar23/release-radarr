@@ -1,16 +1,17 @@
-import type { NotificationPreferencesResult } from "@repo/types";
-import type { NotificationRecordListResult } from "@repo/types";
-import type { NotificationUnreadCountResult } from "@repo/types";
-import type { MarkAllNotificationsReadResult } from "@repo/types";
-import type { MarkNotificationReadResult } from "@repo/types";
-import type { HomeDiscoveryResult } from "@repo/types";
 import type { HealthStatus } from "@repo/types";
-import type { TitleDetailsResult } from "@repo/types";
-import type { TitleSearchResult } from "@repo/types";
-import type { TitleSummary } from "@repo/types";
-import type { WatchlistListResult } from "@repo/types";
-import type { WatchlistMembershipResult } from "@repo/types";
-import type { WatchlistUpsertResult } from "@repo/types";
+import type {
+  HomeDiscoveryResponse,
+  MarkAllNotificationsReadResponse,
+  MarkNotificationReadResponse,
+  NotificationPreferencesResponse,
+  NotificationRecordListResponse,
+  NotificationUnreadCountResponse,
+  TitleDetailsResponse,
+  TitleSearchResponse,
+  WatchlistListResponse,
+  WatchlistMembershipResponse,
+  WatchlistUpsertResponse,
+} from "./openapi-types";
 
 import { isHealthStatus } from "./payload-guards";
 import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
@@ -50,32 +51,32 @@ export interface SoonrApiClientOptions {
 
 export interface SoonrApiClient {
   health(): Promise<HealthStatus>;
-  getHomeDiscovery(
-    params?: GetHomeDiscoveryParams,
-  ): Promise<HomeDiscoveryResult<TitleSummary>>;
-  searchTitles(params: SearchTitlesParams): Promise<TitleSearchResult>;
-  getTitleDetails(params: GetTitleDetailsParams): Promise<TitleDetailsResult>;
+  getHomeDiscovery(params?: GetHomeDiscoveryParams): Promise<HomeDiscoveryResponse>;
+  searchTitles(params: SearchTitlesParams): Promise<TitleSearchResponse>;
+  getTitleDetails(
+    params: GetTitleDetailsParams,
+  ): Promise<TitleDetailsResponse>;
   listNotifications(
     params?: ListNotificationsParams,
-  ): Promise<NotificationRecordListResult>;
-  getNotificationUnreadCount(): Promise<NotificationUnreadCountResult>;
+  ): Promise<NotificationRecordListResponse>;
+  getNotificationUnreadCount(): Promise<NotificationUnreadCountResponse>;
   markAllNotificationsRead(
     params?: MarkAllNotificationsReadParams,
-  ): Promise<MarkAllNotificationsReadResult>;
+  ): Promise<MarkAllNotificationsReadResponse>;
   markNotificationRead(
     params: MarkNotificationReadParams,
-  ): Promise<MarkNotificationReadResult>;
-  getNotificationPreferences(): Promise<NotificationPreferencesResult>;
+  ): Promise<MarkNotificationReadResponse>;
+  getNotificationPreferences(): Promise<NotificationPreferencesResponse>;
   updateNotificationPreferences(
     params: UpdateNotificationPreferencesParams,
-  ): Promise<NotificationPreferencesResult>;
-  listWatchlist(params?: ListWatchlistParams): Promise<WatchlistListResult>;
+  ): Promise<NotificationPreferencesResponse>;
+  listWatchlist(params?: ListWatchlistParams): Promise<WatchlistListResponse>;
   getWatchlistMembership(
     params: GetWatchlistMembershipParams,
-  ): Promise<WatchlistMembershipResult>;
+  ): Promise<WatchlistMembershipResponse>;
   addWatchlistItem(
     params: AddWatchlistItemParams,
-  ): Promise<WatchlistUpsertResult>;
+  ): Promise<WatchlistUpsertResponse>;
   removeWatchlistItem(params: RemoveWatchlistItemParams): Promise<void>;
 }
 

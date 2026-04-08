@@ -1,6 +1,5 @@
-import type { TitleSearchResult } from "@repo/types";
-
 import { env } from "../env";
+import type { TitleSearchResult } from "../contracts";
 import { MIN_QUERY_LENGTH } from "./constants";
 import {
   enrichProviderSearchResults,

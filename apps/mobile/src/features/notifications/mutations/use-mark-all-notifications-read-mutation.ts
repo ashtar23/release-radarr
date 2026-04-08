@@ -1,7 +1,7 @@
 import type {
-  NotificationRecordListResult,
-  NotificationUnreadCountResult,
-} from "@repo/types";
+  NotificationRecordListResponse,
+  NotificationUnreadCountResponse,
+} from "@repo/api-client";
 import { useAuth } from "@/auth/auth-provider";
 import {
   type InfiniteData,
@@ -56,7 +56,7 @@ export function useMarkAllNotificationsReadMutation() {
       await queryClient.cancelQueries({ queryKey: notificationsQueryScope });
       await queryClient.cancelQueries({ queryKey: unreadCountQueryKey });
 
-      queryClient.setQueriesData<InfiniteData<NotificationRecordListResult>>(
+      queryClient.setQueriesData<InfiniteData<NotificationRecordListResponse>>(
         { queryKey: notificationsQueryScope },
         (current) => {
           if (!current) {
@@ -75,7 +75,7 @@ export function useMarkAllNotificationsReadMutation() {
         },
       );
 
-      queryClient.setQueryData<NotificationUnreadCountResult>(
+      queryClient.setQueryData<NotificationUnreadCountResponse>(
         unreadCountQueryKey,
         () => ({ unreadCount: 0 }),
       );

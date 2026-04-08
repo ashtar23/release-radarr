@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { TitleSearchResult, TitleSummary } from "@repo/types";
+import type { TitleSearchResponse } from "@repo/api-client";
+import type { TitleSummary } from "@repo/types";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
@@ -40,8 +41,8 @@ export interface SearchTitlesInfiniteQueryState {
   showSearchResults: boolean;
   results: TitleSummary[];
   totalCount: number;
-  servedBy: TitleSearchResult["servedBy"] | null;
-  decisionReason: TitleSearchResult["decisionReason"] | null;
+  servedBy: TitleSearchResponse["servedBy"] | null;
+  decisionReason: TitleSearchResponse["decisionReason"] | null;
   hasMoreResults: boolean;
   isLoadingMore: boolean;
   loadMoreErrorMessage: string | null;

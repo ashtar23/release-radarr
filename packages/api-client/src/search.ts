@@ -1,6 +1,4 @@
-import type { TitleSearchResult } from "@repo/types";
-
-import { isTitleSearchResult } from "./payload-guards";
+import type { TitleSearchResponse } from "./openapi-types";
 import { requestJson, type RequestContext } from "./request";
 
 export interface SearchTitlesParams {
@@ -19,7 +17,7 @@ interface SearchTitlesRequestParams {
 export async function searchTitles({
   context,
   params,
-}: SearchTitlesRequestParams): Promise<TitleSearchResult> {
+}: SearchTitlesRequestParams): Promise<TitleSearchResponse> {
   const normalizedQuery = params.query.trim();
   const page = normalizePage(params.page);
   const limit = normalizeLimit(params.limit);
@@ -46,13 +44,11 @@ export async function searchTitles({
     searchParams.set("forceRefresh", "1");
   }
 
-  const payload = await requestJson({
+  const payload = await requestJson<TitleSearchResponse>({
     context,
     method: "GET",
     path: `/titles?${searchParams.toString()}`,
     signal: params.signal,
-    validate: isTitleSearchResult,
-    invalidPayloadMessage: "Search response payload is invalid.",
     failureMessage: "Search request failed.",
   });
 

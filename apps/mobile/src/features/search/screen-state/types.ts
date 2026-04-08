@@ -1,10 +1,11 @@
-import type { TitleSearchResult, TitleSummary } from "@repo/types";
+import type { TitleSearchResponse } from "@repo/api-client";
+import type { TitleSummary } from "@repo/types";
 
 export type SearchScreenReadyState = {
   mode: "ready";
   results: TitleSummary[];
-  servedBy: TitleSearchResult["servedBy"] | null;
-  decisionReason: TitleSearchResult["decisionReason"] | null;
+  servedBy: TitleSearchResponse["servedBy"] | null;
+  decisionReason: TitleSearchResponse["decisionReason"] | null;
   showSourceBadge: boolean;
   hasMoreResults: boolean;
   isLoadingMore: boolean;

@@ -2,16 +2,13 @@ import type {
   AddWatchlistItemInput,
   ListWatchlistInput,
   RemoveWatchlistItemInput,
-  WatchlistListResult,
-  WatchlistMembershipResult,
-  WatchlistUpsertResult,
 } from "@repo/types";
 
-import {
-  isWatchlistListResult,
-  isWatchlistMembershipResult,
-  isWatchlistUpsertResult,
-} from "./payload-guards";
+import type {
+  WatchlistListResponse,
+  WatchlistMembershipResponse,
+  WatchlistUpsertResponse,
+} from "./openapi-types";
 import { requestJson, requestVoid, type RequestContext } from "./request";
 
 export interface ListWatchlistParams extends ListWatchlistInput {
@@ -54,7 +51,7 @@ interface RemoveWatchlistItemRequestParams {
 export function listWatchlist({
   context,
   params,
-}: ListWatchlistRequestParams): Promise<WatchlistListResult> {
+}: ListWatchlistRequestParams): Promise<WatchlistListResponse> {
   const searchParams = new URLSearchParams();
   if (params?.sort) {
     searchParams.set("sort", params.sort);
@@ -79,13 +76,11 @@ export function listWatchlist({
   const queryString = searchParams.toString();
   const query = queryString ? `?${queryString}` : "";
 
-  return requestJson({
+  return requestJson<WatchlistListResponse>({
     context,
     method: "GET",
     path: `/watchlist${query}`,
     signal: params?.signal,
-    validate: isWatchlistListResult,
-    invalidPayloadMessage: "Watchlist payload is invalid.",
     failureMessage: "Watchlist request failed.",
   });
 }
@@ -93,19 +88,17 @@ export function listWatchlist({
 export function getWatchlistMembership({
   context,
   params,
-}: GetWatchlistMembershipRequestParams): Promise<WatchlistMembershipResult> {
+}: GetWatchlistMembershipRequestParams): Promise<WatchlistMembershipResponse> {
   const normalizedTitleId = params.titleId.trim();
   if (!normalizedTitleId) {
     throw new Error("titleId is required.");
   }
 
-  return requestJson({
+  return requestJson<WatchlistMembershipResponse>({
     context,
     method: "GET",
     path: `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
     signal: params.signal,
-    validate: isWatchlistMembershipResult,
-    invalidPayloadMessage: "Watchlist membership payload is invalid.",
     failureMessage: "Watchlist membership request failed.",
   });
 }
@@ -113,20 +106,18 @@ export function getWatchlistMembership({
 export function addWatchlistItem({
   context,
   params,
-}: AddWatchlistItemRequestParams): Promise<WatchlistUpsertResult> {
+}: AddWatchlistItemRequestParams): Promise<WatchlistUpsertResponse> {
   const normalizedTitleId = params.titleId.trim();
   if (!normalizedTitleId) {
     throw new Error("titleId is required.");
   }
 
-  return requestJson({
+  return requestJson<WatchlistUpsertResponse>({
     context,
     method: "POST",
     path: "/watchlist",
     signal: params.signal,
     body: JSON.stringify({ titleId: normalizedTitleId }),
-    validate: isWatchlistUpsertResult,
-    invalidPayloadMessage: "Watchlist add payload is invalid.",
     failureMessage: "Add watchlist request failed.",
   });
 }

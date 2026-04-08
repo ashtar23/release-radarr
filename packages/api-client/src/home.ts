@@ -1,6 +1,4 @@
-import type { HomeDiscoveryResult, TitleSummary } from "@repo/types";
-
-import { isHomeDiscoveryResult } from "./payload-guards";
+import type { HomeDiscoveryResponse } from "./openapi-types";
 import { requestJson, type RequestContext } from "./request";
 
 export interface GetHomeDiscoveryParams {
@@ -15,14 +13,12 @@ interface GetHomeDiscoveryRequestParams {
 export async function getHomeDiscovery({
   context,
   params,
-}: GetHomeDiscoveryRequestParams): Promise<HomeDiscoveryResult<TitleSummary>> {
-  return requestJson({
+}: GetHomeDiscoveryRequestParams): Promise<HomeDiscoveryResponse> {
+  return requestJson<HomeDiscoveryResponse>({
     context,
     method: "GET",
     path: "/home/discovery",
     signal: params?.signal,
-    validate: isHomeDiscoveryResult,
-    invalidPayloadMessage: "Home discovery payload is invalid.",
     failureMessage: "Home discovery request failed.",
   });
 }

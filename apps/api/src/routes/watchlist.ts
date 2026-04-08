@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import type { Static } from "@sinclair/typebox";
 import type { WatchlistSort } from "@repo/types";
 
 import {
@@ -8,142 +9,206 @@ import {
   removeWatchlistItem,
   titleExists,
 } from "../lib/watchlists";
+import { ErrorResponseSchema } from "../schemas/common";
+import {
+  WatchlistListResultSchema,
+  WatchlistMembershipResultSchema,
+  WatchlistMutationBodySchema,
+  WatchlistParamsSchema,
+  WatchlistQuerySchema,
+  WatchlistRemovedResultSchema,
+  WatchlistUpsertResultSchema,
+} from "../schemas/watchlist";
 import { authenticateRouteRequest, sendInternalServerError } from "./shared";
-
-interface WatchlistQuerystring {
-  cursor?: string;
-  limit?: string;
-  query?: string;
-  sort?: string;
-}
-
-interface WatchlistParams {
-  titleId: string;
-}
-
-interface WatchlistMutationBody {
-  titleId: string;
-}
 
 export function registerWatchlistRoutes(server: FastifyInstance) {
   server.get<{
-    Querystring: WatchlistQuerystring;
-  }>("/watchlist", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
-
-    try {
-      const sort = parseWatchlistSort(request.query.sort);
-      if (!sort) {
-        return reply.status(400).send({ error: "Unsupported watchlist sort." });
+    Querystring: Static<typeof WatchlistQuerySchema>;
+  }>(
+    "/watchlist",
+    {
+      schema: {
+        tags: ["watchlist"],
+        summary: "List watchlist items",
+        security: [{ bearerAuth: [] }],
+        querystring: WatchlistQuerySchema,
+        response: {
+          200: WatchlistListResultSchema,
+          400: ErrorResponseSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
       }
 
-      return await listWatchlistItems(user.id, {
-        sort,
-        query:
-          typeof request.query.query === "string" &&
-          request.query.query.trim().length > 0
-            ? request.query.query.trim()
-            : undefined,
-        cursor:
-          typeof request.query.cursor === "string" &&
-          request.query.cursor.trim().length > 0
-            ? request.query.cursor.trim()
-            : undefined,
-        limit:
-          typeof request.query.limit === "string" &&
-          Number.isInteger(Number.parseInt(request.query.limit, 10))
-            ? Number.parseInt(request.query.limit, 10)
-            : undefined,
-      });
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      try {
+        const sort = parseWatchlistSort(request.query.sort);
+        if (!sort) {
+          return reply.status(400).send({ error: "Unsupported watchlist sort." });
+        }
+
+        return await listWatchlistItems(user.id, {
+          sort,
+          query:
+            typeof request.query.query === "string" &&
+            request.query.query.trim().length > 0
+              ? request.query.query.trim()
+              : undefined,
+          cursor:
+            typeof request.query.cursor === "string" &&
+            request.query.cursor.trim().length > 0
+              ? request.query.cursor.trim()
+              : undefined,
+          limit:
+            typeof request.query.limit === "string" &&
+            Number.isInteger(Number.parseInt(request.query.limit, 10))
+              ? Number.parseInt(request.query.limit, 10)
+              : undefined,
+        });
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 
   server.get<{
-    Params: WatchlistParams;
-  }>("/watchlist/:titleId", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
-
-    try {
-      return await getWatchlistMembership(user.id, request.params.titleId);
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
-
-  server.post("/watchlist", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
-
-    const payload = parseWatchlistMutationBody(request.body);
-    if (!payload) {
-      return reply.status(400).send({ error: "titleId is required." });
-    }
-
-    try {
-      const hasTitle = await titleExists(payload.titleId);
-      if (!hasTitle) {
-        return reply.status(404).send({ error: "Title not found." });
+    Params: Static<typeof WatchlistParamsSchema>;
+  }>(
+    "/watchlist/:titleId",
+    {
+      schema: {
+        tags: ["watchlist"],
+        summary: "Get watchlist membership for a title",
+        security: [{ bearerAuth: [] }],
+        params: WatchlistParamsSchema,
+        response: {
+          200: WatchlistMembershipResultSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
       }
 
-      const result = await addWatchlistItem(user.id, payload.titleId);
-      if (!result) {
-        return reply
-          .status(500)
-          .send({ error: "Unable to create watchlist item." });
+      try {
+        return await getWatchlistMembership(user.id, request.params.titleId);
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
+
+  server.post<{
+    Body: Static<typeof WatchlistMutationBodySchema>;
+  }>(
+    "/watchlist",
+    {
+      schema: {
+        tags: ["watchlist"],
+        summary: "Add a title to the watchlist",
+        security: [{ bearerAuth: [] }],
+        body: WatchlistMutationBodySchema,
+        response: {
+          201: WatchlistUpsertResultSchema,
+          400: ErrorResponseSchema,
+          401: ErrorResponseSchema,
+          404: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
       }
 
-      return reply.status(201).send(result);
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      const payload = parseWatchlistMutationBody(request.body);
+      if (!payload) {
+        return reply.status(400).send({ error: "titleId is required." });
+      }
+
+      try {
+        const hasTitle = await titleExists(payload.titleId);
+        if (!hasTitle) {
+          return reply.status(404).send({ error: "Title not found." });
+        }
+
+        const result = await addWatchlistItem(user.id, payload.titleId);
+        if (!result) {
+          return reply
+            .status(500)
+            .send({ error: "Unable to create watchlist item." });
+        }
+
+        return reply.status(201).send(result);
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 
   server.delete<{
-    Params: WatchlistParams;
-  }>("/watchlist/:titleId", async (request, reply) => {
-    const user = await authenticateRouteRequest(
-      server,
-      reply,
-      request.headers.authorization,
-    );
-    if (!user) {
-      return;
-    }
+    Params: Static<typeof WatchlistParamsSchema>;
+  }>(
+    "/watchlist/:titleId",
+    {
+      schema: {
+        tags: ["watchlist"],
+        summary: "Remove a title from the watchlist",
+        security: [{ bearerAuth: [] }],
+        params: WatchlistParamsSchema,
+        response: {
+          200: WatchlistRemovedResultSchema,
+          401: ErrorResponseSchema,
+          500: ErrorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = await authenticateRouteRequest(
+        server,
+        reply,
+        request.headers.authorization,
+      );
+      if (!user) {
+        return;
+      }
 
-    try {
-      await removeWatchlistItem(user.id, request.params.titleId);
-      return { removed: true };
-    } catch (error) {
-      return sendInternalServerError(server, reply, error);
-    }
-  });
+      try {
+        await removeWatchlistItem(user.id, request.params.titleId);
+        return { removed: true };
+      } catch (error) {
+        return sendInternalServerError(server, reply, error);
+      }
+    },
+  );
 }
 
 function parseWatchlistMutationBody(
   value: unknown,
-): WatchlistMutationBody | null {
+): Static<typeof WatchlistMutationBodySchema> | null {
   if (!value || typeof value !== "object") {
     return null;
   }

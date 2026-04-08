@@ -2,15 +2,33 @@
 
 Fastify backend for Soonr's migrated API routes.
 
-Phase 1 starts with:
+Interactive API docs and spec are hosted from the API itself when docs are
+enabled:
+
+- `GET /docs`
+- `GET /openapi.json`
+- `pnpm --filter api generate:openapi-spec` writes `apps/api/openapi.generated.json`
+- `pnpm generate:api-types` writes `packages/api-client/src/generated/openapi.ts`
+
+Current schema-backed HTTP routes:
 
 - `GET /health`
 - `GET /home/discovery`
+- `GET /titles`
 - `GET /titles/:titleId`
 - `GET /watchlist`
 - `GET /watchlist/:titleId`
 - `POST /watchlist`
 - `DELETE /watchlist/:titleId`
+- `GET /notifications/unread-count`
+- `GET /notifications`
+- `GET /notification-preferences`
+- `POST /notifications/read`
+- `POST /notifications/read-all`
+- `PUT /notification-preferences`
+
+Realtime remains separate:
+
 - `GET /notifications/stream` (websocket)
 
 The hosted API package also includes a manual generation command for the
@@ -105,6 +123,12 @@ events to connected clients.
 ```bash
 pnpm --filter api dev
 ```
+
+Docs visibility:
+
+- local: enabled
+- staging: enabled
+- production: disabled by default
 
 ## Railway envs
 

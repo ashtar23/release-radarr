@@ -1,6 +1,7 @@
-import type { HomeDiscoveryResult, TitleSummary } from "@repo/types";
+import type { TitleSummary } from "@repo/types";
 
 import type { Database } from "@shared/database-types";
+import type { HomeDiscoveryResult } from "./contracts";
 import { queryCachedTitles } from "./postgres";
 
 const DISCOVERY_LIMIT = 10;
@@ -11,9 +12,7 @@ type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 const TITLE_LIST_SELECT =
   "id, kind, source, external_id, slug, name, cover_image_url, earliest_release_date, platforms, rawg_rating, rawg_ratings_count, rawg_metacritic, rawg_added, rawg_reviews_count, rawg_suggestions_count, rawg_rating_top";
 
-export async function getHomeDiscovery(): Promise<
-  HomeDiscoveryResult<TitleSummary>
-> {
+export async function getHomeDiscovery(): Promise<HomeDiscoveryResult> {
   const today = new Date();
   const todayIsoDate = toIsoDate(today);
   const latestCutoffIsoDate = toIsoDate(addDays(today, -LATEST_WINDOW_DAYS));

@@ -1,6 +1,7 @@
-import type { TitleDetails, TitleDetailsResult } from "@repo/types";
+import type { TitleDetails } from "@repo/types";
 
 import type { Database } from "@shared/database-types";
+import type { TitleDetailsResult } from "./contracts";
 import { getPostgresPool } from "./postgres";
 
 type TitleRow = Database["public"]["Tables"]["titles"]["Row"];
