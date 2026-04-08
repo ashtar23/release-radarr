@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, type ReactNode } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 
 import type { TitleSummary } from "@repo/types";
@@ -10,27 +10,20 @@ import { Spacing } from "@/constants/theme";
 import { SearchResultsFooter } from "./search-results-footer";
 import { SearchResultsHeader } from "./search-results-header";
 import { TitleCardRow } from "@/features/titles/components/title-card-row";
-import type { SearchScreenState } from "../hooks/use-search-screen-state";
+import type { SearchScreenReadyState } from "../screen-state";
 
 interface SearchResultsListProps {
-  searchState: Pick<
-    SearchScreenState,
-    | "results"
-    | "servedBy"
-    | "decisionReason"
-    | "showSourceBadge"
-    | "hasMoreResults"
-    | "isLoadingMore"
-    | "loadMoreErrorMessage"
-  >;
+  searchState: SearchScreenReadyState;
   onRetryLoadMore: () => void;
   onEndReached: () => void;
+  listHeader?: ReactNode;
 }
 
 export function SearchResultsList({
   searchState,
   onRetryLoadMore,
   onEndReached,
+  listHeader,
 }: SearchResultsListProps) {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TitleSummary>) => (
@@ -57,11 +50,14 @@ export function SearchResultsList({
       }
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
-        <SearchResultsHeader
-          servedBy={searchState.servedBy}
-          decisionReason={searchState.decisionReason}
-          showSourceBadge={searchState.showSourceBadge}
-        />
+        <>
+          {listHeader}
+          <SearchResultsHeader
+            servedBy={searchState.servedBy}
+            decisionReason={searchState.decisionReason}
+            showSourceBadge={searchState.showSourceBadge}
+          />
+        </>
       }
       ItemSeparatorComponent={ResultSeparator}
       ListFooterComponent={

@@ -1,6 +1,14 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "APP_ENV",
+    "HOST",
+    "PORT",
+    "RAWG_API_KEY",
+    "SUPABASE_SECRET_KEY",
+    "SUPABASE_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

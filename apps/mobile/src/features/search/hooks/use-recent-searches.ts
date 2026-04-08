@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import { usePersistedSettingsState } from "@/features/settings/hooks/use-persisted-settings-state";
 
-const STORAGE_KEY = "release-radarr:search:recent-searches:v1";
+const STORAGE_KEY = "soonr:search:recent-searches:v1";
 const MAX_STORED_RECENT_SEARCHES = 8;
 const MAX_VISIBLE_RECENT_SEARCHES = 5;
 

@@ -1,6 +1,6 @@
 # Mobile App
 
-This is the Expo SDK 55 mobile client for Release Radar.
+This is the Expo SDK 55 mobile client for Soonr.
 
 ## Supabase auth setup
 
@@ -12,6 +12,10 @@ Required environment variables:
 APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+EXPO_PUBLIC_HOME_API_BASE_URL=
+EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=
+EXPO_PUBLIC_TITLES_API_BASE_URL=
+EXPO_PUBLIC_WATCHLIST_API_BASE_URL=
 ```
 
 Use only:
@@ -25,6 +29,12 @@ Do not use:
 - secret keys
 - any server-only credential
 
+`EXPO_PUBLIC_HOME_API_BASE_URL`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`,
+`EXPO_PUBLIC_TITLES_API_BASE_URL`, and `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`
+are optional migration overrides. When set, the mobile app routes only those
+migrated slices to the custom API and keeps all other requests on Supabase
+Functions.
+
 ## Environment model
 
 The mobile app supports three runtime environments:
@@ -35,9 +45,9 @@ The mobile app supports three runtime environments:
 
 `APP_ENV` selects the app identity:
 
-- `development` -> `Release Radar Dev`
-- `staging` -> `Release Radar Staging`
-- `production` -> `Release Radar`
+- `development` -> `Soonr Dev`
+- `staging` -> `Soonr Staging`
+- `production` -> `Soonr`
 
 Hosted backend mapping:
 
@@ -45,8 +55,8 @@ Hosted backend mapping:
 - staging app -> staging backend
 - production app -> production backend
 
-EAS build profiles live in [eas.json](/Users/vladimirturkonja/Documents/Developer/release-radarr/apps/mobile/eas.json).
-The full contract is documented in [docs/mobile-environments.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/mobile-environments.md).
+EAS build profiles live in [eas.json](eas.json).
+The full contract is documented in [docs/mobile-environments.md](../../docs/mobile-environments.md).
 
 ## Behavior
 

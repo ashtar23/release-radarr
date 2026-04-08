@@ -11,7 +11,7 @@ export function SearchPage() {
         <ModeToggle />
         <Card>
           <CardHeader>
-            <CardTitle>Release Radar</CardTitle>
+            <CardTitle>Soonr</CardTitle>
             <CardDescription>
               Guest browsing stays open. Watchlist and notifications require
               auth.

@@ -40,6 +40,7 @@ export type {
   ReleaseDatePrecision,
   SearchDecisionReason,
   TitleDetails,
+  TitleDetailsResult,
   TitleSearchQueryInput,
   TitlePlatform,
   TitleSearchResult,
@@ -60,10 +61,12 @@ export {
 
 export type {
   AddWatchlistItemInput,
+  ListWatchlistInput,
   RemoveWatchlistItemInput,
   WatchlistSort,
   WatchlistItem,
   WatchlistListResult,
+  WatchlistMembershipResult,
   WatchlistUpsertResult,
 } from "./watchlist";
 export { watchlistSortValues } from "./watchlist";

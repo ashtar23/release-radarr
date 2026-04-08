@@ -4,7 +4,7 @@ This document focuses on the Supabase-backed search pipeline and how the fronten
 
 ## Supabase setup
 
-Release Radar uses a Supabase-first backend with one public edge namespace:
+Soonr uses a Supabase-first backend with one public edge namespace:
 - `/functions/v1/api/titles`
 - `/functions/v1/api/titles/:id`
 - `/functions/v1/api/watchlist`
@@ -41,6 +41,25 @@ Search is DB-first, then RAWG fallback.
 5. response includes `page`, `limit`, `totalCount`, `hasMore`, `servedBy`, and decision metadata
 
 This lets the mobile app drive infinite scroll without guessing whether more data exists.
+
+## Pagination note
+
+Search currently uses page-based pagination, not cursor pagination.
+
+That is intentional because the backend search pipeline is a ranked result flow that can combine:
+- local cached titles
+- search policy decisions
+- optional RAWG refresh and cache fill
+
+Future cursor pagination is allowed, but only as a backend-first change. It should not be introduced from the mobile client outward.
+
+Before adopting cursor search, the backend must define:
+- a stable ranked ordering contract
+- stable tie-breakers
+- an opaque continuation cursor
+- consistent continuation behavior across local-only and RAWG-refresh result paths
+
+Until then, page + limit remains the source-of-truth contract for search.
 
 ## Data update paths
 
@@ -90,10 +109,10 @@ const payload = (await response.json()) as RawgSearchResponse;
 return (payload.results ?? []).map(mapRawgSearchGameToSummary);
 ```
 
-### `packages/api-client/src/release-radar-client.ts`
+### `packages/api-client/src/soonr-client.ts`
 
 ```ts
-export function createReleaseRadarApiClient(options: ReleaseRadarApiClientOptions) {
+export function createSoonrApiClient(options: SoonrApiClientOptions) {
   const context = {
     baseUrl: options.baseUrl,
     publishableKey: options.publishableKey,

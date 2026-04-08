@@ -2,7 +2,7 @@
 
 ## Project overview
 
-This is a Turborepo monorepo for Release Radar, a game release tracking application.
+This is a Turborepo monorepo for Soonr, a game release tracking application.
 
 The project currently contains:
 

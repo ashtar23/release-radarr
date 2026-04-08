@@ -1,4 +1,4 @@
-import { createReleaseRadarApiClient } from "@repo/api-client";
+import { createSoonrApiClient } from "@repo/api-client";
 import { SUPABASE_WEB_ENV } from "@repo/config";
 
 import { supabase } from "./supabase";
@@ -13,7 +13,7 @@ export const apiClientConfigError =
 
 export const apiClient =
   apiClientConfigError === null
-    ? createReleaseRadarApiClient({
+    ? createSoonrApiClient({
         baseUrl: supabaseUrl,
         publishableKey: supabasePublishableKey,
         async getAccessToken() {

@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -14,6 +15,7 @@ interface AuthContextValue {
   readonly session: Session | null;
   readonly isReady: boolean;
   readonly configError: string | null;
+  refreshSession(): Promise<void>;
   signInWithPassword(email: string, password: string): Promise<void>;
   signUpWithPassword(email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
@@ -24,6 +26,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [isReady, setIsReady] = useState(!supabase);
+  const sessionRef = useRef<Session | null>(null);
 
   useEffect(() => {
     if (!supabase) {
@@ -34,14 +37,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
+      sessionRef.current = data.session;
       setSession(data.session);
       setIsReady(true);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (nextSession) {
+        sessionRef.current = nextSession;
+        setSession(nextSession);
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        sessionRef.current = null;
+        setSession(null);
+        return;
+      }
+
+      // Preserve the last known session during transient offline/startup churn.
+      setSession(sessionRef.current);
     });
 
     return () => {
@@ -64,6 +81,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     session,
     isReady,
     configError: supabaseConfigError,
+    async refreshSession() {
+      const client = ensureClient();
+      const { data } = await client.auth.getSession();
+      sessionRef.current = data.session;
+      setSession(data.session);
+      setIsReady(true);
+    },
     async signInWithPassword(email, password) {
       const client = ensureClient();
       const { error } = await client.auth.signInWithPassword({

@@ -1,6 +1,6 @@
 import type { NotificationEventType } from "@repo/types";
 
-export const APP_NAME = "Release Radar";
+export const APP_NAME = "Soonr";
 
 export const API_PATH_PREFIX = "/functions/v1/api";
 

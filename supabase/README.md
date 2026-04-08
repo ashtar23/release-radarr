@@ -1,6 +1,6 @@
 # Supabase Workspace
 
-This folder contains the backend scaffold for Release Radar.
+This folder contains the backend scaffold for Soonr.
 
 Current structure:
 

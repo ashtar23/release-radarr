@@ -1,5 +1,6 @@
 export {
   ApiClientError,
+  getApiErrorMessage,
   isApiClientError,
   type ApiClientErrorOptions,
   type HttpMethod,
@@ -27,17 +28,19 @@ export { getTitleDetails, type GetTitleDetailsParams } from "./titles";
 export { searchTitles, type SearchTitlesParams } from "./search";
 export {
   addWatchlistItem,
+  getWatchlistMembership,
   listWatchlist,
   removeWatchlistItem,
   type AddWatchlistItemParams,
+  type GetWatchlistMembershipParams,
   type ListWatchlistParams,
   type RemoveWatchlistItemParams,
 } from "./watchlist";
 export {
-  createReleaseRadarApiClient,
-  type ReleaseRadarApiClient,
-  type ReleaseRadarApiClientOptions,
-} from "./release-radar-client";
+  createSoonrApiClient,
+  type SoonrApiClient,
+  type SoonrApiClientOptions,
+} from "./soonr-client";
 export {
   initializeSupabaseClient,
   type InitializedSupabaseClient,

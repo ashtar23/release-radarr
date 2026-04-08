@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, type ReactElement } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
@@ -20,6 +20,7 @@ type NotificationsListProps = {
   isLoadingMore: boolean;
   onEndReached: () => void;
   onMarkAsRead: (notificationId: string) => Promise<void>;
+  listHeader?: ReactElement | null;
 };
 
 export function NotificationsList({
@@ -30,22 +31,40 @@ export function NotificationsList({
   isLoadingMore,
   onEndReached,
   onMarkAsRead,
+  listHeader,
 }: NotificationsListProps) {
   const router = useRouter();
   const theme = useTheme();
+
+  const handleNotificationPress = useCallback(
+    (notification: NotificationRecord) => {
+      if (notification.readAt == null) {
+        void onMarkAsRead(notification.id).catch((error) => {
+          console.error("Failed to mark notification as read.", {
+            notificationId: notification.id,
+            destinationTitleId: notification.destinationTitleId,
+            error,
+          });
+        });
+      }
+
+      router.push(`/titles/${notification.destinationTitleId}`);
+    },
+    [onMarkAsRead, router],
+  );
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<NotificationRecord>) => (
       <NotificationsRow
         notification={item}
         onPress={() => {
-          void onMarkAsRead(item.id);
-          router.push(`/titles/${item.destinationTitleId}`);
+          handleNotificationPress(item);
         }}
       />
     ),
-    [onMarkAsRead, router],
+    [handleNotificationPress],
   );
+
   const keyExtractor = useCallback((item: NotificationRecord) => item.id, []);
 
   return (
@@ -63,6 +82,7 @@ export function NotificationsList({
       contentContainerStyle={styles.content}
       refreshing={refreshing}
       onRefresh={onRefresh}
+      ListHeaderComponent={listHeader}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
       ItemSeparatorComponent={() => (

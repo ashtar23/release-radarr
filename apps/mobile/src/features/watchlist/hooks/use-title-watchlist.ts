@@ -1,20 +1,37 @@
 import { router } from "expo-router";
 import type { TitleDetails } from "@repo/types";
+import { useCallback } from "react";
 
+import { useAuthGate } from "@/auth/use-auth-gate";
 import { useAppHaptics } from "@/features/settings/hooks/use-app-haptics";
-import { useWatchlistFeature } from "./use-watchlist-feature";
+import { useIsOffline } from "@/lib/react-query-online";
+
+import { useWatchlistMutation } from "../mutations/use-watchlist-mutation";
+import { useWatchlistMembershipQuery } from "../queries/use-watchlist-query";
 
 export function useTitleWatchlist(
   titleId: string,
   titleDetails?: TitleDetails,
+  initialIsInWatchlist?: boolean,
 ) {
+  const { isSignedIn } = useAuthGate();
   const haptics = useAppHaptics();
-  const watchlistFeature = useWatchlistFeature();
-  const isInWatchlist = watchlistFeature.isInWatchlist(titleId);
-  const canToggleWatchlist = isInWatchlist || Boolean(titleDetails);
+  const isOffline = useIsOffline();
+  const { data: membershipData } = useWatchlistMembershipQuery(
+    titleId,
+    initialIsInWatchlist,
+  );
+  const { addMutation, removeMutation } = useWatchlistMutation();
+  const isInWatchlist = membershipData?.isInWatchlist ?? false;
+  const canToggleWatchlist =
+    !isOffline && (isInWatchlist || Boolean(titleDetails));
 
-  const toggleWatchlist = () => {
-    if (!watchlistFeature.canUseWatchlist) {
+  const toggleWatchlist = useCallback(() => {
+    if (isOffline) {
+      return;
+    }
+
+    if (!isSignedIn) {
       router.push("/auth");
       return;
     }
@@ -22,19 +39,28 @@ export function useTitleWatchlist(
     haptics.impact();
 
     if (isInWatchlist) {
-      watchlistFeature.removeFromWatchlist(titleId);
+      removeMutation.mutate({ titleId });
       return;
     }
 
     if (titleDetails) {
-      watchlistFeature.addToWatchlist(titleDetails);
+      addMutation.mutate({ title: titleDetails });
     }
-  };
+  }, [
+    addMutation,
+    haptics,
+    isInWatchlist,
+    isOffline,
+    isSignedIn,
+    removeMutation,
+    titleDetails,
+    titleId,
+  ]);
 
   return {
     isInWatchlist,
     canToggleWatchlist,
-    isMutating: watchlistFeature.isMutating,
+    isMutating: addMutation.isPending || removeMutation.isPending,
     toggleWatchlist,
   };
 }

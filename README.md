@@ -1,6 +1,6 @@
-# Release Radar Monorepo
+# Soonr Monorepo
 
-Release Radar is a Turborepo monorepo for tracking game releases across mobile and web clients, backed by Supabase.
+Soonr is a Turborepo monorepo for tracking game releases across mobile and web clients, backed by Supabase.
 
 ## Workspace map
 
@@ -91,7 +91,7 @@ Default hosted mapping:
 - staging app -> staging backend
 - production app -> production backend
 
-See [docs/mobile-environments.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/mobile-environments.md) for the full environment, EAS, and release workflow contract.
+See [docs/mobile-environments.md](docs/mobile-environments.md) for the full environment, EAS, and release workflow contract.
 
 ## Local Supabase Verification
 

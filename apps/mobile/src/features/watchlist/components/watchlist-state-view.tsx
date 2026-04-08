@@ -1,8 +1,8 @@
-import { ActivityIndicator } from "react-native";
-
 import { AppSymbol } from "@/components/app-symbol";
-import { CenteredStateFrame } from "@/components/centered-state-frame";
-import { EmptyState } from "@/components/empty-state";
+import { CenteredConfigErrorState } from "@/components/centered-config-error-state";
+import { CenteredLoadingState } from "@/components/centered-loading-state";
+import { CenteredEmptyState } from "@/components/centered-empty-state";
+import { CenteredRequestErrorState } from "@/components/centered-request-error-state";
 import { ListSection } from "@/components/list-section";
 import { ScreenPrompt } from "@/components/screen-prompt";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
@@ -11,33 +11,16 @@ import { useTheme } from "@/hooks/use-theme";
 import { LinkRow } from "@/components/link-row";
 import { ListRow } from "@/components/list-row";
 
-import type { WatchlistScreenMode } from "../hooks/use-watchlist-feature";
+import type { WatchlistScreenNonReadyState } from "../screen-state";
 
 type WatchlistStateViewProps = {
-  mode: WatchlistScreenMode;
-  searchQuery?: string;
+  state: WatchlistScreenNonReadyState;
 };
 
-export function WatchlistStateView({
-  mode,
-  searchQuery,
-}: WatchlistStateViewProps) {
+export function WatchlistStateView({ state }: WatchlistStateViewProps) {
   const theme = useTheme();
-  const hasSearchQuery = Boolean(searchQuery?.trim());
 
-  if (mode === "checking-session") {
-    return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Checking your session..."
-          description="Loading your watchlist access."
-          icon={<ActivityIndicator size="small" color={theme.text} />}
-        />
-      </CenteredStateFrame>
-    );
-  }
-
-  if (mode === "signed-out") {
+  if (state.mode === "signed-out") {
     return (
       <ScreenScrollView>
         <ScreenPrompt
@@ -54,63 +37,71 @@ export function WatchlistStateView({
     );
   }
 
-  if (mode === "refreshing") {
-    return <CenteredStateFrame />;
-  }
-
-  if (mode === "loading") {
+  if (state.mode === "config-error") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="Loading watchlist..."
-          description="Pulling your saved games from the server."
-          icon={<ActivityIndicator size="small" color={theme.text} />}
-        />
-      </CenteredStateFrame>
+      <CenteredConfigErrorState
+        title="Watchlist is unavailable"
+        description={state.errorMessage}
+        helpText="Check the Supabase environment configuration for this build."
+      />
     );
   }
 
-  if (hasSearchQuery) {
-    const trimmedSearchQuery = searchQuery?.trim() ?? "";
-
+  if (state.mode === "loading") {
     return (
-      <CenteredStateFrame>
-        <EmptyState
-          title="No matches in your watchlist"
-          description={`Try a different title name than "${trimmedSearchQuery}".`}
-          action={
-            <ListSection>
-              <LinkRow
-                href={{
-                  pathname: "/search",
-                  params: { query: trimmedSearchQuery },
-                }}
-              >
-                <ListRow
-                  tone="accent"
-                  label={`Search for "${trimmedSearchQuery}"`}
-                  leadingIcon={
-                    <AppSymbol
-                      ios="magnifyingglass"
-                      android="search"
-                      tintColor={theme.interactive.linkPrimary}
-                    />
-                  }
-                />
-              </LinkRow>
-            </ListSection>
-          }
-        />
-      </CenteredStateFrame>
+      <CenteredLoadingState
+        title="Loading watchlist..."
+        description="Pulling your saved games from the server."
+      />
+    );
+  }
+
+  if (state.mode === "request-error") {
+    return (
+      <CenteredRequestErrorState
+        title="Couldn't load watchlist"
+        description={state.errorMessage}
+        onRetry={state.onRetry}
+        retrying={state.retrying}
+      />
+    );
+  }
+
+  if (state.mode === "search-empty") {
+    return (
+      <CenteredEmptyState
+        title="No matches in your watchlist"
+        description={`Try a different title name than "${state.searchQuery}".`}
+        action={
+          <ListSection>
+            <LinkRow
+              href={{
+                pathname: "/search",
+                params: { query: state.searchQuery },
+              }}
+            >
+              <ListRow
+                tone="accent"
+                label={`Search for "${state.searchQuery}"`}
+                leadingIcon={
+                  <AppSymbol
+                    ios="magnifyingglass"
+                    android="search"
+                    tintColor={theme.interactive.linkPrimary}
+                  />
+                }
+              />
+            </LinkRow>
+          </ListSection>
+        }
+      />
     );
   }
 
   return (
-    <CenteredStateFrame>
-      <EmptyState
-        title="Your watchlist is empty"
-        description="Add games from title details to see them here."
-      />
-    </CenteredStateFrame>
+    <CenteredEmptyState
+      title="Your watchlist is empty"
+      description="Add games from title details to see them here."
+    />
   );
 }

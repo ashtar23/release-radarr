@@ -1,0 +1,16 @@
+{
+  "extends": "../../packages/typescript-config/workspace-package.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@shared/database-types": [
+        "../../supabase/functions/_shared/database.types.ts"
+      ],
+      "@repo/types": ["../../packages/types/src/index.ts"]
+    },
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"]
+}

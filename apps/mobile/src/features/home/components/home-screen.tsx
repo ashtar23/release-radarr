@@ -1,81 +1,64 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
+import { CenteredOfflineState } from "@/components/centered-offline-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
-import { apiClientConfigError } from "@/lib/api-client";
+import { useIsOffline } from "@/lib/react-query-online";
 
-import { useHomeDiscoveryQuery } from "../data-access/use-home-discovery-query";
+import { useHomeScreen } from "../hooks/use-home-screen";
 import { HomeDiscoverySection } from "./home-discovery-section";
 import { HomeStateView } from "./home-state-view";
 
 export function HomeScreen() {
-  const discoveryQuery = useHomeDiscoveryQuery();
-  const hasAnySection =
-    (discoveryQuery.data?.upcoming.length ?? 0) > 0 ||
-    (discoveryQuery.data?.latest.length ?? 0) > 0 ||
-    (discoveryQuery.data?.popular.length ?? 0) > 0;
+  const isOffline = useIsOffline();
+  const { state, retry, retrying } = useHomeScreen();
 
-  if (apiClientConfigError) {
+  if (isOffline && state.mode !== "ready") {
     return (
-      <HomeStateView mode="config-error" errorMessage={apiClientConfigError} />
-    );
-  }
-
-  if (discoveryQuery.isPending) {
-    return <HomeStateView mode="loading" />;
-  }
-
-  if (discoveryQuery.isError) {
-    return (
-      <HomeStateView
-        mode="request-error"
-        errorMessage={
-          discoveryQuery.error instanceof Error
-            ? discoveryQuery.error.message
-            : "Something went wrong while loading discovery."
-        }
-        onRetry={() => {
-          void discoveryQuery.refetch();
-        }}
-        retrying={discoveryQuery.isRefetching}
+      <CenteredOfflineState
+        description="Reconnect to load upcoming, latest, and popular games."
+        onRetry={retry}
+        retrying={retrying}
       />
     );
   }
 
   return (
-    <ScreenScrollView contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <ThemedText themeColor="textSecondary">
-          Browse what&apos;s releasing soon, what just launched, and what&apos;s
-          popular right now.
-        </ThemedText>
-      </View>
+    state.mode !== "ready" ? (
+      <HomeStateView state={state} />
+    ) : (
+      <ScreenScrollView contentContainerStyle={styles.content}>
+        {isOffline ? (
+          <OfflineBanner
+            message="You’re offline. Showing the last loaded discovery sections."
+            style={styles.offlineBanner}
+          />
+        ) : null}
 
-      {discoveryQuery.data && hasAnySection ? (
-        <>
-          <HomeDiscoverySection
-            title="Upcoming games"
-            items={discoveryQuery.data.upcoming}
-          />
-          <HomeDiscoverySection
-            title="Latest releases"
-            items={discoveryQuery.data.latest}
-          />
-          <HomeDiscoverySection
-            title="Popular now"
-            items={discoveryQuery.data.popular}
-          />
-        </>
-      ) : null}
+        <View style={styles.header}>
+          <ThemedText themeColor="textSecondary">
+            Browse what&apos;s releasing soon, what just launched, and what&apos;s
+            popular right now.
+          </ThemedText>
+        </View>
 
-      {discoveryQuery.data && !hasAnySection ? (
-        <ThemedText themeColor="textSecondary" style={styles.message}>
-          No discovery titles are available right now.
-        </ThemedText>
-      ) : null}
-    </ScreenScrollView>
+        <HomeDiscoverySection
+          title="Upcoming games"
+          items={state.discovery.upcoming}
+        />
+        <HomeDiscoverySection
+          title="Latest releases"
+          items={state.discovery.latest}
+        />
+        <HomeDiscoverySection
+          title="Popular now"
+          items={state.discovery.popular}
+        />
+      </ScreenScrollView>
+    )
   );
 }
 
@@ -89,7 +72,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     gap: Spacing.one,
   },
-  message: {
-    paddingHorizontal: Spacing.three,
+  offlineBanner: {
+    marginHorizontal: Spacing.three,
+    marginBottom: Spacing.one,
   },
 });

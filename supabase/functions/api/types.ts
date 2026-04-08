@@ -91,10 +91,15 @@ export interface WatchlistItem {
 
 export interface WatchlistListResult {
   items: WatchlistItem[];
+  nextCursor: string | null;
 }
 
 export interface WatchlistUpsertResult {
   item: WatchlistItem;
+}
+
+export interface WatchlistMembershipResult {
+  isInWatchlist: boolean;
 }
 
 export type NotificationEventType =

@@ -1,6 +1,6 @@
 # Mobile Header Actions
 
-This document defines the current mobile header-action convention for Release Radar.
+This document defines the current mobile header-action convention for Soonr.
 
 ## Goals
 

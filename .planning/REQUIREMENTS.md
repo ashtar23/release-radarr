@@ -1,4 +1,4 @@
-# Requirements: Release Radar
+# Requirements: Soonr
 
 **Defined:** 2026-03-17
 **Core Value:** Users can reliably track the game releases they care about and get notified when something important changes.

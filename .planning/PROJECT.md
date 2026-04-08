@@ -1,8 +1,8 @@
-# Release Radar
+# Soonr
 
 ## What This Is
 
-Release Radar is a game release tracking app built as a Turborepo with web and mobile clients backed by Supabase. Guests can already search for games, browse results, and open title details; the remaining MVP work is about turning that browsing experience into a personalized tracking product with watchlists and notifications.
+Soonr is a game release tracking app built as a Turborepo with web and mobile clients backed by Supabase. Guests can already search for games, browse results, and open title details; the remaining MVP work is about turning that browsing experience into a personalized tracking product with watchlists and notifications.
 
 ## Core Value
 
@@ -53,7 +53,7 @@ Users can reliably track the game releases they care about and get notified when
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Keep Release Radar as a brownfield initialization | The repo already has working guest/auth/title foundations that should be treated as validated, not hypothetical | — Pending |
+| Keep Soonr as a brownfield initialization | The repo already has working guest/auth/title foundations that should be treated as validated, not hypothetical | — Pending |
 | Plan remaining MVP work around watchlists and notifications | Existing guest browsing is already in place; the product gap is personalized tracking | — Pending |
 | Keep web/mobile presentation-focused and backend/provider logic centralized | This matches current AGENTS guidance and existing package boundaries | — Pending |
 | Treat in-app notifications as the first delivery target, with push immediately after | This follows the documented notification design and reduces early delivery complexity | — Pending |

@@ -1,20 +1,10 @@
 # Mobile Navigation Strategy
 
-This document captures both the current mobile navigation direction in the app
-and the next planned navigation step.
+This document captures the current navigation direction for the mobile app.
 
 ## Current top-level tabs
 
 The current primary tab structure is:
-
-1. Home
-2. Watchlist
-3. Search
-4. Account
-
-## Planned top-level tabs
-
-The next planned tab structure is:
 
 1. Home
 2. Watchlist
@@ -65,9 +55,9 @@ This matches the intended GitHub-like pattern:
 
 ## Notifications
 
-Notifications is the next planned top-level destination.
+Notifications is a first-class top-level destination.
 
-The intended role is:
+Its role is:
 
 - first-class bottom tab
 - watchlist-focused in-app feed
@@ -76,7 +66,7 @@ The intended role is:
 
 The full product and implementation direction lives in:
 
-- [docs/notifications.md](/Users/vladimirturkonja/Documents/Developer/release-radarr/docs/notifications.md)
+- [docs/notifications.md](notifications.md)
 
 ## Header Actions
 
@@ -88,8 +78,7 @@ intended long-term model.
 
 ## Deferred
 
-The following are intentionally deferred:
+The following are still intentionally deferred:
 
-- final Account information architecture
 - richer signed-in Account content beyond current account basics
 - Android-specific refinements beyond the shared capability model

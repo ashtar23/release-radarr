@@ -279,12 +279,15 @@ async function assertNotificationsContract() {
     );
     assert.equal(unreadResponse.status, 401);
 
-    const listResponse = await fetch(`${supabaseUrl}/functions/v1/api/notifications`, {
-      headers: {
-        apikey: publishableKey,
-        Authorization: `Bearer ${publishableKey}`,
+    const listResponse = await fetch(
+      `${supabaseUrl}/functions/v1/api/notifications`,
+      {
+        headers: {
+          apikey: publishableKey,
+          Authorization: `Bearer ${publishableKey}`,
+        },
       },
-    });
+    );
     assert.equal(listResponse.status, 401);
 
     const seedEventResponse = await fetch(
@@ -351,7 +354,7 @@ async function assertNotificationsContract() {
       );
     }
 
-    const preferencesResponse = await fetch(
+    const readPreferencesResponse = await fetch(
       `${supabaseUrl}/functions/v1/api/notification-preferences`,
       {
         headers: {
@@ -360,13 +363,13 @@ async function assertNotificationsContract() {
         },
       },
     );
-    if (!preferencesResponse.ok) {
+    if (!readPreferencesResponse.ok) {
       throw new Error(
-        `Notification preferences request failed: ${preferencesResponse.status} ${await preferencesResponse.text()}`,
+        `Notification preferences request failed: ${readPreferencesResponse.status} ${await readPreferencesResponse.text()}`,
       );
     }
 
-    const preferencesPayload = await preferencesResponse.json();
+    const preferencesPayload = await readPreferencesResponse.json();
     assert.equal(preferencesPayload.preferences.channels.inApp, true);
     assert.equal(preferencesPayload.preferences.channels.push, false);
     assert.equal(
@@ -429,8 +432,14 @@ async function assertNotificationsContract() {
 
     const listPayload = await listAuthenticatedResponse.json();
     assert.equal(Array.isArray(listPayload.items), true);
-    assert.equal(listPayload.nextCursor === null || typeof listPayload.nextCursor === "string", true);
-    const notification = listPayload.items.find((item) => item.id === notificationId);
+    assert.equal(
+      listPayload.nextCursor === null ||
+        typeof listPayload.nextCursor === "string",
+      true,
+    );
+    const notification = listPayload.items.find(
+      (item) => item.id === notificationId,
+    );
     assert.ok(notification, "Expected seeded notification in list response.");
     assert.equal(notification.titleId, seedId);
     assert.equal(notification.destinationKind, "title");
@@ -459,13 +468,15 @@ async function assertNotificationsContract() {
     assert.equal(unreadPayload.unreadCount >= 1, true);
 
     const markReadResponse = await fetch(
-      `${supabaseUrl}/functions/v1/api/notifications/${encodeURIComponent(notificationId)}/read`,
+      `${supabaseUrl}/functions/v1/api/notifications/read`,
       {
         method: "POST",
         headers: {
           apikey: publishableKey,
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ notificationId }),
       },
     );
     if (!markReadResponse.ok) {
@@ -478,13 +489,15 @@ async function assertNotificationsContract() {
     assert.equal(typeof markReadPayload.notification.readAt, "string");
 
     const rereadResponse = await fetch(
-      `${supabaseUrl}/functions/v1/api/notifications/${encodeURIComponent(notificationId)}/read`,
+      `${supabaseUrl}/functions/v1/api/notifications/read`,
       {
         method: "POST",
         headers: {
           apikey: publishableKey,
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ notificationId }),
       },
     );
     assert.equal(rereadResponse.ok, true);
@@ -580,13 +593,16 @@ async function createContractUser() {
 }
 
 async function deleteContractUser(userId) {
-  await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
-    method: "DELETE",
-    headers: {
-      apikey: serviceSecretKey,
-      Authorization: `Bearer ${serviceSecretKey}`,
+  await fetch(
+    `${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        apikey: serviceSecretKey,
+        Authorization: `Bearer ${serviceSecretKey}`,
+      },
     },
-  });
+  );
 }
 
 function assertNullableFiniteNumber(value) {

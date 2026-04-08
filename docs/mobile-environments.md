@@ -1,6 +1,6 @@
 # Mobile Environments
 
-Release Radar mobile now uses three explicit environments:
+Soonr mobile now uses three explicit environments:
 
 - `development`
 - `staging`
@@ -12,11 +12,11 @@ The mobile app is configured through `apps/mobile/app.config.ts` and selected wi
 
 Each hosted environment has its own installable app identity so staging and production can coexist on the same device.
 
-| APP_ENV | App name | Scheme | iOS bundle identifier | Android package |
-| --- | --- | --- | --- | --- |
-| `development` | `Release Radar Dev` | `releaseradar-dev` | `com.ashtar23.releaseradar.dev` | `com.ashtar23.releaseradar.dev` |
-| `staging` | `Release Radar Staging` | `releaseradar-staging` | `com.ashtar23.releaseradar.staging` | `com.ashtar23.releaseradar.staging` |
-| `production` | `Release Radar` | `releaseradar` | `com.ashtar23.releaseradar` | `com.ashtar23.releaseradar` |
+| APP_ENV       | App name                | Scheme                 | iOS bundle identifier               | Android package                     |
+| ------------- | ----------------------- | ---------------------- | ----------------------------------- | ----------------------------------- |
+| `development` | `Soonr Dev`             | `soonr-dev`            | `com.ashtar23.soonr.dev`            | `com.ashtar23.soonr.dev`            |
+| `staging`     | `Soonr Staging`         | `soonr-staging`        | `com.ashtar23.soonr.staging`        | `com.ashtar23.soonr.staging`        |
+| `production`  | `Soonr`                 | `soonr`                | `com.ashtar23.soonr`                | `com.ashtar23.soonr`                |
 
 ## Backend targets
 
@@ -25,6 +25,20 @@ Hosted environment routing:
 - `development` -> staging Supabase project
 - `staging` -> staging Supabase project
 - `production` -> production Supabase project
+
+Supabase remains the auth provider for the mobile app. The migrated app data
+slices should use the hosted Railway API through one canonical public base URL:
+
+- `EXPO_PUBLIC_API_BASE_URL`
+
+Per-slice overrides are still supported for migration safety or deliberate
+traffic splitting, but they should normally be left unset:
+
+- `EXPO_PUBLIC_HOME_API_BASE_URL`
+- `EXPO_PUBLIC_SEARCH_API_BASE_URL`
+- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`
+- `EXPO_PUBLIC_TITLES_API_BASE_URL`
+- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`
 
 Local Supabase remains available for backend development and contract testing, but the mobile app does not automatically switch to it. If a local mobile build is needed later, use explicit env overrides rather than changing the default environment model.
 
@@ -36,12 +50,19 @@ The mobile app currently needs:
 APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+EXPO_PUBLIC_API_BASE_URL=
 ```
 
 Runtime behavior:
 
 - `APP_ENV` selects the app identity and build target
-- `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` select the backend the app talks to
+- `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` configure the Supabase auth client used for sign-in and session refresh
+- `EXPO_PUBLIC_API_BASE_URL`, when set, is the default hosted API base URL for the migrated slices: home, search, title details, notifications, and watchlist
+- `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery`
+- `EXPO_PUBLIC_SEARCH_API_BASE_URL`, when set, overrides only the search slice such as `GET /titles?query=...`
+- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides only the notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:notificationId/read`, `POST /notifications/read-all`, and `GET/PUT /notification-preferences`
+- `EXPO_PUBLIC_TITLES_API_BASE_URL`, when set, overrides only the title-details slice such as `GET /titles/:titleId`
+- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`, when set, overrides only the watchlist slice such as `GET /watchlist`, `GET /watchlist/:titleId`, `POST /watchlist`, and `DELETE /watchlist/:titleId`
 
 Only publishable client credentials belong in the mobile app. Do not put service role or secret keys in Expo env vars.
 
@@ -68,7 +89,7 @@ The EAS environment mapping is explicit:
 - `production` profile -> `production`
 
 Remote builds read `EXPO_PUBLIC_*` values from EAS environment variables, not from GitHub Actions job env alone.
-GitHub secrets handle workflow authentication and deploy credentials; EAS environment variables handle the app config bundled into the remote build.
+GitHub secrets handle workflow authentication and deploy credentials; EAS environment variables handle the app config bundled into the remote build. If GitHub also passes `EXPO_PUBLIC_API_BASE_URL` for build-time consistency, keep it aligned with the corresponding EAS environment value.
 
 ## Supabase separation
 
@@ -90,6 +111,16 @@ Recommended GitHub secrets for workflows:
 - `SUPABASE_PRODUCTION_URL`
 - `SUPABASE_PRODUCTION_PUBLISHABLE_KEY`
 - `EXPO_TOKEN`
+
+Optional public mobile build URL secrets if GitHub Actions is used to mirror the
+EAS environment configuration:
+
+- `EXPO_PUBLIC_STAGING_API_BASE_URL`
+- `EXPO_PUBLIC_PRODUCTION_API_BASE_URL`
+
+These values are public app config, not server secrets. Prefer storing them in
+EAS environments and only duplicate them into GitHub when the workflow needs the
+same value during `eas build` invocation.
 
 ## Branching and release policy
 

@@ -16,6 +16,7 @@ import { handleSearchRequest } from "./handlers/search.ts";
 import {
   handleWatchlistAddRequest,
   handleWatchlistListRequest,
+  handleWatchlistMembershipRequest,
   handleWatchlistRemoveRequest,
 } from "./handlers/watchlist.ts";
 import { resolveRoute } from "./routing.ts";
@@ -127,6 +128,10 @@ Deno.serve(async (request) => {
         user.id,
         route.notificationId,
       );
+    }
+
+    if (request.method === "GET") {
+      return handleWatchlistMembershipRequest(admin, user.id, route.titleId);
     }
 
     return handleWatchlistRemoveRequest(admin, user.id, route.titleId);

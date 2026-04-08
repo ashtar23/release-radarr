@@ -1,21 +1,18 @@
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useMemo } from "react";
+import React from "react";
 import { StyleSheet } from "react-native";
 
-import { useTitleDetailsQuery } from "@/features/title-details/data-access/queries/use-title-details-query";
+import { CenteredOfflineState } from "@/components/centered-offline-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import {
   TitleDetailsContent,
   TitleDetailsStateView,
 } from "@/features/title-details/components";
-import {
-  HeaderActions,
-  type HeaderAction,
-} from "@/features/navigation/header-actions";
-import { useTheme } from "@/hooks/use-theme";
-import { useTitleWatchlist } from "@/features/watchlist/hooks/use-title-watchlist";
+import { HeaderActions } from "@/features/navigation/header-actions";
+import { useTitleDetailsScreen } from "@/features/title-details/hooks/use-title-details-screen";
 import { ScreenScrollView } from "@/components/screen-scroll-view";
-import { titleDetailsConfigError } from "@/features/title-details/data-access/get-title-details";
-import { toDetailErrorMessage } from "@/features/title-details/utils/title-details-format";
+import { useIsOffline } from "@/lib/react-query-online";
+import { Spacing } from "@/constants/theme";
 
 type TitleDetailsScreenProps = {
   titleId?: string | string[];
@@ -28,69 +25,12 @@ export default function TitleDetailsScreen() {
 
   const titleId = normalizeRouteParam(rawTitleId);
   const initialTitle = normalizeRouteParam(rawTitleName);
-  const headerTitle = detailsQueryNamePlaceholder(initialTitle);
-  const theme = useTheme();
-
-  const {
-    data: titleDetails,
-    isPending,
-    isError,
-    error,
-    refetch,
-    isRefetching,
-  } = useTitleDetailsQuery({ titleId });
-  const handleRetry = () => {
-    void refetch();
-  };
-  const screenTitle = titleDetails?.name?.trim() || headerTitle;
-
-  const { isInWatchlist, canToggleWatchlist, isMutating, toggleWatchlist } =
-    useTitleWatchlist(titleId, titleDetails);
-
-  const isBookmarkActive = isInWatchlist;
-
-  const bookmarkTintColor = isBookmarkActive
-    ? theme.accent.watchlist
-    : theme.textSecondary;
-
-  const bookmarkAccessibilityLabel = isBookmarkActive
-    ? "Remove from watchlist"
-    : "Add to watchlist";
-
-  const headerActions = useMemo<HeaderAction[]>(
-    () => [
-      {
-        kind: "button",
-        id: "title-watchlist",
-        label: bookmarkAccessibilityLabel,
-        iosIcon: isBookmarkActive ? "bookmark.fill" : "bookmark",
-        androidIcon: isBookmarkActive ? "bookmark" : "bookmark_add",
-        tintColor: bookmarkTintColor,
-        onPress: toggleWatchlist,
-        disabled: isMutating || !canToggleWatchlist,
-      },
-    ],
-    [
-      bookmarkAccessibilityLabel,
-      bookmarkTintColor,
-      canToggleWatchlist,
-      isBookmarkActive,
-      isMutating,
-      toggleWatchlist,
-    ],
-  );
-
-  const stateView = getTitleDetailsStateView({
-    error,
-    hasTitleDetails: titleDetails != null,
-    isError,
-    isPending,
-    onRetry: handleRetry,
-    retrying: isRefetching,
-    titleDetailsConfigError,
-    titleId,
-  });
-  const isSuccess = stateView === null && titleDetails != null;
+  const isOffline = useIsOffline();
+  const { headerActions, screenTitle, state, retry, retrying } =
+    useTitleDetailsScreen({
+      titleId,
+      initialTitle,
+    });
 
   return (
     <>
@@ -101,14 +41,28 @@ export default function TitleDetailsScreen() {
         }}
       />
 
-      {isSuccess ? <HeaderActions actions={headerActions} /> : null}
-
-      {isSuccess ? (
-        <ScreenScrollView contentContainerStyle={styles.content}>
-          <TitleDetailsContent details={titleDetails} />
-        </ScreenScrollView>
+      {isOffline && state.mode !== "ready" ? (
+        <CenteredOfflineState
+          description="Reconnect to load this title and its release details."
+          onRetry={retry}
+          retrying={retrying}
+        />
+      ) : state.mode !== "ready" ? (
+        <TitleDetailsStateView state={state} />
       ) : (
-        stateView
+        <>
+          <HeaderActions actions={headerActions} />
+
+          <ScreenScrollView contentContainerStyle={styles.content}>
+            {isOffline ? (
+              <OfflineBanner
+                message="You’re offline. Showing the last loaded title details."
+                style={styles.offlineBanner}
+              />
+            ) : null}
+            <TitleDetailsContent details={state.details} />
+          </ScreenScrollView>
+        </>
       )}
     </>
   );
@@ -124,77 +78,15 @@ export function normalizeRouteParam(
   return "";
 }
 
-function detailsQueryNamePlaceholder(initialTitle: string) {
-  return initialTitle.length > 0 ? initialTitle : "Title";
-}
-
-type TitleDetailsStateSelection = {
-  error: unknown;
-  hasTitleDetails: boolean;
-  isError: boolean;
-  isPending: boolean;
-  onRetry: () => void;
-  retrying: boolean;
-  titleDetailsConfigError: string | null;
-  titleId: string;
-};
-
-function getTitleDetailsStateView({
-  error,
-  hasTitleDetails,
-  isError,
-  isPending,
-  onRetry,
-  retrying,
-  titleDetailsConfigError,
-  titleId,
-}: TitleDetailsStateSelection): React.ReactNode | null {
-  if (titleDetailsConfigError) {
-    return (
-      <TitleDetailsStateView
-        mode="config-error"
-        errorMessage={titleDetailsConfigError}
-      />
-    );
-  }
-
-  if (titleId.length === 0) {
-    return <TitleDetailsStateView mode="invalid-title" />;
-  }
-
-  if (isPending) {
-    return <TitleDetailsStateView mode="loading" />;
-  }
-
-  if (isError) {
-    return (
-      <TitleDetailsStateView
-        mode="request-error"
-        errorMessage={toDetailErrorMessage(error)}
-        onRetry={onRetry}
-        retrying={retrying}
-      />
-    );
-  }
-
-  if (!hasTitleDetails) {
-    return (
-      <TitleDetailsStateView
-        mode="request-error"
-        errorMessage="Title details were unavailable."
-        onRetry={onRetry}
-        retrying={retrying}
-      />
-    );
-  }
-
-  return null;
-}
-
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 0,
     paddingTop: 0,
     gap: 0,
+  },
+  offlineBanner: {
+    marginHorizontal: Spacing.three,
+    marginTop: Spacing.three,
+    marginBottom: Spacing.two,
   },
 });

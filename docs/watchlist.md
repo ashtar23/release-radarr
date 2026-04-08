@@ -21,14 +21,24 @@ The backend keeps the watchlist unique per user/title pair and enforces access t
 
 The current app-facing watchlist integration is mobile-first.
 
-Mobile watchlist is centered around a feature facade hook that owns:
-- list query access
-- screen-state derivation
-- membership lookup
-- optimistic add/remove actions
-- refresh handling
+Mobile watchlist now follows the shared mobile screen architecture:
 
-Mutations are optimistic:
+- raw query hook in `queries/`
+- mutation hook in `mutations/`
+- pure state derivation in `screen-state/`
+- thin screen composition hook in `hooks/`
+- feature-specific `WatchlistStateView` for non-ready rendering
+
+Reference files:
+
+- [apps/mobile/src/features/watchlist/queries/use-watchlist-query.tsx](../apps/mobile/src/features/watchlist/queries/use-watchlist-query.tsx)
+- [apps/mobile/src/features/watchlist/mutations/use-watchlist-mutation.tsx](../apps/mobile/src/features/watchlist/mutations/use-watchlist-mutation.tsx)
+- [apps/mobile/src/features/watchlist/hooks/use-watchlist-screen.ts](../apps/mobile/src/features/watchlist/hooks/use-watchlist-screen.ts)
+- [apps/mobile/src/features/watchlist/screen-state/derive-watchlist-screen-state.ts](../apps/mobile/src/features/watchlist/screen-state/derive-watchlist-screen-state.ts)
+- [apps/mobile/src/features/watchlist/components/watchlist-screen.tsx](../apps/mobile/src/features/watchlist/components/watchlist-screen.tsx)
+- [apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx](../apps/mobile/src/features/watchlist/components/watchlist-state-view.tsx)
+
+Mutation behavior:
 - add/remove update the local cache immediately
 - failed requests roll back to the previous snapshot
 - successful requests invalidate the watchlist query to resync
@@ -45,6 +55,9 @@ The shared backend and `@repo/api-client` watchlist contracts are available to w
 
 - API client: `packages/api-client/src/watchlist.ts`
 - Shared types: `packages/types/src/watchlist.ts`
-- Mobile feature hooks: `apps/mobile/src/features/watchlist/hooks/*`
+- Mobile data access: `apps/mobile/src/features/watchlist/data-access/*`
 - Mobile query/cache utilities: `apps/mobile/src/features/watchlist/queries/*`
-- Mobile UI states: `apps/mobile/src/features/watchlist/components/*`
+- Mobile mutations: `apps/mobile/src/features/watchlist/mutations/*`
+- Mobile screen hook: `apps/mobile/src/features/watchlist/hooks/use-watchlist-screen.ts`
+- Mobile screen state: `apps/mobile/src/features/watchlist/screen-state/*`
+- Mobile UI states and content: `apps/mobile/src/features/watchlist/components/*`

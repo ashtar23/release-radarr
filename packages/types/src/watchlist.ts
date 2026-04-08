@@ -19,12 +19,24 @@ export interface WatchlistItem {
   addedAt: IsoDateTimeString;
 }
 
+export interface ListWatchlistInput {
+  cursor?: string;
+  limit?: number;
+  query?: string;
+  sort?: WatchlistSort;
+}
+
 export interface WatchlistListResult {
   items: WatchlistItem[];
+  nextCursor: string | null;
 }
 
 export interface WatchlistUpsertResult {
   item: WatchlistItem;
+}
+
+export interface WatchlistMembershipResult {
+  isInWatchlist: boolean;
 }
 
 export interface AddWatchlistItemInput {

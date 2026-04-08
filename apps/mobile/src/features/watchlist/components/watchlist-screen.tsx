@@ -2,9 +2,14 @@ import { Stack } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 
+import { CenteredOfflineState } from "@/components/centered-offline-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import { ScreenLoadingOverlay } from "@/components/screen-loading-overlay";
 import { useSheetController } from "@/components/sheets";
+import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { useIsOffline } from "@/lib/react-query-online";
+import { useProtectedOfflineRetry } from "@/lib/offline-screen";
 import {
   HeaderActions,
   type HeaderAction,
@@ -13,7 +18,7 @@ import {
 import { WatchlistList } from "./watchlist-list";
 import { WatchlistSortSheet } from "./watchlist-sort-sheet";
 import { WatchlistStateView } from "./watchlist-state-view";
-import { useWatchlistFeature } from "../hooks/use-watchlist-feature";
+import { useWatchlistScreen } from "../hooks/use-watchlist-screen";
 import {
   getWatchlistSortFamily,
   isWatchlistSortAscending,
@@ -22,13 +27,27 @@ import {
 } from "../watchlist-sort";
 
 export function WatchlistScreen() {
-  const watchlistFeature = useWatchlistFeature();
   const theme = useTheme();
   const { openSheet } = useSheetController();
-  const itemCount = watchlistFeature.items.length;
-  const filteredItemCount = watchlistFeature.filteredItems.length;
-  const { sort, setSort, searchQuery, setSearchQuery, shouldShowControls } =
-    watchlistFeature;
+  const isOffline = useIsOffline();
+  const {
+    sort,
+    setSort,
+    setSearchQuery,
+    shouldShowControls,
+    showLoadingOverlay,
+    state,
+    retry,
+    retrying,
+  } = useWatchlistScreen();
+  const offlineRetry = useProtectedOfflineRetry({
+    onRetryReady: retry,
+    retrying,
+  });
+  const canKeepShowingContentOffline =
+    state.mode === "ready" ||
+    state.mode === "empty" ||
+    state.mode === "search-empty";
 
   const handleSearchChange = useCallback(
     (event: { nativeEvent: { text: string } }) => {
@@ -60,8 +79,10 @@ export function WatchlistScreen() {
                   : "chevron.down"
                 : undefined,
             isOn: getWatchlistSortFamily(sort) === option.family,
+            disabled: isOffline,
             onPress: () => setSort(toggleWatchlistSort(sort, option.family)),
           })),
+          disabled: isOffline,
         },
       ];
     }
@@ -74,6 +95,7 @@ export function WatchlistScreen() {
         iosIcon: "arrow.up.arrow.down.circle",
         androidIcon: "swap_vert",
         tintColor: theme.text,
+        disabled: isOffline,
         onPress: () => {
           openSheet({
             component: ({ close }) => (
@@ -85,7 +107,17 @@ export function WatchlistScreen() {
         },
       },
     ];
-  }, [openSheet, setSort, shouldShowControls, sort, theme.text]);
+  }, [isOffline, openSheet, setSort, shouldShowControls, sort, theme.text]);
+
+  if (isOffline && !canKeepShowingContentOffline) {
+    return (
+      <CenteredOfflineState
+        description="Reconnect to load your watchlist and manage tracked games."
+        onRetry={offlineRetry.onRetry}
+        retrying={offlineRetry.retrying}
+      />
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -95,33 +127,41 @@ export function WatchlistScreen() {
       <HeaderActions actions={headerActions} />
 
       {shouldShowControls ? (
-        <>
-          <Stack.SearchBar
-            placeholder="Search watchlist"
-            shouldShowHintSearchIcon={false}
-            textColor={theme.text}
-            headerIconColor={theme.text}
-            tintColor={theme.textSecondary}
-            hintTextColor={theme.textSecondary}
-            onChangeText={handleSearchChange}
-          />
-        </>
+        <Stack.SearchBar
+          placeholder="Search watchlist"
+          shouldShowHintSearchIcon={false}
+          textColor={theme.text}
+          headerIconColor={theme.text}
+          tintColor={theme.textSecondary}
+          hintTextColor={theme.textSecondary}
+          onChangeText={handleSearchChange}
+        />
       ) : null}
 
-      {itemCount > 0 && filteredItemCount > 0 ? (
+      {state.mode === "ready" ? (
         <WatchlistList
-          items={watchlistFeature.filteredItems}
-          refreshing={watchlistFeature.refreshing}
-          onRefresh={watchlistFeature.onRefresh}
+          items={state.filteredItems}
+          refreshing={state.refreshing}
+          onRefresh={state.onRefresh}
+          hasMoreItems={state.hasMoreItems}
+          isLoadingMore={state.isLoadingMore}
+          onEndReached={state.loadMoreItems}
+          listHeader={
+            isOffline ? (
+              <OfflineBanner
+                message="You’re offline. Showing your last loaded watchlist state."
+                style={styles.offlineBanner}
+              />
+            ) : null
+          }
         />
       ) : (
-        <WatchlistStateView
-          mode={watchlistFeature.mode}
-          searchQuery={searchQuery}
-        />
+        <WatchlistStateView state={state} />
       )}
 
-      {watchlistFeature.isUpdatingSort ? <ScreenLoadingOverlay /> : null}
+      {showLoadingOverlay ? (
+        <ScreenLoadingOverlay label="Updating watchlist..." />
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -129,5 +169,8 @@ export function WatchlistScreen() {
 const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
+  },
+  offlineBanner: {
+    marginBottom: Spacing.two,
   },
 });

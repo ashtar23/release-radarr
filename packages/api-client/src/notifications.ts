@@ -31,8 +31,7 @@ export interface MarkAllNotificationsReadParams {
   readonly signal?: AbortSignal;
 }
 
-export interface UpdateNotificationPreferencesParams
-  extends UpdateNotificationPreferencesInput {
+export interface UpdateNotificationPreferencesParams extends UpdateNotificationPreferencesInput {
   readonly signal?: AbortSignal;
 }
 
@@ -70,6 +69,7 @@ export function listNotifications({
   context,
   params,
 }: ListNotificationsRequestParams): Promise<NotificationRecordListResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
   const searchParams = new URLSearchParams();
   if (typeof params?.cursor === "string" && params.cursor.trim()) {
     searchParams.set("cursor", params.cursor.trim());
@@ -83,12 +83,18 @@ export function listNotifications({
     searchParams.set("limit", String(params.limit));
   }
 
-  const query = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+  const queryString = searchParams.toString();
+  const query = queryString ? `?${queryString}` : "";
+  const requestPath =
+    notificationsBaseUrl == null
+      ? `${API_PATH_PREFIX}/notifications${query}`
+      : `/notifications${query}`;
 
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/notifications${query}`,
+    path: requestPath,
     signal: params?.signal,
     validate: isNotificationRecordListResult,
     invalidPayloadMessage: "Notifications payload is invalid.",
@@ -100,10 +106,16 @@ export function getNotificationUnreadCount({
   context,
   signal,
 }: GetNotificationUnreadCountRequestParams): Promise<NotificationUnreadCountResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/notifications/unread-count`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notifications/unread-count`
+        : "/notifications/unread-count",
     signal,
     validate: isNotificationUnreadCountResult,
     invalidPayloadMessage: "Notification unread count payload is invalid.",
@@ -115,6 +127,7 @@ export function markNotificationRead({
   context,
   params,
 }: MarkNotificationReadRequestParams): Promise<MarkNotificationReadResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
   const notificationId = params.notificationId.trim();
   if (!notificationId) {
     throw new Error("notificationId is required.");
@@ -122,9 +135,14 @@ export function markNotificationRead({
 
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "POST",
-    path: `${API_PATH_PREFIX}/notifications/${encodeURIComponent(notificationId)}/read`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notifications/read`
+        : "/notifications/read",
     signal: params.signal,
+    body: JSON.stringify({ notificationId }),
     validate: isMarkNotificationReadResult,
     invalidPayloadMessage: "Notification read payload is invalid.",
     failureMessage: "Mark notification read request failed.",
@@ -135,10 +153,16 @@ export function markAllNotificationsRead({
   context,
   params,
 }: MarkAllNotificationsReadRequestParams): Promise<MarkAllNotificationsReadResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "POST",
-    path: `${API_PATH_PREFIX}/notifications/read-all`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notifications/read-all`
+        : "/notifications/read-all",
     signal: params?.signal,
     validate: isMarkAllNotificationsReadResult,
     invalidPayloadMessage: "Mark all notifications read payload is invalid.",
@@ -150,10 +174,16 @@ export function getNotificationPreferences({
   context,
   signal,
 }: GetNotificationPreferencesRequestParams): Promise<NotificationPreferencesResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "GET",
-    path: `${API_PATH_PREFIX}/notification-preferences`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notification-preferences`
+        : "/notification-preferences",
     signal,
     validate: isNotificationPreferencesResult,
     invalidPayloadMessage: "Notification preferences payload is invalid.",
@@ -165,10 +195,16 @@ export function updateNotificationPreferences({
   context,
   params,
 }: UpdateNotificationPreferencesRequestParams): Promise<NotificationPreferencesResult> {
+  const notificationsBaseUrl = context.notificationsBaseUrl;
+
   return requestJson({
     context,
+    baseUrl: notificationsBaseUrl,
     method: "PUT",
-    path: `${API_PATH_PREFIX}/notification-preferences`,
+    path:
+      notificationsBaseUrl == null
+        ? `${API_PATH_PREFIX}/notification-preferences`
+        : "/notification-preferences",
     signal: params.signal,
     body: JSON.stringify({
       channels: params.channels,
@@ -176,7 +212,8 @@ export function updateNotificationPreferences({
       timingPresets: params.timingPresets,
     }),
     validate: isNotificationPreferencesResult,
-    invalidPayloadMessage: "Notification preferences update payload is invalid.",
+    invalidPayloadMessage:
+      "Notification preferences update payload is invalid.",
     failureMessage: "Update notification preferences request failed.",
   });
 }

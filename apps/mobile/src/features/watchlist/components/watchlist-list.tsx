@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, type ReactElement } from "react";
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list";
 import { Platform, StyleSheet, View } from "react-native";
 
@@ -13,12 +13,20 @@ type WatchlistListProps = {
   items: WatchlistItem[];
   refreshing: boolean;
   onRefresh?: () => void;
+  hasMoreItems: boolean;
+  isLoadingMore: boolean;
+  onEndReached: () => void;
+  listHeader?: ReactElement | null;
 };
 
 export function WatchlistList({
   items,
   refreshing,
   onRefresh,
+  hasMoreItems,
+  isLoadingMore,
+  onEndReached,
+  listHeader,
 }: WatchlistListProps) {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<WatchlistItem>) => (
@@ -43,9 +51,18 @@ export function WatchlistList({
       contentContainerStyle={styles.content}
       refreshing={refreshing}
       onRefresh={onRefresh}
+      ListHeaderComponent={listHeader}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
       ItemSeparatorComponent={ItemSeparator}
       drawDistance={320}
-      ListFooterComponent={<WatchlistFooter itemCount={items.length} />}
+      ListFooterComponent={
+        <WatchlistFooter
+          itemCount={items.length}
+          hasMoreItems={hasMoreItems}
+          isLoadingMore={isLoadingMore}
+        />
+      }
     />
   );
 }
