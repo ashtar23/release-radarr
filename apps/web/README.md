@@ -11,6 +11,7 @@ Required environment variables:
 ```bash
 VITE_SUPABASE_URL=
 VITE_SUPABASE_PUBLISHABLE_KEY=
+VITE_API_BASE_URL=
 ```
 
 Use only:
@@ -29,6 +30,8 @@ Do not use:
 - guest search and browsing remain available
 - auth is required for watchlist and notifications
 - auth UI is wired to Supabase session bootstrap, sign in, sign up, and sign out
+- `VITE_API_BASE_URL` routes all application surfaces to the Fastify API while Supabase continues to handle auth
+- if `VITE_API_BASE_URL` points to a deployed Railway API during local development, that API must allow `http://localhost:5173` in `CORS_ALLOWED_ORIGINS`
 
 ## Run
 

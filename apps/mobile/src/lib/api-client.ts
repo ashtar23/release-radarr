@@ -5,31 +5,10 @@ import { supabase } from "./supabase";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const canonicalApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
-const rawHomeApiBaseUrl = process.env.EXPO_PUBLIC_HOME_API_BASE_URL;
-const rawSearchApiBaseUrl = process.env.EXPO_PUBLIC_SEARCH_API_BASE_URL;
-const rawTitlesApiBaseUrl = process.env.EXPO_PUBLIC_TITLES_API_BASE_URL;
-const rawNotificationsApiBaseUrl =
-  process.env.EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL;
-const rawWatchlistApiBaseUrl = process.env.EXPO_PUBLIC_WATCHLIST_API_BASE_URL;
+const apiBaseUrl = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_BASE_URL) ?? undefined;
 
-const apiBaseUrl = normalizeBaseUrl(canonicalApiBaseUrl) ?? undefined;
-const homeApiBaseUrl = normalizeBaseUrl(rawHomeApiBaseUrl) ?? apiBaseUrl;
-
-export const searchApiBaseUrl =
-  normalizeBaseUrl(rawSearchApiBaseUrl) ?? apiBaseUrl;
-
-export const titlesApiBaseUrl =
-  normalizeBaseUrl(rawTitlesApiBaseUrl) ?? apiBaseUrl;
-
-export const notificationsApiBaseUrl =
-  normalizeBaseUrl(rawNotificationsApiBaseUrl) ?? apiBaseUrl;
-
-export const watchlistApiBaseUrl =
-  normalizeBaseUrl(rawWatchlistApiBaseUrl) ?? apiBaseUrl;
-
-export const notificationsRealtimeUrl = notificationsApiBaseUrl
-  ? toWebSocketUrl(notificationsApiBaseUrl)
+export const notificationsRealtimeUrl = apiBaseUrl
+  ? toWebSocketUrl(apiBaseUrl)
   : null;
 
 const OFFLINE_AUTH_ERROR_PATTERNS = [
@@ -53,19 +32,14 @@ function isLikelyOfflineAuthError(error: unknown) {
 }
 
 export const apiClientConfigError =
-  !supabaseUrl || !supabasePublishableKey
-    ? `Missing ${SUPABASE_MOBILE_ENV.url} or ${SUPABASE_MOBILE_ENV.publishableKey}.`
+  !supabaseUrl || !supabasePublishableKey || !apiBaseUrl
+    ? `Missing ${SUPABASE_MOBILE_ENV.url}, ${SUPABASE_MOBILE_ENV.publishableKey}, or EXPO_PUBLIC_API_BASE_URL.`
     : null;
 
 export const apiClient =
   apiClientConfigError === null
     ? createSoonrApiClient({
-        baseUrl: normalizeBaseUrl(supabaseUrl!) ?? supabaseUrl!,
-        homeBaseUrl: homeApiBaseUrl,
-        searchBaseUrl: searchApiBaseUrl,
-        notificationsBaseUrl: notificationsApiBaseUrl,
-        titlesBaseUrl: titlesApiBaseUrl,
-        watchlistBaseUrl: watchlistApiBaseUrl,
+        baseUrl: apiBaseUrl!,
         publishableKey: supabasePublishableKey!,
         async getAccessToken() {
           if (!supabase) {

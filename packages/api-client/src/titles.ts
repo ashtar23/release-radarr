@@ -1,4 +1,3 @@
-import { API_PATH_PREFIX } from "@repo/config";
 import type { TitleDetailsResult } from "@repo/types";
 
 import { isTitleDetailsResult } from "./payload-guards";
@@ -18,7 +17,6 @@ export async function getTitleDetails({
   context,
   params,
 }: GetTitleDetailsRequestParams): Promise<TitleDetailsResult> {
-  const titlesBaseUrl = context.titlesBaseUrl;
   const normalizedId = params.id.trim();
   if (!normalizedId) {
     throw new Error("Title id is required.");
@@ -26,12 +24,8 @@ export async function getTitleDetails({
 
   return requestJson({
     context,
-    baseUrl: titlesBaseUrl,
     method: "GET",
-    path:
-      titlesBaseUrl == null
-        ? `${API_PATH_PREFIX}/titles/${encodeURIComponent(normalizedId)}`
-        : `/titles/${encodeURIComponent(normalizedId)}`,
+    path: `/titles/${encodeURIComponent(normalizedId)}`,
     signal: params.signal,
     validate: isTitleDetailsResult,
     invalidPayloadMessage: "Title details payload is invalid.",

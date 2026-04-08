@@ -2,8 +2,15 @@
 
 Soonr is a Turborepo monorepo for tracking game releases across mobile and web clients, backed by Supabase.
 
+The current architecture is split by responsibility:
+
+- Supabase Auth remains the session/auth provider
+- `apps/api` owns migrated application routes and talks directly to Postgres
+- web and mobile send application data requests to `apps/api`
+
 ## Workspace map
 
+- `apps/api` — Fastify API for migrated backend routes
 - `apps/mobile` — Expo SDK 55 app (Expo Router)
 - `apps/web` — Vite + React web app
 - `packages/types` — shared domain and API contract types
@@ -62,11 +69,13 @@ Required environment variables:
 # apps/web/.env
 VITE_SUPABASE_URL=
 VITE_SUPABASE_PUBLISHABLE_KEY=
+VITE_API_BASE_URL=
 
 # apps/mobile/.env
 APP_ENV=staging
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+EXPO_PUBLIC_API_BASE_URL=
 ```
 
 Use only the Supabase project URL and publishable key in client apps.
@@ -114,3 +123,19 @@ curl -si http://127.0.0.1:54321/auth/v1/settings -H "apikey: <YOUR_PUBLISHABLE_K
 ```
 
 You should receive `HTTP/1.1 200 OK`. Use only the publishable key for client-side checks and app config.
+
+## Local API Verification
+
+The migrated Fastify backend lives in `apps/api`.
+
+From repo root:
+
+```sh
+pnpm dev:api
+```
+
+Then verify:
+
+```sh
+curl -s http://127.0.0.1:3001/health
+```

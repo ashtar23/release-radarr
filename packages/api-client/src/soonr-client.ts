@@ -12,6 +12,7 @@ import type { WatchlistListResult } from "@repo/types";
 import type { WatchlistMembershipResult } from "@repo/types";
 import type { WatchlistUpsertResult } from "@repo/types";
 
+import { isHealthStatus } from "./payload-guards";
 import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
 import {
   getNotificationPreferences,
@@ -37,14 +38,10 @@ import {
   type ListWatchlistParams,
   type RemoveWatchlistItemParams,
 } from "./watchlist";
+import { requestJson } from "./request";
 
 export interface SoonrApiClientOptions {
   readonly baseUrl: string;
-  readonly homeBaseUrl?: string;
-  readonly notificationsBaseUrl?: string;
-  readonly searchBaseUrl?: string;
-  readonly titlesBaseUrl?: string;
-  readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
   readonly onUnauthorized?: () => Promise<boolean> | boolean;
@@ -87,11 +84,6 @@ export function createSoonrApiClient(
 ): SoonrApiClient {
   const context = {
     baseUrl: options.baseUrl,
-    homeBaseUrl: options.homeBaseUrl,
-    notificationsBaseUrl: options.notificationsBaseUrl,
-    searchBaseUrl: options.searchBaseUrl,
-    titlesBaseUrl: options.titlesBaseUrl,
-    watchlistBaseUrl: options.watchlistBaseUrl,
     publishableKey: options.publishableKey,
     getAccessToken: options.getAccessToken,
     onUnauthorized: options.onUnauthorized,
@@ -100,7 +92,14 @@ export function createSoonrApiClient(
 
   return {
     async health() {
-      throw new Error("API endpoints are not scaffolded yet.");
+      return requestJson({
+        context,
+        method: "GET",
+        path: "/health",
+        validate: isHealthStatus,
+        invalidPayloadMessage: "Health payload is invalid.",
+        failureMessage: "Health request failed.",
+      });
     },
     async getHomeDiscovery(params = {}) {
       return getHomeDiscovery({

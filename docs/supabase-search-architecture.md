@@ -1,6 +1,8 @@
 # Supabase + Search Architecture
 
-This document focuses on the Supabase-backed search pipeline and how the frontend reaches it.
+Historical note: this document describes the older Supabase-hosted app-route
+architecture and is no longer the current request path for clients. Keep it
+only as migration history/reference.
 
 ## Supabase setup
 

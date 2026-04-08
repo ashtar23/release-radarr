@@ -1,15 +1,13 @@
 # Frontend API Contract Reference
 
-This is the frontend-facing contract for the Supabase Edge Function API.
+This is the frontend-facing contract for the hosted Fastify API used by web and
+mobile application data requests.
 
 ## Base URL
 
-- Production: `https://<project-ref>.supabase.co/functions/v1/api`
-- Local: `http://127.0.0.1:54321/functions/v1/api`
-
-Path prefix constant:
-
-- `API_PATH_PREFIX = "/functions/v1/api"`
+- Production: `https://<api-production>.up.railway.app`
+- Staging: `https://<api-staging>.up.railway.app`
+- Local: `http://127.0.0.1:3001`
 
 ## Auth Model
 
@@ -50,7 +48,7 @@ The shared API client handles this header strategy.
 Example:
 
 ```http
-GET /functions/v1/api/titles?query=elden&page=1&limit=20
+GET /titles?query=elden&page=1&limit=20
 ```
 
 Type:
@@ -79,7 +77,7 @@ interface TitleSearchResult {
 Example:
 
 ```http
-GET /functions/v1/api/titles/rawg%3A3498
+GET /titles/rawg%3A3498
 ```
 
 Type:
@@ -105,7 +103,7 @@ interface TitleDetails extends TitleSummary {
 Example:
 
 ```http
-GET /functions/v1/api/watchlist
+GET /watchlist
 Authorization: Bearer <access_token>
 ```
 
@@ -153,7 +151,7 @@ Notes:
 Example:
 
 ```http
-DELETE /functions/v1/api/watchlist/rawg%3A3498
+DELETE /watchlist/rawg%3A3498
 Authorization: Bearer <access_token>
 ```
 
@@ -175,7 +173,7 @@ Notes:
 Example:
 
 ```http
-GET /functions/v1/api/notifications?limit=20
+GET /notifications?limit=20
 Authorization: Bearer <access_token>
 ```
 
@@ -203,7 +201,7 @@ Sorting:
 Example:
 
 ```http
-GET /functions/v1/api/notifications/unread-count
+GET /notifications/unread-count
 Authorization: Bearer <access_token>
 ```
 
@@ -218,14 +216,20 @@ interface NotificationUnreadCountResult {
 ### 8) Mark Notification Read
 
 - Method: `POST`
-- Path: `/notifications/{notificationId}/read` (URL-encoded)
+- Path: `/notifications/read`
 - Auth: required
+- Body:
+
+```json
+{ "notificationId": "notification-record:event:123:user:456" }
+```
+
 - Returns: `MarkNotificationReadResult`
 
 Example:
 
 ```http
-POST /functions/v1/api/notifications/notification-record%3Aevent%3A123%3Auser%3A456/read
+POST /notifications/read
 Authorization: Bearer <access_token>
 ```
 
@@ -252,7 +256,7 @@ Notes:
 Example:
 
 ```http
-POST /functions/v1/api/notifications/read-all
+POST /notifications/read-all
 Authorization: Bearer <access_token>
 ```
 
@@ -279,7 +283,7 @@ Notes:
 Example:
 
 ```http
-GET /functions/v1/api/notification-preferences
+GET /notification-preferences
 Authorization: Bearer <access_token>
 ```
 

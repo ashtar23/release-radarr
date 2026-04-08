@@ -1,22 +1,40 @@
 # Backend Design
 
+This document describes the current backend split where Supabase remains the
+auth provider and `apps/api` owns application routes.
+
 ## Provider model
 
 RAWG is the only external metadata provider. The backend fetches, normalizes, caches, and serves game data so clients never talk to RAWG directly.
 
-## Edge API boundary
+## Runtime boundary
 
-The client-facing backend is the Supabase Edge Function namespace:
-- `/functions/v1/api/titles`
-- `/functions/v1/api/titles/:id`
-- `/functions/v1/api/watchlist`
+The client-facing backend is currently split:
 
-Web and mobile call those routes through `@repo/api-client` only.
+- Supabase Auth still issues and refreshes client sessions
+- `apps/api` Fastify serves migrated application routes
+
+Web and mobile call backend routes through `@repo/api-client` only.
+
+Current migrated Fastify routes include:
+
+- `/health`
+- `/home/discovery`
+- `/titles`
+- `/titles/:titleId`
+- `/watchlist`
+- `/watchlist/:titleId`
+- `/notifications`
+- `/notifications/unread-count`
+- `/notifications/read`
+- `/notifications/read-all`
+- `/notification-preferences`
+- `/notifications/stream`
 
 ## Search flow
 
 1. client sends a search query with page and limit
-2. backend checks the local database first
+2. Fastify checks the local Postgres database first
 3. if the local page is sufficient and fresh, return it
 4. if the local page is weak or stale:
    - fetch from RAWG
@@ -29,7 +47,7 @@ Search responses include pagination metadata so the client can drive infinite sc
 ## Title details flow
 
 1. client requests a title detail view
-2. backend checks cached title and release data
+2. Fastify checks cached title and release data
 3. if missing or stale, fetch RAWG detail data
 4. normalize and upsert title metadata plus release/platform data
 5. compare previous and new release data
@@ -40,6 +58,7 @@ Search responses include pagination metadata so the client can drive infinite sc
 - guests can search and browse
 - authenticated users can add/remove titles from watchlist
 - watchlist is tracked at the title level
+- watchlist routes on `apps/api` verify Supabase-issued bearer tokens before reading or mutating data
 - watchlist entries return the title summary plus platform releases
 
 ## Notifications
@@ -50,7 +69,16 @@ Current MVP notification event types:
 
 Notification records are in-app first. Push delivery follows after the in-app pipeline is stable.
 
+The current migrated notifications slice is served by `apps/api`, while auth
+still depends on Supabase-issued access tokens.
+
 ## Client auth keys
 
 Web and mobile clients must use only the Supabase project URL and publishable key.
 Service role or other secret keys must not be used in client apps.
+
+## Client routing
+
+`@repo/api-client` sends application data requests to the Fastify API through a
+single configured API base URL. Supabase remains separate and is used by the
+client auth layer for sign-in, session refresh, and access tokens.

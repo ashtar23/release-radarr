@@ -11,6 +11,7 @@ export type ContentKind = "game";
 export type SourceProvider = "rawg";
 
 export interface HealthStatus {
-  ok: true;
-  checkedAt: IsoDateTimeString;
+  status: "ok";
+  appEnv: "development" | "staging" | "production" | "test";
+  dataSource: "postgres" | "supabase";
 }

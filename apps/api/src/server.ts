@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
 
@@ -41,6 +42,21 @@ void bootstrap();
 
 async function bootstrap() {
   try {
+    await server.register(cors, {
+      origin(
+        origin: string | undefined,
+        callback: (error: Error | null, origin: boolean) => void,
+      ) {
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, env.corsAllowedOrigins.includes(origin));
+      },
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["authorization", "apikey", "content-type"],
+    });
     await server.register(websocket);
 
     registerHomeRoutes(server);

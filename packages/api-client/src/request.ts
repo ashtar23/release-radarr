@@ -6,11 +6,6 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 8_000;
 
 export interface RequestContext {
   readonly baseUrl: string;
-  readonly homeBaseUrl?: string;
-  readonly notificationsBaseUrl?: string;
-  readonly searchBaseUrl?: string;
-  readonly titlesBaseUrl?: string;
-  readonly watchlistBaseUrl?: string;
   readonly publishableKey: string;
   readonly getAccessToken?: () => Promise<string | null> | string | null;
   readonly onUnauthorized?: () => Promise<boolean> | boolean;
@@ -19,7 +14,6 @@ export interface RequestContext {
 
 interface RequestJsonParams<T> {
   readonly context: RequestContext;
-  readonly baseUrl?: string;
   readonly method: HttpMethod;
   readonly path: string;
   readonly signal?: AbortSignal;
@@ -31,7 +25,6 @@ interface RequestJsonParams<T> {
 
 interface RequestVoidParams {
   readonly context: RequestContext;
-  readonly baseUrl?: string;
   readonly method: HttpMethod;
   readonly path: string;
   readonly signal?: AbortSignal;
@@ -40,7 +33,6 @@ interface RequestVoidParams {
 
 export async function requestJson<T>({
   context,
-  baseUrl,
   method,
   path,
   signal,
@@ -55,7 +47,7 @@ export async function requestJson<T>({
     const requestSignal = createRequestSignal(signal);
     const response = await fetchWithRequestSignal({
       fetchFn,
-      url: `${baseUrl ?? context.baseUrl}${path}`,
+      url: `${context.baseUrl}${path}`,
       init: {
         method,
         headers: {
@@ -111,7 +103,6 @@ export async function requestJson<T>({
 
 export async function requestVoid({
   context,
-  baseUrl,
   method,
   path,
   signal,
@@ -123,7 +114,7 @@ export async function requestVoid({
     const requestSignal = createRequestSignal(signal);
     const response = await fetchWithRequestSignal({
       fetchFn,
-      url: `${baseUrl ?? context.baseUrl}${path}`,
+      url: `${context.baseUrl}${path}`,
       init: {
         method,
         headers: buildAuthHeaders(context.publishableKey, accessToken),

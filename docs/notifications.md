@@ -133,7 +133,7 @@ Notification records should minimally support:
 2. backend evaluates whether an event should be emitted
 3. a notification event is persisted
 4. user-specific notification records are created according to watchlist membership and preferences
-5. clients read notification records from Supabase-backed endpoints
+5. clients read notification records from the hosted API endpoints
 6. clients mark records as read when opened
 
 For `release_approaching`, the daily scheduled job should:

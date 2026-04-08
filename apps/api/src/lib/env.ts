@@ -13,6 +13,18 @@ function getOptionalEnv(name: string) {
   return value ? value : null;
 }
 
+function getCommaSeparatedEnv(name: string) {
+  const value = getOptionalEnv(name);
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
 const APP_ENVS = ["development", "staging", "production", "test"];
 
 export type AppEnv = (typeof APP_ENVS)[number];
@@ -56,9 +68,25 @@ function getSupabaseConfig() {
   );
 }
 
+function getCorsAllowedOrigins(appEnv: AppEnv) {
+  const configuredOrigins = getCommaSeparatedEnv("CORS_ALLOWED_ORIGINS");
+  if (configuredOrigins.length > 0) {
+    return configuredOrigins;
+  }
+
+  if (appEnv === "development") {
+    return ["http://localhost:5173"];
+  }
+
+  throw new Error(
+    "Provide CORS_ALLOWED_ORIGINS for non-development API environments.",
+  );
+}
+
 const databaseUrl = getOptionalEnv("DATABASE_URL");
 const supabaseConfig = getSupabaseConfig();
 const appEnv = getAppEnv();
+const corsAllowedOrigins = getCorsAllowedOrigins(appEnv);
 const dataSource: DataSource = databaseUrl ? "postgres" : "supabase";
 
 if (!databaseUrl && !supabaseConfig.supabaseUrl) {
@@ -69,6 +97,7 @@ if (!databaseUrl && !supabaseConfig.supabaseUrl) {
 
 export const env = {
   appEnv,
+  corsAllowedOrigins,
   dataSource,
   databaseUrl,
   host: process.env.HOST?.trim() || "0.0.0.0",

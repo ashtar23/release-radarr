@@ -1,4 +1,3 @@
-import { API_PATH_PREFIX } from "@repo/config";
 import type {
   AddWatchlistItemInput,
   ListWatchlistInput,
@@ -56,7 +55,6 @@ export function listWatchlist({
   context,
   params,
 }: ListWatchlistRequestParams): Promise<WatchlistListResult> {
-  const watchlistBaseUrl = context.watchlistBaseUrl;
   const searchParams = new URLSearchParams();
   if (params?.sort) {
     searchParams.set("sort", params.sort);
@@ -80,16 +78,11 @@ export function listWatchlist({
 
   const queryString = searchParams.toString();
   const query = queryString ? `?${queryString}` : "";
-  const path =
-    watchlistBaseUrl == null
-      ? `${API_PATH_PREFIX}/watchlist${query}`
-      : `/watchlist${query}`;
 
   return requestJson({
     context,
-    baseUrl: watchlistBaseUrl,
     method: "GET",
-    path,
+    path: `/watchlist${query}`,
     signal: params?.signal,
     validate: isWatchlistListResult,
     invalidPayloadMessage: "Watchlist payload is invalid.",
@@ -101,7 +94,6 @@ export function getWatchlistMembership({
   context,
   params,
 }: GetWatchlistMembershipRequestParams): Promise<WatchlistMembershipResult> {
-  const watchlistBaseUrl = context.watchlistBaseUrl;
   const normalizedTitleId = params.titleId.trim();
   if (!normalizedTitleId) {
     throw new Error("titleId is required.");
@@ -109,12 +101,8 @@ export function getWatchlistMembership({
 
   return requestJson({
     context,
-    baseUrl: watchlistBaseUrl,
     method: "GET",
-    path:
-      watchlistBaseUrl == null
-        ? `${API_PATH_PREFIX}/watchlist/${encodeURIComponent(normalizedTitleId)}`
-        : `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
+    path: `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
     signal: params.signal,
     validate: isWatchlistMembershipResult,
     invalidPayloadMessage: "Watchlist membership payload is invalid.",
@@ -126,7 +114,6 @@ export function addWatchlistItem({
   context,
   params,
 }: AddWatchlistItemRequestParams): Promise<WatchlistUpsertResult> {
-  const watchlistBaseUrl = context.watchlistBaseUrl;
   const normalizedTitleId = params.titleId.trim();
   if (!normalizedTitleId) {
     throw new Error("titleId is required.");
@@ -134,10 +121,8 @@ export function addWatchlistItem({
 
   return requestJson({
     context,
-    baseUrl: watchlistBaseUrl,
     method: "POST",
-    path:
-      watchlistBaseUrl == null ? `${API_PATH_PREFIX}/watchlist` : "/watchlist",
+    path: "/watchlist",
     signal: params.signal,
     body: JSON.stringify({ titleId: normalizedTitleId }),
     validate: isWatchlistUpsertResult,
@@ -150,7 +135,6 @@ export async function removeWatchlistItem({
   context,
   params,
 }: RemoveWatchlistItemRequestParams): Promise<void> {
-  const watchlistBaseUrl = context.watchlistBaseUrl;
   const normalizedTitleId = params.titleId.trim();
   if (!normalizedTitleId) {
     throw new Error("titleId is required.");
@@ -158,12 +142,8 @@ export async function removeWatchlistItem({
 
   await requestVoid({
     context,
-    baseUrl: watchlistBaseUrl,
     method: "DELETE",
-    path:
-      watchlistBaseUrl == null
-        ? `${API_PATH_PREFIX}/watchlist/${encodeURIComponent(normalizedTitleId)}`
-        : `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
+    path: `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
     signal: params.signal,
     failureMessage: "Remove watchlist request failed.",
   });

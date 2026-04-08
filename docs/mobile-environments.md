@@ -31,15 +31,6 @@ slices should use the hosted Railway API through one canonical public base URL:
 
 - `EXPO_PUBLIC_API_BASE_URL`
 
-Per-slice overrides are still supported for migration safety or deliberate
-traffic splitting, but they should normally be left unset:
-
-- `EXPO_PUBLIC_HOME_API_BASE_URL`
-- `EXPO_PUBLIC_SEARCH_API_BASE_URL`
-- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`
-- `EXPO_PUBLIC_TITLES_API_BASE_URL`
-- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`
-
 Local Supabase remains available for backend development and contract testing, but the mobile app does not automatically switch to it. If a local mobile build is needed later, use explicit env overrides rather than changing the default environment model.
 
 ## Required mobile env vars
@@ -57,12 +48,7 @@ Runtime behavior:
 
 - `APP_ENV` selects the app identity and build target
 - `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` configure the Supabase auth client used for sign-in and session refresh
-- `EXPO_PUBLIC_API_BASE_URL`, when set, is the default hosted API base URL for the migrated slices: home, search, title details, notifications, and watchlist
-- `EXPO_PUBLIC_HOME_API_BASE_URL`, when set, overrides only `home/discovery`
-- `EXPO_PUBLIC_SEARCH_API_BASE_URL`, when set, overrides only the search slice such as `GET /titles?query=...`
-- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL`, when set, overrides only the notifications slice such as `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/:notificationId/read`, `POST /notifications/read-all`, and `GET/PUT /notification-preferences`
-- `EXPO_PUBLIC_TITLES_API_BASE_URL`, when set, overrides only the title-details slice such as `GET /titles/:titleId`
-- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL`, when set, overrides only the watchlist slice such as `GET /watchlist`, `GET /watchlist/:titleId`, `POST /watchlist`, and `DELETE /watchlist/:titleId`
+- `EXPO_PUBLIC_API_BASE_URL`, when set, is the hosted API base URL for home, search, title details, notifications, watchlist, and the notifications websocket
 
 Only publishable client credentials belong in the mobile app. Do not put service role or secret keys in Expo env vars.
 
@@ -139,6 +125,6 @@ Release model:
 1. Merge production-ready work to `main`
 2. Trigger the production release workflow with the next semantic app version
 3. Workflow updates `apps/mobile/package.json`
-4. Workflow deploys production migrations and the `api` function to Supabase
+4. Workflow deploys production migrations and updates the hosted backend/services
 5. Workflow starts the EAS production build
 6. Workflow commits the version bump back to `main`

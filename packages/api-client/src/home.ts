@@ -1,4 +1,3 @@
-import { API_PATH_PREFIX } from "@repo/config";
 import type { HomeDiscoveryResult, TitleSummary } from "@repo/types";
 
 import { isHomeDiscoveryResult } from "./payload-guards";
@@ -17,15 +16,10 @@ export async function getHomeDiscovery({
   context,
   params,
 }: GetHomeDiscoveryRequestParams): Promise<HomeDiscoveryResult<TitleSummary>> {
-  const homeBaseUrl = context.homeBaseUrl;
-  const requestPath =
-    homeBaseUrl == null ? `${API_PATH_PREFIX}/home/discovery` : "/home/discovery";
-
   return requestJson({
     context,
-    baseUrl: homeBaseUrl,
     method: "GET",
-    path: requestPath,
+    path: "/home/discovery",
     signal: params?.signal,
     validate: isHomeDiscoveryResult,
     invalidPayloadMessage: "Home discovery payload is invalid.",

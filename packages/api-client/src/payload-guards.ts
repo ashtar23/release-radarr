@@ -1,4 +1,5 @@
 import type {
+  HealthStatus,
   MarkAllNotificationsReadResult,
   MarkNotificationReadResult,
   NotificationPreferencesResult,
@@ -38,6 +39,15 @@ const SEARCH_DECISION_REASON_SET = new Set<string>(searchDecisionReasonValues);
 const SEARCH_PROVIDER_USED_TRIGGER_SET = new Set<string>(
   searchProviderUsedTriggerValues,
 );
+
+export function isHealthStatus(value: unknown): value is HealthStatus {
+  return (
+    isRecord(value) &&
+    value.status === "ok" &&
+    typeof value.appEnv === "string" &&
+    (value.dataSource === "postgres" || value.dataSource === "supabase")
+  );
+}
 
 export function isTitleSearchResult(
   value: unknown,

@@ -29,6 +29,14 @@ Optional:
 - `PORT`
 - `HOST`
 - `APP_ENV` (`development`, `staging`, `production`, or `test`)
+- `CORS_ALLOWED_ORIGINS`
+
+`CORS_ALLOWED_ORIGINS` is a comma-separated allowlist for browser origins that
+call the API directly.
+
+- local default when omitted in development: `http://localhost:5173`
+- production example: `CORS_ALLOWED_ORIGINS=https://your-web-origin.example`
+- if your local web app points to the deployed staging Railway API, add `http://localhost:5173` to the staging API allowlist too
 
 ## Local Docker Postgres
 
@@ -36,9 +44,9 @@ Spin up a local database for local API development with:
 
 ```bash
 docker run --name soonr-db \
-  -e POSTGRES_USER=release_radar \
-  -e POSTGRES_PASSWORD=release_radar \
-  -e POSTGRES_DB=release_radar \
+  -e POSTGRES_USER=soonr \
+  -e POSTGRES_PASSWORD=soonr \
+  -e POSTGRES_DB=soonr \
   -p 5433:5432 \
   -d postgres:16
 ```
@@ -46,7 +54,7 @@ docker run --name soonr-db \
 Then set:
 
 ```bash
-DATABASE_URL=postgresql://release_radar:release_radar@127.0.0.1:5433/release_radar
+DATABASE_URL=postgresql://soonr:soonr@127.0.0.1:5433/soonr
 ```
 
 The API reads directly from Postgres through `DATABASE_URL`.
@@ -71,7 +79,7 @@ is owned by the Fastify backend package and runs against `DATABASE_URL`.
 
 ## Hosted notifications realtime
 
-When `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL` points at the Railway API, the
+When `EXPO_PUBLIC_API_BASE_URL` points at the Railway API, the
 mobile notifications feature can use the hosted websocket endpoint at:
 
 ```text
@@ -106,6 +114,7 @@ Set these variables on the API service:
 
 - `DATABASE_URL`
 - `APP_ENV=staging`
+- `CORS_ALLOWED_ORIGINS=https://your-web-origin.example`
 - `SUPABASE_URL`
 - `SUPABASE_SECRET_KEY`
 - `PORT` (Railway usually injects this automatically, so only set it if needed)
@@ -116,9 +125,24 @@ Phase 1 API runtime contract:
 
 | Environment | Required vars                         | Notes                                                 |
 | ----------- | ------------------------------------- | ----------------------------------------------------- |
-| local       | `DATABASE_URL`, `APP_ENV=development` | local Docker Postgres + local Fastify                 |
-| staging     | `DATABASE_URL`, `APP_ENV=staging`     | Railway API + Railway Postgres                        |
-| production  | `DATABASE_URL`, `APP_ENV=production`  | same shape as staging when production cutover happens |
+| local       | `DATABASE_URL`, `APP_ENV=development` | local Docker Postgres + local Fastify; browser CORS defaults to `http://localhost:5173` |
+| staging     | `DATABASE_URL`, `APP_ENV=staging`, `CORS_ALLOWED_ORIGINS` | Railway API + Railway Postgres |
+| production  | `DATABASE_URL`, `APP_ENV=production`, `CORS_ALLOWED_ORIGINS` | same shape as staging when production cutover happens |
+
+Current CORS policy:
+
+- exact-origin allowlist only
+- no wildcard reflection
+- no cookie credentials
+- allowed headers: `authorization`, `apikey`, `content-type`
+- allowed methods: `GET`, `POST`, `PUT`, `DELETE`
+
+Practical origin setup:
+
+- local API + local web: you usually do not need to set `CORS_ALLOWED_ORIGINS` because development defaults to `http://localhost:5173`
+- deployed staging Railway API + local web on `http://localhost:5173`: set `CORS_ALLOWED_ORIGINS=http://localhost:5173`
+- deployed staging Railway API + deployed web: set `CORS_ALLOWED_ORIGINS` to every browser origin that should be allowed, for example `http://localhost:5173,https://staging-web.example.com`
+- production Railway API: set `CORS_ALLOWED_ORIGINS` to the real production web origin(s) only
 
 Transitional envs that remain available but are not part of the current
 `home/discovery` route:
@@ -250,22 +274,17 @@ Before wiring mobile:
 
 In the mobile app env, set:
 
-- `EXPO_PUBLIC_HOME_API_BASE_URL=https://your-railway-service.up.railway.app`
-- `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://your-railway-service.up.railway.app`
-- `EXPO_PUBLIC_TITLES_API_BASE_URL=https://your-railway-service.up.railway.app`
-- `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://your-railway-service.up.railway.app`
-
-Leave it unset to keep `home/discovery` on the current hosted backend.
+- `EXPO_PUBLIC_API_BASE_URL=https://your-railway-service.up.railway.app`
 
 Phase 1 mobile env matrix:
 
-| Environment      | Required vars                                                                             | Optional vars                                                                                                                                                                                                                                                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `EXPO_PUBLIC_HOME_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_TITLES_API_BASE_URL=http://127.0.0.1:3001`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=http://127.0.0.1:3001`                                                             |
-| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`     | `EXPO_PUBLIC_HOME_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_NOTIFICATIONS_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_TITLES_API_BASE_URL=https://<api-staging>.up.railway.app`, `EXPO_PUBLIC_WATCHLIST_API_BASE_URL=https://<api-staging>.up.railway.app` |
-| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`  | leave custom API envs unset until production cutover                                                                                                                                                                                                                                                   |
+| Environment      | Required vars                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| local dev build  | `APP_ENV=development`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3001` |
+| staging build    | `APP_ENV=staging`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_API_BASE_URL=https://<api-staging>.up.railway.app` |
+| production build | `APP_ENV=production`, `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_API_BASE_URL=https://<api-production>.up.railway.app` |
 
 ## Current phase goal
 
-The mobile app can now migrate `home/discovery`, notifications, title details,
-and watchlist independently by setting only the matching override env vars.
+The mobile app now uses one Railway base URL for all migrated application
+surfaces while Supabase continues to handle auth.
