@@ -9,9 +9,7 @@ import {
 } from "@repo/ui/components/card";
 
 import { ModeToggle } from "@/components/mode-toggle";
-import {
-  titleDetailsConfigError,
-} from "../data-access/get-title-details";
+import { titleDetailsConfigError } from "../data-access/get-title-details";
 import { useTitleDetailsQuery } from "../queries/use-title-details-query";
 
 interface TitleDetailsPageProps {
@@ -67,25 +65,27 @@ export function TitleDetailsPage({ titleId }: TitleDetailsPageProps) {
               <section className="space-y-4">
                 <div className="space-y-1">
                   <h2 className="text-2xl font-semibold tracking-tight">
-                    {detailsQuery.data.name}
+                    {detailsQuery.data.details.name}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {formatReleaseDate(detailsQuery.data.earliestReleaseDate)}
+                    {formatReleaseDate(
+                      detailsQuery.data.details.earliestReleaseDate,
+                    )}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Platforms</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatPlatforms(detailsQuery.data.platforms)}
+                    {formatPlatforms(detailsQuery.data.details.platforms)}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Description</p>
                   <p className="text-sm text-muted-foreground">
-                    {detailsQuery.data.description?.trim()
-                      ? detailsQuery.data.description
+                    {detailsQuery.data.details.description?.trim()
+                      ? detailsQuery.data.details.description
                       : "No description available."}
                   </p>
                 </div>
@@ -93,29 +93,29 @@ export function TitleDetailsPage({ titleId }: TitleDetailsPageProps) {
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Genres</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatList(detailsQuery.data.genres)}
+                    {formatList(detailsQuery.data.details.genres)}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Developers</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatList(detailsQuery.data.developers)}
+                    {formatList(detailsQuery.data.details.developers)}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Publishers</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatList(detailsQuery.data.publishers)}
+                    {formatList(detailsQuery.data.details.publishers)}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Platform Releases</p>
-                  {detailsQuery.data.releases.length ? (
+                  {detailsQuery.data.details.releases.length ? (
                     <ul className="space-y-1">
-                      {detailsQuery.data.releases.map((release) => (
+                      {detailsQuery.data.details.releases.map((release) => (
                         <li key={release.platformId} className="text-sm">
                           <span className="font-medium">
                             {release.platformName}
