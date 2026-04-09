@@ -1,5 +1,6 @@
 import type { TitleSearchResponse } from "./openapi-types";
-import { requestJson, type RequestContext } from "./request";
+import { openApiGet } from "./openapi-client";
+import type { RequestContext } from "./request";
 
 export interface SearchTitlesParams {
   readonly query: string;
@@ -34,20 +35,15 @@ export async function searchTitles({
     };
   }
 
-  const searchParams = new URLSearchParams({
-    query: normalizedQuery,
-    page: String(page),
-    limit: String(limit),
-  });
-
-  if (params.forceRefresh) {
-    searchParams.set("forceRefresh", "1");
-  }
-
-  const payload = await requestJson<TitleSearchResponse>({
+  const payload = await openApiGet({
     context,
-    method: "GET",
-    path: `/titles?${searchParams.toString()}`,
+    path: "/titles",
+    query: {
+      query: normalizedQuery,
+      page: String(page),
+      limit: String(limit),
+      ...(params.forceRefresh ? { forceRefresh: "1" } : {}),
+    },
     signal: params.signal,
     failureMessage: "Search request failed.",
   });

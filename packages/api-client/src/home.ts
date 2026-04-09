@@ -1,5 +1,6 @@
 import type { HomeDiscoveryResponse } from "./openapi-types";
-import { requestJson, type RequestContext } from "./request";
+import { openApiGet } from "./openapi-client";
+import type { RequestContext } from "./request";
 
 export interface GetHomeDiscoveryParams {
   readonly signal?: AbortSignal;
@@ -14,9 +15,8 @@ export async function getHomeDiscovery({
   context,
   params,
 }: GetHomeDiscoveryRequestParams): Promise<HomeDiscoveryResponse> {
-  return requestJson<HomeDiscoveryResponse>({
+  return openApiGet({
     context,
-    method: "GET",
     path: "/home/discovery",
     signal: params?.signal,
     failureMessage: "Home discovery request failed.",

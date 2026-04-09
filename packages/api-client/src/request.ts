@@ -39,6 +39,16 @@ interface RequestVoidParams {
   readonly failureMessage: string;
 }
 
+interface RequestResponseParams {
+  readonly context: RequestContext;
+  readonly method: HttpMethod;
+  readonly path: string;
+  readonly signal?: AbortSignal;
+  readonly body?: BodyInit;
+  readonly headers?: HeadersInit;
+  readonly failureMessage: string;
+}
+
 export async function requestJson<T>({
   context,
   method,
@@ -49,6 +59,55 @@ export async function requestJson<T>({
   invalidPayloadMessage,
   failureMessage,
 }: RequestJsonValidatedParams<T> | RequestJsonTrustedParams): Promise<T> {
+  const response = await requestResponse({
+    context,
+    method,
+    path,
+    signal,
+    body,
+    failureMessage,
+  });
+
+  const payload: unknown = await response.json();
+  if (validate) {
+    if (!validate(payload)) {
+      throw new ApiClientError({
+        message: invalidPayloadMessage,
+        status: response.status,
+        method,
+        path,
+      });
+    }
+  }
+
+  return payload as T;
+}
+
+export async function requestVoid({
+  context,
+  method,
+  path,
+  signal,
+  failureMessage,
+}: RequestVoidParams): Promise<void> {
+  await requestResponse({
+    context,
+    method,
+    path,
+    signal,
+    failureMessage,
+  });
+}
+
+export async function requestResponse({
+  context,
+  method,
+  path,
+  signal,
+  body,
+  headers,
+  failureMessage,
+}: RequestResponseParams): Promise<Response> {
   const fetchFn = context.fetchFn;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const accessToken = await resolveAccessToken(context.getAccessToken);
@@ -58,10 +117,12 @@ export async function requestJson<T>({
       url: `${context.baseUrl}${path}`,
       init: {
         method,
-        headers: {
-          ...buildAuthHeaders(context.publishableKey, accessToken),
-          ...(body ? { "Content-Type": "application/json" } : {}),
-        },
+        headers: mergeRequestHeaders({
+          publishableKey: context.publishableKey,
+          accessToken,
+          headers,
+          body,
+        }),
         body,
         signal: requestSignal.signal,
       },
@@ -88,19 +149,7 @@ export async function requestJson<T>({
       });
     }
 
-    const payload: unknown = await response.json();
-    if (validate) {
-      if (!validate(payload)) {
-        throw new ApiClientError({
-          message: invalidPayloadMessage,
-          status: response.status,
-          method,
-          path,
-        });
-      }
-    }
-
-    return payload as T;
+    return response;
   }
 
   throw new ApiClientError({
@@ -111,57 +160,123 @@ export async function requestJson<T>({
   });
 }
 
-export async function requestVoid({
-  context,
-  method,
-  path,
-  signal,
-  failureMessage,
-}: RequestVoidParams): Promise<void> {
-  const fetchFn = context.fetchFn;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const accessToken = await resolveAccessToken(context.getAccessToken);
-    const requestSignal = createRequestSignal(signal);
-    const response = await fetchWithRequestSignal({
-      fetchFn,
-      url: `${context.baseUrl}${path}`,
-      init: {
-        method,
-        headers: buildAuthHeaders(context.publishableKey, accessToken),
-        signal: requestSignal.signal,
-      },
-      requestSignal,
-      method,
-      path,
-      failureMessage,
-      sourceSignal: signal,
+export function createContextFetch(context: RequestContext): typeof fetch {
+  return async (input, init) => {
+    const normalizedRequest = normalizeFetchRequest(input, init);
+
+    return requestResponse({
+      context,
+      method: normalizedRequest.method,
+      path: normalizedRequest.path,
+      signal: normalizedRequest.signal,
+      body: normalizedRequest.body,
+      headers: normalizedRequest.headers,
+      failureMessage: `${normalizedRequest.method} ${normalizedRequest.path} request failed.`,
     });
+  };
+}
 
-    if (response.status === 401 && attempt === 0 && context.onUnauthorized) {
-      const shouldRetry = await context.onUnauthorized();
-      if (shouldRetry) {
-        continue;
-      }
-    }
+export async function toApiClientErrorFromResponse(params: {
+  readonly response: Response;
+  readonly method: HttpMethod;
+  readonly path: string;
+  readonly failureMessage: string;
+}) {
+  return toApiClientError({
+    response: params.response,
+    method: params.method,
+    path: params.path,
+    fallbackMessage: params.failureMessage,
+  });
+}
 
-    if (!response.ok) {
-      throw await toApiClientError({
-        response,
-        method,
-        path,
-        fallbackMessage: failureMessage,
-      });
-    }
+function normalizeFetchRequest(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): {
+  readonly method: HttpMethod;
+  readonly path: string;
+  readonly signal?: AbortSignal;
+  readonly body?: BodyInit;
+  readonly headers: Headers;
+} {
+  const request = input instanceof Request ? input : null;
 
-    return;
+  const url = resolveRequestUrl(input);
+  return {
+    method: normalizeHttpMethod(init?.method ?? request?.method),
+    path: toRequestPath(url),
+    signal: init?.signal ?? request?.signal ?? undefined,
+    body: init?.body ?? request?.body ?? undefined,
+    headers: mergeHeaders(request?.headers, init?.headers),
+  };
+}
+
+function resolveRequestUrl(input: RequestInfo | URL) {
+  if (typeof input === "string") {
+    return input;
   }
 
-  throw new ApiClientError({
-    message: failureMessage,
-    status: 401,
-    method,
-    path,
-  });
+  if (input instanceof URL) {
+    return input.toString();
+  }
+
+  return input.url;
+}
+
+function toRequestPath(url: string) {
+  const parsedUrl = new URL(url);
+  return `${parsedUrl.pathname}${parsedUrl.search}`;
+}
+
+function normalizeHttpMethod(value: string | undefined): HttpMethod {
+  switch ((value ?? "GET").toUpperCase()) {
+    case "DELETE":
+      return "DELETE";
+    case "POST":
+      return "POST";
+    case "PUT":
+      return "PUT";
+    default:
+      return "GET";
+  }
+}
+
+function mergeRequestHeaders(params: {
+  readonly publishableKey: string;
+  readonly accessToken: string | null;
+  readonly headers?: HeadersInit;
+  readonly body?: BodyInit;
+}) {
+  const headers = mergeHeaders(params.headers);
+
+  for (const [key, value] of Object.entries(
+    buildAuthHeaders(params.publishableKey, params.accessToken),
+  )) {
+    headers.set(key, value);
+  }
+
+  if (typeof params.body === "string" && !headers.has("content-type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  return headers;
+}
+
+function mergeHeaders(...values: Array<HeadersInit | undefined>) {
+  const headers = new Headers();
+
+  for (const value of values) {
+    if (!value) {
+      continue;
+    }
+
+    new Headers(value).forEach((headerValue, key) => {
+      headers.set(key, headerValue);
+    });
+  }
+
+  return headers;
 }
 
 async function fetchWithRequestSignal({

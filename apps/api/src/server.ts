@@ -4,7 +4,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
 
-import { env } from "./lib/env";
+import { env, resolveCorsAllowedOrigins } from "./lib/env";
 import { registerOpenApi, shouldEnableApiDocs } from "./lib/openapi";
 import { HealthStatusSchema } from "./schemas/common";
 import {
@@ -55,6 +55,8 @@ void bootstrap();
 
 async function bootstrap() {
   try {
+    const corsAllowedOrigins = resolveCorsAllowedOrigins(env.appEnv);
+
     await server.register(cors, {
       origin(
         origin: string | undefined,
@@ -65,7 +67,7 @@ async function bootstrap() {
           return;
         }
 
-        callback(null, env.corsAllowedOrigins.includes(origin));
+        callback(null, corsAllowedOrigins.includes(origin));
       },
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["authorization", "apikey", "content-type"],

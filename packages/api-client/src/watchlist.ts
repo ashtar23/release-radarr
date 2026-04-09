@@ -9,7 +9,12 @@ import type {
   WatchlistMembershipResponse,
   WatchlistUpsertResponse,
 } from "./openapi-types";
-import { requestJson, requestVoid, type RequestContext } from "./request";
+import {
+  openApiDelete,
+  openApiGet,
+  openApiPost,
+} from "./openapi-client";
+import type { RequestContext } from "./request";
 
 export interface ListWatchlistParams extends ListWatchlistInput {
   readonly signal?: AbortSignal;
@@ -52,34 +57,23 @@ export function listWatchlist({
   context,
   params,
 }: ListWatchlistRequestParams): Promise<WatchlistListResponse> {
-  const searchParams = new URLSearchParams();
-  if (params?.sort) {
-    searchParams.set("sort", params.sort);
-  }
-
-  if (typeof params?.query === "string" && params.query.trim()) {
-    searchParams.set("query", params.query.trim());
-  }
-
-  if (typeof params?.cursor === "string" && params.cursor.trim()) {
-    searchParams.set("cursor", params.cursor.trim());
-  }
-
-  if (
-    typeof params?.limit === "number" &&
-    Number.isInteger(params.limit) &&
-    params.limit > 0
-  ) {
-    searchParams.set("limit", String(params.limit));
-  }
-
-  const queryString = searchParams.toString();
-  const query = queryString ? `?${queryString}` : "";
-
-  return requestJson<WatchlistListResponse>({
+  return openApiGet({
     context,
-    method: "GET",
-    path: `/watchlist${query}`,
+    path: "/watchlist",
+    query: {
+      ...(params?.sort ? { sort: params.sort } : {}),
+      ...(typeof params?.query === "string" && params.query.trim()
+        ? { query: params.query.trim() }
+        : {}),
+      ...(typeof params?.cursor === "string" && params.cursor.trim()
+        ? { cursor: params.cursor.trim() }
+        : {}),
+      ...(typeof params?.limit === "number" &&
+      Number.isInteger(params.limit) &&
+      params.limit > 0
+        ? { limit: String(params.limit) }
+        : {}),
+    },
     signal: params?.signal,
     failureMessage: "Watchlist request failed.",
   });
@@ -94,10 +88,12 @@ export function getWatchlistMembership({
     throw new Error("titleId is required.");
   }
 
-  return requestJson<WatchlistMembershipResponse>({
+  return openApiGet({
     context,
-    method: "GET",
-    path: `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
+    path: "/watchlist/{titleId}",
+    pathParams: {
+      titleId: normalizedTitleId,
+    },
     signal: params.signal,
     failureMessage: "Watchlist membership request failed.",
   });
@@ -112,12 +108,11 @@ export function addWatchlistItem({
     throw new Error("titleId is required.");
   }
 
-  return requestJson<WatchlistUpsertResponse>({
+  return openApiPost({
     context,
-    method: "POST",
     path: "/watchlist",
+    body: { titleId: normalizedTitleId },
     signal: params.signal,
-    body: JSON.stringify({ titleId: normalizedTitleId }),
     failureMessage: "Add watchlist request failed.",
   });
 }
@@ -131,10 +126,12 @@ export async function removeWatchlistItem({
     throw new Error("titleId is required.");
   }
 
-  await requestVoid({
+  await openApiDelete({
     context,
-    method: "DELETE",
-    path: `/watchlist/${encodeURIComponent(normalizedTitleId)}`,
+    path: "/watchlist/{titleId}",
+    pathParams: {
+      titleId: normalizedTitleId,
+    },
     signal: params.signal,
     failureMessage: "Remove watchlist request failed.",
   });

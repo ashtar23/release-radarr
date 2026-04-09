@@ -1,5 +1,6 @@
 import type { TitleDetailsResponse } from "./openapi-types";
-import { requestJson, type RequestContext } from "./request";
+import { openApiGet } from "./openapi-client";
+import type { RequestContext } from "./request";
 
 export interface GetTitleDetailsParams {
   readonly id: string;
@@ -20,10 +21,12 @@ export async function getTitleDetails({
     throw new Error("Title id is required.");
   }
 
-  return requestJson<TitleDetailsResponse>({
+  return openApiGet({
     context,
-    method: "GET",
-    path: `/titles/${encodeURIComponent(normalizedId)}`,
+    path: "/titles/{titleId}",
+    pathParams: {
+      titleId: normalizedId,
+    },
     signal: params.signal,
     failureMessage: "Title details request failed.",
   });

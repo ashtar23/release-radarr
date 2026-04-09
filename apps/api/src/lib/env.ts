@@ -68,7 +68,7 @@ function getSupabaseConfig() {
   );
 }
 
-function getCorsAllowedOrigins(appEnv: AppEnv) {
+export function resolveCorsAllowedOrigins(appEnv: AppEnv) {
   const configuredOrigins = getCommaSeparatedEnv("CORS_ALLOWED_ORIGINS");
   if (configuredOrigins.length > 0) {
     return configuredOrigins;
@@ -86,7 +86,6 @@ function getCorsAllowedOrigins(appEnv: AppEnv) {
 const databaseUrl = getOptionalEnv("DATABASE_URL");
 const supabaseConfig = getSupabaseConfig();
 const appEnv = getAppEnv();
-const corsAllowedOrigins = getCorsAllowedOrigins(appEnv);
 const dataSource: DataSource = databaseUrl ? "postgres" : "supabase";
 
 if (!databaseUrl && !supabaseConfig.supabaseUrl) {
@@ -97,7 +96,6 @@ if (!databaseUrl && !supabaseConfig.supabaseUrl) {
 
 export const env = {
   appEnv,
-  corsAllowedOrigins,
   dataSource,
   databaseUrl,
   host: process.env.HOST?.trim() || "0.0.0.0",

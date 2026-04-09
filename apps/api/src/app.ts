@@ -2,7 +2,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
 
-import { env } from "./lib/env";
+import { env, resolveCorsAllowedOrigins } from "./lib/env";
 import { registerOpenApi, shouldEnableApiDocs } from "./lib/openapi";
 import { HealthStatusSchema } from "./schemas/common";
 import { registerHomeRoutes } from "./routes/home";
@@ -19,6 +19,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
   const server = Fastify({
     logger: env.appEnv !== "test",
   });
+  const corsAllowedOrigins = resolveCorsAllowedOrigins(env.appEnv);
 
   server.get(
     "/health",
@@ -50,7 +51,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
         return;
       }
 
-      callback(null, env.corsAllowedOrigins.includes(origin));
+      callback(null, corsAllowedOrigins.includes(origin));
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["authorization", "apikey", "content-type"],

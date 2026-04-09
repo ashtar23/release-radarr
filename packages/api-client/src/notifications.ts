@@ -11,7 +11,12 @@ import type {
   NotificationRecordListResponse,
   NotificationUnreadCountResponse,
 } from "./openapi-types";
-import { requestJson, type RequestContext } from "./request";
+import {
+  openApiGet,
+  openApiPost,
+  openApiPut,
+} from "./openapi-client";
+import type { RequestContext } from "./request";
 
 export interface ListNotificationsParams extends ListNotificationsInput {
   readonly signal?: AbortSignal;
@@ -63,26 +68,19 @@ export function listNotifications({
   context,
   params,
 }: ListNotificationsRequestParams): Promise<NotificationRecordListResponse> {
-  const searchParams = new URLSearchParams();
-  if (typeof params?.cursor === "string" && params.cursor.trim()) {
-    searchParams.set("cursor", params.cursor.trim());
-  }
-
-  if (
-    typeof params?.limit === "number" &&
-    Number.isInteger(params.limit) &&
-    params.limit > 0
-  ) {
-    searchParams.set("limit", String(params.limit));
-  }
-
-  const queryString = searchParams.toString();
-  const query = queryString ? `?${queryString}` : "";
-
-  return requestJson<NotificationRecordListResponse>({
+  return openApiGet({
     context,
-    method: "GET",
-    path: `/notifications${query}`,
+    path: "/notifications",
+    query: {
+      ...(typeof params?.cursor === "string" && params.cursor.trim()
+        ? { cursor: params.cursor.trim() }
+        : {}),
+      ...(typeof params?.limit === "number" &&
+      Number.isInteger(params.limit) &&
+      params.limit > 0
+        ? { limit: String(params.limit) }
+        : {}),
+    },
     signal: params?.signal,
     failureMessage: "Notifications request failed.",
   });
@@ -92,9 +90,8 @@ export function getNotificationUnreadCount({
   context,
   signal,
 }: GetNotificationUnreadCountRequestParams): Promise<NotificationUnreadCountResponse> {
-  return requestJson<NotificationUnreadCountResponse>({
+  return openApiGet({
     context,
-    method: "GET",
     path: "/notifications/unread-count",
     signal,
     failureMessage: "Notification unread count request failed.",
@@ -110,12 +107,11 @@ export function markNotificationRead({
     throw new Error("notificationId is required.");
   }
 
-  return requestJson<MarkNotificationReadResponse>({
+  return openApiPost({
     context,
-    method: "POST",
     path: "/notifications/read",
+    body: { notificationId },
     signal: params.signal,
-    body: JSON.stringify({ notificationId }),
     failureMessage: "Mark notification read request failed.",
   });
 }
@@ -124,9 +120,8 @@ export function markAllNotificationsRead({
   context,
   params,
 }: MarkAllNotificationsReadRequestParams): Promise<MarkAllNotificationsReadResponse> {
-  return requestJson<MarkAllNotificationsReadResponse>({
+  return openApiPost({
     context,
-    method: "POST",
     path: "/notifications/read-all",
     signal: params?.signal,
     failureMessage: "Mark all notifications read request failed.",
@@ -137,9 +132,8 @@ export function getNotificationPreferences({
   context,
   signal,
 }: GetNotificationPreferencesRequestParams): Promise<NotificationPreferencesResponse> {
-  return requestJson<NotificationPreferencesResponse>({
+  return openApiGet({
     context,
-    method: "GET",
     path: "/notification-preferences",
     signal,
     failureMessage: "Notification preferences request failed.",
@@ -150,16 +144,15 @@ export function updateNotificationPreferences({
   context,
   params,
 }: UpdateNotificationPreferencesRequestParams): Promise<NotificationPreferencesResponse> {
-  return requestJson<NotificationPreferencesResponse>({
+  return openApiPut({
     context,
-    method: "PUT",
     path: "/notification-preferences",
-    signal: params.signal,
-    body: JSON.stringify({
+    body: {
       channels: params.channels,
       events: params.events,
       timingPresets: params.timingPresets,
-    }),
+    },
+    signal: params.signal,
     failureMessage: "Update notification preferences request failed.",
   });
 }
