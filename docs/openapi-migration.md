@@ -20,6 +20,15 @@ Implemented:
   - `pnpm --filter api generate:openapi-spec`
   - `pnpm generate:api-types`
   - output: `packages/api-client/src/generated/openapi.ts`
+- generated HTTP response aliases in `packages/api-client/src/openapi-types.ts`
+- a thin internal OpenAPI helper layer in `packages/api-client/src/openapi-client.ts`
+- schema-backed `@repo/api-client` HTTP slices for:
+  - `home`
+  - `titles`
+  - `watchlist`
+  - `notifications`
+- `@repo/types` reduced toward domain/input concerns instead of owning API result wrappers
+- `check:api-types` verification to catch stale generated contract files
 - current schema-backed routes:
   - `GET /health`
   - `GET /home/discovery`
@@ -38,13 +47,15 @@ Implemented:
 
 Remaining:
 
-1. Switch selected `@repo/api-client` transport types to generated OpenAPI types
-2. Add a thin generated-client wrapper while preserving auth refresh behavior
-3. Move `@repo/types` toward domain-only exports
-4. Decide whether `/openapi.json` should stay enabled in production or remain internal-only
+1. Keep expanding schema coverage for any new HTTP routes so `/openapi.json` stays authoritative for the REST surface
+2. Decide whether `/openapi.json` should stay enabled in production or remain internal-only
+3. Decide whether health should move off the last handwritten runtime guard path
+4. Consolidate any remaining transport/result naming drift as future routes are added
 
 ## Notes
 
 - Web and mobile continue using Zod for form validation.
 - API route schemas use TypeBox.
 - Docs are internal-first: local/staging enabled, production disabled by default.
+- Realtime websocket notifications at `/notifications/stream` are intentionally outside the current OpenAPI contract.
+- `@repo/api-client` uses generated OpenAPI types plus a thin internal helper layer rather than a third-party generated fetch client.
