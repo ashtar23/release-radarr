@@ -128,7 +128,7 @@ export async function fetchProviderSearchCandidates(params: {
   };
 }
 
-export async function upsertProviderSearchResults(results: TitleSummary[]) {
+export async function upsertTitleSummaries(results: TitleSummary[]) {
   if (results.length === 0) {
     return;
   }
@@ -212,33 +212,49 @@ export async function upsertProviderSearchResults(results: TitleSummary[]) {
   );
 }
 
+export async function upsertProviderSearchResults(results: TitleSummary[]) {
+  await upsertTitleSummaries(results);
+}
+
 export async function enrichProviderSearchResults(params: {
   results: RankedSearchCandidate[];
   rawgApiKey: string;
 }) {
-  const topProviderResults = params.results.slice(
+  await enrichTitleSummaries({
+    summaries: params.results.map((result) => result.summary),
+    rawgApiKey: params.rawgApiKey,
+    limit: PROVIDER_DETAIL_ENRICHMENT_LIMIT,
+  });
+}
+
+export async function enrichTitleSummaries(params: {
+  summaries: TitleSummary[];
+  rawgApiKey: string;
+  limit?: number;
+}) {
+  const topSummaries = params.summaries.slice(
     0,
-    PROVIDER_DETAIL_ENRICHMENT_LIMIT,
+    params.limit ?? PROVIDER_DETAIL_ENRICHMENT_LIMIT,
   );
-  if (topProviderResults.length === 0) {
-    return;
+  if (topSummaries.length === 0) {
+    return 0;
   }
 
   const idsMissingDetails = await selectIdsMissingDetails(
-    topProviderResults.map((result) => result.summary.id),
+    topSummaries.map((summary) => summary.id),
   );
 
   if (idsMissingDetails.size === 0) {
-    return;
+    return 0;
   }
 
   const detailFetchResults = await Promise.allSettled(
-    topProviderResults
-      .filter((result) => idsMissingDetails.has(result.summary.id))
-      .map((result) =>
+    topSummaries
+      .filter((summary) => idsMissingDetails.has(summary.id))
+      .map((summary) =>
         fetchRawgDetail({
           rawgApiKey: params.rawgApiKey,
-          externalId: result.summary.externalId,
+          externalId: summary.externalId,
         }),
       ),
   );
@@ -248,10 +264,11 @@ export async function enrichProviderSearchResults(params: {
   );
 
   if (detailsToUpsert.length === 0) {
-    return;
+    return 0;
   }
 
   await upsertProviderDetailResults(detailsToUpsert);
+  return detailsToUpsert.length;
 }
 
 export function mergeUniqueResults(

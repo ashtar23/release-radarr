@@ -35,6 +35,7 @@ The hosted API package also includes a manual generation command for the
 notifications migration:
 
 - `pnpm --dir apps/api generate:release-approaching`
+- `pnpm --dir apps/api sync:home-discovery`
 
 ## Local env
 
@@ -94,6 +95,25 @@ pnpm --dir apps/api generate:release-approaching --run-date=2026-04-05
 This command executes the same due-title-window, timing-preset, and deduped
 event fan-out behavior currently modeled in the Supabase SQL migration, but it
 is owned by the Fastify backend package and runs against `DATABASE_URL`.
+
+## Hosted home discovery sync
+
+Run the curated home-candidate sync manually with:
+
+```bash
+pnpm --dir apps/api sync:home-discovery
+```
+
+Optional run date override:
+
+```bash
+pnpm --dir apps/api sync:home-discovery --run-date=2026-04-09
+```
+
+This command fetches bounded upcoming, recent-release, and popularity candidate
+sets from RAWG, dedupes them, upserts them into the existing `titles` table,
+and enriches missing details through the same backend-owned pipeline used for
+search cache fill. The home API remains DB-only at request time.
 
 ## Hosted notifications realtime
 
