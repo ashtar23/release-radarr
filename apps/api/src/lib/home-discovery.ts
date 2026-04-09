@@ -2,10 +2,17 @@ import type { TitleSummary } from "@repo/types";
 
 import type { Database } from "@shared/database-types";
 import type { HomeDiscoveryResult } from "./contracts";
+import { selectHomeDiscoveryRails } from "./home-discovery-selection";
 import { queryCachedTitles } from "./postgres";
 
 const DISCOVERY_LIMIT = 10;
-const LATEST_WINDOW_DAYS = 60;
+const UPCOMING_WINDOW_DAYS = 365;
+const LATEST_WINDOW_DAYS = 45;
+const POPULAR_LOOKBACK_DAYS = 30;
+const POPULAR_LOOKAHEAD_DAYS = 365;
+const UPCOMING_POOL_LIMIT = 60;
+const LATEST_POOL_LIMIT = 60;
+const POPULAR_POOL_LIMIT = 80;
 
 type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 
@@ -16,21 +23,39 @@ export async function getHomeDiscovery(): Promise<HomeDiscoveryResult> {
   const today = new Date();
   const todayIsoDate = toIsoDate(today);
   const latestCutoffIsoDate = toIsoDate(addDays(today, -LATEST_WINDOW_DAYS));
+  const upcomingCutoffIsoDate = toIsoDate(addDays(today, UPCOMING_WINDOW_DAYS));
+  const popularLookbackIsoDate = toIsoDate(
+    addDays(today, -POPULAR_LOOKBACK_DAYS),
+  );
+  const popularLookaheadIsoDate = toIsoDate(
+    addDays(today, POPULAR_LOOKAHEAD_DAYS),
+  );
   const [upcoming, latest, popular] = await Promise.all([
-    listUpcomingTitles(todayIsoDate, DISCOVERY_LIMIT),
-    listLatestTitles(latestCutoffIsoDate, todayIsoDate, DISCOVERY_LIMIT),
-    listPopularTitles(DISCOVERY_LIMIT),
+    listUpcomingTitles(
+      todayIsoDate,
+      upcomingCutoffIsoDate,
+      UPCOMING_POOL_LIMIT,
+    ),
+    listLatestTitles(latestCutoffIsoDate, todayIsoDate, LATEST_POOL_LIMIT),
+    listPopularTitles(
+      popularLookbackIsoDate,
+      popularLookaheadIsoDate,
+      POPULAR_POOL_LIMIT,
+    ),
   ]);
 
-  return {
-    upcoming,
-    latest,
-    popular,
-  };
+  return selectHomeDiscoveryRails({
+    upcomingCandidates: upcoming,
+    latestCandidates: latest,
+    popularCandidates: popular,
+    todayIsoDate,
+    limit: DISCOVERY_LIMIT,
+  });
 }
 
 async function listUpcomingTitles(
-  todayIsoDate: string,
+  earliestIsoDate: string,
+  latestIsoDate: string,
   limit: number,
 ): Promise<TitleSummary[]> {
   const rows = await queryCachedTitles(
@@ -38,10 +63,11 @@ async function listUpcomingTitles(
       select ${TITLE_LIST_SELECT}
       from titles
       where earliest_release_date >= $1
+        and earliest_release_date <= $2
       order by earliest_release_date asc nulls last, rawg_added desc nulls last
-      limit $2
+      limit $3
     `,
-    [todayIsoDate, limit],
+    [earliestIsoDate, latestIsoDate, limit],
   );
 
   return rows.map(mapCachedRowToTitleSummary);
@@ -67,17 +93,23 @@ async function listLatestTitles(
   return rows.map(mapCachedRowToTitleSummary);
 }
 
-async function listPopularTitles(limit: number): Promise<TitleSummary[]> {
+async function listPopularTitles(
+  earliestIsoDate: string,
+  latestIsoDate: string,
+  limit: number,
+): Promise<TitleSummary[]> {
   const rows = await queryCachedTitles(
     `
       select ${TITLE_LIST_SELECT}
       from titles
+      where earliest_release_date >= $1
+        and earliest_release_date <= $2
       order by rawg_added desc nulls last,
                rawg_ratings_count desc nulls last,
                rawg_metacritic desc nulls last
-      limit $1
+      limit $3
     `,
-    [limit],
+    [earliestIsoDate, latestIsoDate, limit],
   );
 
   return rows.map(mapCachedRowToTitleSummary);
