@@ -1,5 +1,5 @@
-import type { HealthStatus } from "@repo/types";
 import type {
+  HealthStatusResponse,
   HomeDiscoveryResponse,
   MarkAllNotificationsReadResponse,
   MarkNotificationReadResponse,
@@ -12,8 +12,6 @@ import type {
   WatchlistMembershipResponse,
   WatchlistUpsertResponse,
 } from "./openapi-types";
-
-import { isHealthStatus } from "./payload-guards";
 import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
 import {
   getNotificationPreferences,
@@ -50,7 +48,7 @@ export interface SoonrApiClientOptions {
 }
 
 export interface SoonrApiClient {
-  health(): Promise<HealthStatus>;
+  health(): Promise<HealthStatusResponse>;
   getHomeDiscovery(params?: GetHomeDiscoveryParams): Promise<HomeDiscoveryResponse>;
   searchTitles(params: SearchTitlesParams): Promise<TitleSearchResponse>;
   getTitleDetails(
@@ -93,12 +91,10 @@ export function createSoonrApiClient(
 
   return {
     async health() {
-      return requestJson({
+      return requestJson<HealthStatusResponse>({
         context,
         method: "GET",
         path: "/health",
-        validate: isHealthStatus,
-        invalidPayloadMessage: "Health payload is invalid.",
         failureMessage: "Health request failed.",
       });
     },

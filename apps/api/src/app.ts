@@ -4,10 +4,10 @@ import Fastify from "fastify";
 
 import { env, resolveCorsAllowedOrigins } from "./lib/env";
 import { registerOpenApi, shouldEnableApiDocs } from "./lib/openapi";
-import { HealthStatusSchema } from "./schemas/common";
 import { registerHomeRoutes } from "./routes/home";
 import { registerNotificationsRealtimeRoutes } from "./routes/notifications-realtime";
 import { registerNotificationRoutes } from "./routes/notifications";
+import { registerSystemRoutes } from "./routes/system";
 import { registerTitleRoutes } from "./routes/titles";
 import { registerWatchlistRoutes } from "./routes/watchlist";
 
@@ -20,26 +20,6 @@ export async function buildServer(options: BuildServerOptions = {}) {
     logger: env.appEnv !== "test",
   });
   const corsAllowedOrigins = resolveCorsAllowedOrigins(env.appEnv);
-
-  server.get(
-    "/health",
-    {
-      schema: {
-        tags: ["system"],
-        summary: "Get API health status",
-        response: {
-          200: HealthStatusSchema,
-        },
-      },
-    },
-    async () => {
-      return {
-        status: "ok",
-        appEnv: env.appEnv,
-        dataSource: env.dataSource,
-      };
-    },
-  );
 
   await server.register(cors, {
     origin(
@@ -63,6 +43,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
 
   await server.register(websocket);
 
+  registerSystemRoutes(server);
   registerHomeRoutes(server);
   registerTitleRoutes(server);
   registerNotificationRoutes(server);

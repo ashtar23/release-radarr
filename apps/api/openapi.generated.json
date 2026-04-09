@@ -25,6 +25,83 @@
         }
       }
     },
+    "/health": {
+      "get": {
+        "summary": "Get API health status",
+        "tags": [
+          "system"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "appEnv",
+                    "dataSource"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "appEnv": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "development"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "staging"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "production"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "test"
+                          ]
+                        }
+                      ]
+                    },
+                    "dataSource": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "postgres"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "supabase"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/home/discovery": {
       "get": {
         "summary": "Get home discovery rails",

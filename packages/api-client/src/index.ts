@@ -12,6 +12,7 @@ export {
 } from "./auth";
 export { type RequestContext, requestJson, requestVoid } from "./request";
 export {
+  type HealthStatusResponse,
   type HomeDiscoveryResponse,
   type MarkAllNotificationsReadResponse,
   type MarkNotificationReadResponse,

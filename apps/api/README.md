@@ -27,7 +27,7 @@ Current schema-backed HTTP routes:
 - `POST /notifications/read-all`
 - `PUT /notification-preferences`
 
-Realtime remains separate:
+OpenAPI currently describes the HTTP API surface only. Realtime remains separate:
 
 - `GET /notifications/stream` (websocket)
 
