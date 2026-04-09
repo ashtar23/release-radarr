@@ -124,7 +124,7 @@ function mapCachedRowToTitleSummary(row: CachedTitleRow): TitleSummary {
     slug: row.slug,
     name: row.name,
     coverImageUrl: row.cover_image_url,
-    earliestReleaseDate: row.earliest_release_date,
+    earliestReleaseDate: toIsoDateOrNull(row.earliest_release_date),
     platforms: parsePlatforms(row.platforms),
     rawgRating: row.rawg_rating,
     rawgRatingsCount: row.rawg_ratings_count,
@@ -177,4 +177,16 @@ function addDays(date: Date, days: number) {
 
 function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10);
+}
+
+function toIsoDateOrNull(value: unknown) {
+  if (value == null) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  return typeof value === "string" ? value.slice(0, 10) : null;
 }
