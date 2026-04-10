@@ -195,6 +195,231 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/home/discovery/upcoming": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List upcoming discovery titles */
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                /** @enum {string} */
+                                kind: "game";
+                                /** @enum {string} */
+                                source: "rawg";
+                                externalId: string;
+                                slug: string;
+                                name: string;
+                                coverImageUrl: string | null;
+                                earliestReleaseDate: string | null;
+                                platforms: {
+                                    id: string;
+                                    name: string;
+                                }[];
+                                rawgRating: number | null;
+                                rawgRatingsCount: number | null;
+                                rawgMetacritic: number | null;
+                                rawgAdded: number | null;
+                                rawgReviewsCount: number | null;
+                                rawgSuggestionsCount: number | null;
+                                rawgRatingTop: number | null;
+                            }[];
+                            nextCursor: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/home/discovery/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recently released discovery titles */
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                /** @enum {string} */
+                                kind: "game";
+                                /** @enum {string} */
+                                source: "rawg";
+                                externalId: string;
+                                slug: string;
+                                name: string;
+                                coverImageUrl: string | null;
+                                earliestReleaseDate: string | null;
+                                platforms: {
+                                    id: string;
+                                    name: string;
+                                }[];
+                                rawgRating: number | null;
+                                rawgRatingsCount: number | null;
+                                rawgMetacritic: number | null;
+                                rawgAdded: number | null;
+                                rawgReviewsCount: number | null;
+                                rawgSuggestionsCount: number | null;
+                                rawgRatingTop: number | null;
+                            }[];
+                            nextCursor: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/home/discovery/popular": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List worth-watching discovery titles */
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                /** @enum {string} */
+                                kind: "game";
+                                /** @enum {string} */
+                                source: "rawg";
+                                externalId: string;
+                                slug: string;
+                                name: string;
+                                coverImageUrl: string | null;
+                                earliestReleaseDate: string | null;
+                                platforms: {
+                                    id: string;
+                                    name: string;
+                                }[];
+                                rawgRating: number | null;
+                                rawgRatingsCount: number | null;
+                                rawgMetacritic: number | null;
+                                rawgAdded: number | null;
+                                rawgReviewsCount: number | null;
+                                rawgSuggestionsCount: number | null;
+                                rawgRatingTop: number | null;
+                            }[];
+                            nextCursor: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/titles": {
         parameters: {
             query?: never;

@@ -15,6 +15,11 @@ export interface HomeDiscoveryResult {
   popular: TitleSummary[];
 }
 
+export interface HomeDiscoveryPageResult {
+  items: TitleSummary[];
+  nextCursor: string | null;
+}
+
 export interface TitleSearchResult {
   query: string;
   results: TitleSummary[];

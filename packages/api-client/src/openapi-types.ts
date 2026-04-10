@@ -6,6 +6,15 @@ export type HealthStatusResponse =
 export type HomeDiscoveryResponse =
   paths["/home/discovery"]["get"]["responses"][200]["content"]["application/json"];
 
+export type HomeDiscoveryUpcomingPageResponse =
+  paths["/home/discovery/upcoming"]["get"]["responses"][200]["content"]["application/json"];
+
+export type HomeDiscoveryLatestPageResponse =
+  paths["/home/discovery/latest"]["get"]["responses"][200]["content"]["application/json"];
+
+export type HomeDiscoveryPopularPageResponse =
+  paths["/home/discovery/popular"]["get"]["responses"][200]["content"]["application/json"];
+
 export type TitleSearchResponse =
   paths["/titles"]["get"]["responses"][200]["content"]["application/json"];
 

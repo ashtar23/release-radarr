@@ -1,6 +1,9 @@
 import type {
   HealthStatusResponse,
+  HomeDiscoveryLatestPageResponse,
+  HomeDiscoveryPopularPageResponse,
   HomeDiscoveryResponse,
+  HomeDiscoveryUpcomingPageResponse,
   MarkAllNotificationsReadResponse,
   MarkNotificationReadResponse,
   NotificationPreferencesResponse,
@@ -12,7 +15,14 @@ import type {
   WatchlistMembershipResponse,
   WatchlistUpsertResponse,
 } from "./openapi-types";
-import { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
+import {
+  getHomeDiscovery,
+  listHomeDiscoveryLatestPage,
+  listHomeDiscoveryPopularPage,
+  listHomeDiscoveryUpcomingPage,
+  type GetHomeDiscoveryParams,
+  type ListHomeDiscoveryPageParams,
+} from "./home";
 import {
   getNotificationPreferences,
   getNotificationUnreadCount,
@@ -50,6 +60,15 @@ export interface SoonrApiClientOptions {
 export interface SoonrApiClient {
   health(): Promise<HealthStatusResponse>;
   getHomeDiscovery(params?: GetHomeDiscoveryParams): Promise<HomeDiscoveryResponse>;
+  listHomeDiscoveryUpcomingPage(
+    params?: ListHomeDiscoveryPageParams,
+  ): Promise<HomeDiscoveryUpcomingPageResponse>;
+  listHomeDiscoveryLatestPage(
+    params?: ListHomeDiscoveryPageParams,
+  ): Promise<HomeDiscoveryLatestPageResponse>;
+  listHomeDiscoveryPopularPage(
+    params?: ListHomeDiscoveryPageParams,
+  ): Promise<HomeDiscoveryPopularPageResponse>;
   searchTitles(params: SearchTitlesParams): Promise<TitleSearchResponse>;
   getTitleDetails(
     params: GetTitleDetailsParams,
@@ -100,6 +119,24 @@ export function createSoonrApiClient(
     },
     async getHomeDiscovery(params = {}) {
       return getHomeDiscovery({
+        context,
+        params,
+      });
+    },
+    async listHomeDiscoveryUpcomingPage(params = {}) {
+      return listHomeDiscoveryUpcomingPage({
+        context,
+        params,
+      });
+    },
+    async listHomeDiscoveryLatestPage(params = {}) {
+      return listHomeDiscoveryLatestPage({
+        context,
+        params,
+      });
+    },
+    async listHomeDiscoveryPopularPage(params = {}) {
+      return listHomeDiscoveryPopularPage({
         context,
         params,
       });

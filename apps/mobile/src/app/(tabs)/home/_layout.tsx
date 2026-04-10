@@ -12,6 +12,12 @@ export default function HomeStackLayout() {
           title: "Discover",
         }}
       />
+      <Stack.Screen
+        name="[section]"
+        options={{
+          title: "Discover",
+        }}
+      />
     </Stack>
   );
 }

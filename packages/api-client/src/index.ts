@@ -13,7 +13,10 @@ export {
 export { type RequestContext, requestJson, requestVoid } from "./request";
 export {
   type HealthStatusResponse,
+  type HomeDiscoveryLatestPageResponse,
+  type HomeDiscoveryPopularPageResponse,
   type HomeDiscoveryResponse,
+  type HomeDiscoveryUpcomingPageResponse,
   type MarkAllNotificationsReadResponse,
   type MarkNotificationReadResponse,
   type NotificationPreferencesResponse,
@@ -25,7 +28,14 @@ export {
   type WatchlistMembershipResponse,
   type WatchlistUpsertResponse,
 } from "./openapi-types";
-export { getHomeDiscovery, type GetHomeDiscoveryParams } from "./home";
+export {
+  getHomeDiscovery,
+  listHomeDiscoveryLatestPage,
+  listHomeDiscoveryPopularPage,
+  listHomeDiscoveryUpcomingPage,
+  type GetHomeDiscoveryParams,
+  type ListHomeDiscoveryPageParams,
+} from "./home";
 export {
   getNotificationPreferences,
   getNotificationUnreadCount,

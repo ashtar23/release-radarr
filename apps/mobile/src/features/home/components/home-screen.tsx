@@ -26,9 +26,11 @@ export function HomeScreen() {
     );
   }
 
-  return state.mode !== "ready" ? (
-    <HomeStateView state={state} />
-  ) : (
+  if (state.mode !== "ready") {
+    return <HomeStateView state={state} />;
+  }
+
+  return (
     <ScreenScrollView contentContainerStyle={styles.content}>
       {isOffline ? (
         <OfflineBanner
@@ -45,14 +47,17 @@ export function HomeScreen() {
       </View>
 
       <HomeDiscoverySection
+        section="upcoming"
         title="Releasing Soon"
         items={state.discovery.upcoming}
       />
       <HomeDiscoverySection
+        section="latest"
         title="Recently Released"
         items={state.discovery.latest}
       />
       <HomeDiscoverySection
+        section="popular"
         title="Worth Watching"
         items={state.discovery.popular}
       />

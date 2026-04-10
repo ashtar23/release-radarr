@@ -1,7 +1,13 @@
 import type { TitleSummary } from "@repo/types";
 
 import type { Database } from "@shared/database-types";
-import type { HomeDiscoveryResult } from "./contracts";
+import type { HomeDiscoveryPageResult, HomeDiscoveryResult } from "./contracts";
+import {
+  buildHomeDiscoveryPageResult,
+  decodeHomeDiscoveryCursor,
+  normalizeHomeDiscoveryPageLimit,
+  type HomeDiscoverySection,
+} from "./home-discovery-page";
 import { selectHomeDiscoveryRails } from "./home-discovery-selection";
 import { queryCachedTitles } from "./postgres";
 
@@ -13,6 +19,7 @@ const POPULAR_LOOKAHEAD_DAYS = 365;
 const UPCOMING_POOL_LIMIT = 60;
 const LATEST_POOL_LIMIT = 60;
 const POPULAR_POOL_LIMIT = 80;
+const HOME_PAGE_WINDOW_LIMIT = 365;
 
 type CachedTitleRow = Database["public"]["Tables"]["titles"]["Row"];
 
@@ -51,6 +58,42 @@ export async function getHomeDiscovery(): Promise<HomeDiscoveryResult> {
     todayIsoDate,
     limit: DISCOVERY_LIMIT,
   });
+}
+
+export async function listHomeDiscoverySectionPage(
+  section: HomeDiscoverySection,
+  options: {
+    cursor?: string;
+    limit?: number;
+  } = {},
+): Promise<HomeDiscoveryPageResult> {
+  const today = new Date();
+  const todayIsoDate = toIsoDate(today);
+  const limit = normalizeHomeDiscoveryPageLimit(options.limit);
+
+  switch (section) {
+    case "upcoming":
+      return listUpcomingPage({
+        todayIsoDate,
+        latestIsoDate: toIsoDate(addDays(today, HOME_PAGE_WINDOW_LIMIT)),
+        cursor: options.cursor,
+        limit,
+      });
+    case "latest":
+      return listLatestPage({
+        earliestIsoDate: toIsoDate(addDays(today, -LATEST_WINDOW_DAYS)),
+        latestIsoDate: todayIsoDate,
+        cursor: options.cursor,
+        limit,
+      });
+    case "popular":
+      return listPopularPage({
+        earliestIsoDate: toIsoDate(addDays(today, -POPULAR_LOOKBACK_DAYS)),
+        latestIsoDate: toIsoDate(addDays(today, POPULAR_LOOKAHEAD_DAYS)),
+        cursor: options.cursor,
+        limit,
+      });
+  }
 }
 
 async function listUpcomingTitles(
@@ -113,6 +156,185 @@ async function listPopularTitles(
   );
 
   return rows.map(mapCachedRowToTitleSummary);
+}
+
+async function listUpcomingPage(params: {
+  todayIsoDate: string;
+  latestIsoDate: string;
+  cursor?: string;
+  limit: number;
+}): Promise<HomeDiscoveryPageResult> {
+  const cursor = params.cursor
+    ? decodeHomeDiscoveryCursor(params.cursor, "upcoming")
+    : null;
+  const rows = await queryCachedTitles(
+    `
+      select ${TITLE_LIST_SELECT}
+      from titles
+      where earliest_release_date >= $1
+        and earliest_release_date <= $2
+        and cover_image_url is not null
+        and jsonb_array_length(platforms) > 0
+        and (
+          coalesce(rawg_added, 0) >= 10
+          or coalesce(rawg_suggestions_count, 0) >= 40
+          or coalesce(rawg_ratings_count, 0) >= 3
+        )
+        and (
+          $3::date is null
+          or earliest_release_date > $3::date
+          or (
+            earliest_release_date = $3::date
+            and coalesce(rawg_added, 0) < $4::integer
+          )
+          or (
+            earliest_release_date = $3::date
+            and coalesce(rawg_added, 0) = $4::integer
+            and id > $5::text
+          )
+        )
+      order by earliest_release_date asc,
+               coalesce(rawg_added, 0) desc,
+               id asc
+      limit $6
+    `,
+    [
+      params.todayIsoDate,
+      params.latestIsoDate,
+      cursor?.date ?? null,
+      cursor?.added ?? 0,
+      cursor?.id ?? "",
+      params.limit + 1,
+    ],
+  );
+
+  return buildHomeDiscoveryPageResult({
+    section: "upcoming",
+    rows: rows.map(mapCachedRowToTitleSummary),
+    limit: params.limit,
+  });
+}
+
+async function listLatestPage(params: {
+  earliestIsoDate: string;
+  latestIsoDate: string;
+  cursor?: string;
+  limit: number;
+}): Promise<HomeDiscoveryPageResult> {
+  const cursor = params.cursor
+    ? decodeHomeDiscoveryCursor(params.cursor, "latest")
+    : null;
+  const rows = await queryCachedTitles(
+    `
+      select ${TITLE_LIST_SELECT}
+      from titles
+      where earliest_release_date >= $1
+        and earliest_release_date <= $2
+        and cover_image_url is not null
+        and jsonb_array_length(platforms) > 0
+        and (
+          coalesce(rawg_added, 0) >= 8
+          or coalesce(rawg_reviews_count, 0) >= 2
+          or coalesce(rawg_suggestions_count, 0) >= 15
+        )
+        and (
+          $3::date is null
+          or earliest_release_date < $3::date
+          or (
+            earliest_release_date = $3::date
+            and coalesce(rawg_added, 0) < $4::integer
+          )
+          or (
+            earliest_release_date = $3::date
+            and coalesce(rawg_added, 0) = $4::integer
+            and id < $5::text
+          )
+        )
+      order by earliest_release_date desc,
+               coalesce(rawg_added, 0) desc,
+               id desc
+      limit $6
+    `,
+    [
+      params.earliestIsoDate,
+      params.latestIsoDate,
+      cursor?.date ?? null,
+      cursor?.added ?? 0,
+      cursor?.id ?? "",
+      params.limit + 1,
+    ],
+  );
+
+  return buildHomeDiscoveryPageResult({
+    section: "latest",
+    rows: rows.map(mapCachedRowToTitleSummary),
+    limit: params.limit,
+  });
+}
+
+async function listPopularPage(params: {
+  earliestIsoDate: string;
+  latestIsoDate: string;
+  cursor?: string;
+  limit: number;
+}): Promise<HomeDiscoveryPageResult> {
+  const cursor = params.cursor
+    ? decodeHomeDiscoveryCursor(params.cursor, "popular")
+    : null;
+  const rows = await queryCachedTitles(
+    `
+      select ${TITLE_LIST_SELECT}
+      from titles
+      where earliest_release_date >= $1
+        and earliest_release_date <= $2
+        and cover_image_url is not null
+        and jsonb_array_length(platforms) > 0
+        and (
+          coalesce(rawg_added, 0) >= 25
+          or coalesce(rawg_suggestions_count, 0) >= 50
+          or coalesce(rawg_ratings_count, 0) >= 5
+        )
+        and (
+          $3::integer is null
+          or coalesce(rawg_added, 0) < $3::integer
+          or (
+            coalesce(rawg_added, 0) = $3::integer
+            and coalesce(rawg_ratings_count, 0) < $4::integer
+          )
+          or (
+            coalesce(rawg_added, 0) = $3::integer
+            and coalesce(rawg_ratings_count, 0) = $4::integer
+            and coalesce(rawg_suggestions_count, 0) < $5::integer
+          )
+          or (
+            coalesce(rawg_added, 0) = $3::integer
+            and coalesce(rawg_ratings_count, 0) = $4::integer
+            and coalesce(rawg_suggestions_count, 0) = $5::integer
+            and id < $6::text
+          )
+        )
+      order by coalesce(rawg_added, 0) desc,
+               coalesce(rawg_ratings_count, 0) desc,
+               coalesce(rawg_suggestions_count, 0) desc,
+               id desc
+      limit $7
+    `,
+    [
+      params.earliestIsoDate,
+      params.latestIsoDate,
+      cursor?.added ?? null,
+      cursor?.ratingsCount ?? 0,
+      cursor?.suggestionsCount ?? 0,
+      cursor?.id ?? "",
+      params.limit + 1,
+    ],
+  );
+
+  return buildHomeDiscoveryPageResult({
+    section: "popular",
+    rows: rows.map(mapCachedRowToTitleSummary),
+    limit: params.limit,
+  });
 }
 
 function mapCachedRowToTitleSummary(row: CachedTitleRow): TitleSummary {
