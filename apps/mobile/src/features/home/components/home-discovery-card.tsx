@@ -8,6 +8,7 @@ import type { TitleSummary } from "@repo/types";
 import { AppSymbol } from "@/components/app-symbol";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
+import { formatReleaseDateCompact } from "@/features/search/utils/format-title";
 import { useTheme } from "@/hooks/use-theme";
 
 type HomeDiscoveryCardProps = {
@@ -66,24 +67,32 @@ export function HomeDiscoveryCard({ item }: HomeDiscoveryCardProps) {
           {item.name}
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-          {formatReleaseDate(item.earliestReleaseDate)}
+          {buildMetaLine(item)}
         </ThemedText>
       </Pressable>
     </Link>
   );
 }
 
-function formatReleaseDate(value: string | null) {
-  if (!value) {
-    return "Release date unknown";
+function buildMetaLine(item: TitleSummary) {
+  const releaseText = formatReleaseDateCompact(item.earliestReleaseDate);
+  const platformText = formatPlatformSummary(item);
+  return `${releaseText} • ${platformText}`;
+}
+
+function formatPlatformSummary(item: TitleSummary) {
+  if (!item.platforms.length) {
+    return "Platforms TBA";
   }
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
+  const [firstPlatform, ...rest] = item.platforms;
+  if (!firstPlatform) {
+    return "Platforms TBA";
   }
 
-  return date.toLocaleDateString();
+  return rest.length > 0
+    ? `${firstPlatform.name} +${rest.length}`
+    : firstPlatform.name;
 }
 
 const CARD_WIDTH = 220;

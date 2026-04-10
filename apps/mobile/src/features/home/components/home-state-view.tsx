@@ -16,7 +16,7 @@ export function HomeStateView({ state }: HomeStateViewProps) {
     return (
       <CenteredLoadingState
         title="Loading discovery..."
-        description="Pulling upcoming, latest, and popular games."
+        description="Pulling the latest curated rails for the home feed."
       />
     );
   }
@@ -45,7 +45,7 @@ export function HomeStateView({ state }: HomeStateViewProps) {
   return (
     <CenteredEmptyState
       title="No discovery titles available"
-      description="There are no upcoming, latest, or popular games to show right now."
+      description="There are no discovery rails to show right now."
     />
   );
 }

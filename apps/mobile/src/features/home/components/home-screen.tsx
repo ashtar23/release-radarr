@@ -19,46 +19,44 @@ export function HomeScreen() {
   if (isOffline && state.mode !== "ready") {
     return (
       <CenteredOfflineState
-        description="Reconnect to load upcoming, latest, and popular games."
+        description="Reconnect to load the latest curated discovery rails."
         onRetry={retry}
         retrying={retrying}
       />
     );
   }
 
-  return (
-    state.mode !== "ready" ? (
-      <HomeStateView state={state} />
-    ) : (
-      <ScreenScrollView contentContainerStyle={styles.content}>
-        {isOffline ? (
-          <OfflineBanner
-            message="You’re offline. Showing the last loaded discovery sections."
-            style={styles.offlineBanner}
-          />
-        ) : null}
+  return state.mode !== "ready" ? (
+    <HomeStateView state={state} />
+  ) : (
+    <ScreenScrollView contentContainerStyle={styles.content}>
+      {isOffline ? (
+        <OfflineBanner
+          message="You’re offline. Showing the last loaded discovery sections."
+          style={styles.offlineBanner}
+        />
+      ) : null}
 
-        <View style={styles.header}>
-          <ThemedText themeColor="textSecondary">
-            Browse what&apos;s releasing soon, what just launched, and what&apos;s
-            popular right now.
-          </ThemedText>
-        </View>
+      <View style={styles.header}>
+        <ThemedText themeColor="textSecondary">
+          Track what&apos;s releasing soon, what just landed, and what&apos;s
+          worth keeping an eye on.
+        </ThemedText>
+      </View>
 
-        <HomeDiscoverySection
-          title="Upcoming games"
-          items={state.discovery.upcoming}
-        />
-        <HomeDiscoverySection
-          title="Latest releases"
-          items={state.discovery.latest}
-        />
-        <HomeDiscoverySection
-          title="Popular now"
-          items={state.discovery.popular}
-        />
-      </ScreenScrollView>
-    )
+      <HomeDiscoverySection
+        title="Releasing Soon"
+        items={state.discovery.upcoming}
+      />
+      <HomeDiscoverySection
+        title="Recently Released"
+        items={state.discovery.latest}
+      />
+      <HomeDiscoverySection
+        title="Worth Watching"
+        items={state.discovery.popular}
+      />
+    </ScreenScrollView>
   );
 }
 

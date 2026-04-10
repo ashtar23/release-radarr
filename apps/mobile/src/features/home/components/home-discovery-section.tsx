@@ -14,10 +14,7 @@ type HomeDiscoverySectionProps = {
   items: TitleSummary[];
 };
 
-export function HomeDiscoverySection({
-  title,
-  items,
-}: HomeDiscoverySectionProps) {
+export function HomeDiscoverySection({ title, items }: HomeDiscoverySectionProps) {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<TitleSummary>) => (
       <HomeDiscoveryCard item={item} />
