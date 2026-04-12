@@ -1,5 +1,7 @@
 import type { TitleSummary } from "@repo/types";
 
+import { getHomeDiscoveryDedupeKey } from "./home-discovery-quality";
+
 export type HomeDiscoverySection = "upcoming" | "latest" | "popular";
 
 type UpcomingOrLatestCursor = {
@@ -45,8 +47,9 @@ export function buildHomeDiscoveryPageResult(params: {
   rows: TitleSummary[];
   limit: number;
 }): HomeDiscoveryPageResult {
-  const items = params.rows.slice(0, params.limit);
-  const hasMore = params.rows.length > params.limit;
+  const dedupedRows = dedupeRowsByTitleVariant(params.rows);
+  const items = dedupedRows.slice(0, params.limit);
+  const hasMore = dedupedRows.length > params.limit;
   const nextCursor =
     hasMore && items.length > 0
       ? encodeHomeDiscoveryCursor(
@@ -55,6 +58,20 @@ export function buildHomeDiscoveryPageResult(params: {
       : null;
 
   return { items, nextCursor };
+}
+
+function dedupeRowsByTitleVariant(rows: TitleSummary[]) {
+  const seenKeys = new Set<string>();
+
+  return rows.filter((row) => {
+    const dedupeKey = getHomeDiscoveryDedupeKey(row.name);
+    if (!dedupeKey || seenKeys.has(dedupeKey)) {
+      return false;
+    }
+
+    seenKeys.add(dedupeKey);
+    return true;
+  });
 }
 
 export function decodeHomeDiscoveryCursor<TSection extends HomeDiscoverySection>(

@@ -1,17 +1,21 @@
 import type { TitleSummary } from "@repo/types";
 
 import type { HomeDiscoveryResult } from "./contracts";
+import {
+  getHomeDiscoveryDedupeKey,
+  LATEST_MIN_ADDED,
+  LATEST_MIN_RATINGS,
+  LATEST_MIN_REVIEWS,
+  LATEST_MIN_SUGGESTIONS,
+  POPULAR_MIN_ADDED,
+  POPULAR_MIN_RATINGS,
+  POPULAR_MIN_SUGGESTIONS,
+  UPCOMING_MIN_ADDED,
+  UPCOMING_MIN_RATINGS,
+  UPCOMING_MIN_SUGGESTIONS,
+} from "./home-discovery-quality";
 
 const DAYS_IN_YEAR = 365;
-const UPCOMING_MIN_ADDED = 10;
-const UPCOMING_MIN_SUGGESTIONS = 40;
-const UPCOMING_MIN_RATINGS = 3;
-const LATEST_MIN_ADDED = 8;
-const LATEST_MIN_REVIEWS = 2;
-const LATEST_MIN_SUGGESTIONS = 15;
-const POPULAR_MIN_ADDED = 25;
-const POPULAR_MIN_SUGGESTIONS = 50;
-const POPULAR_MIN_RATINGS = 5;
 
 export function selectHomeDiscoveryRails(params: {
   upcomingCandidates: TitleSummary[];
@@ -79,14 +83,30 @@ function pickTitles(params: {
 
       return left.index - right.index;
     })
-    .slice(0, params.limit)
     .map((entry) => entry.title);
 
+  const deduped: TitleSummary[] = [];
+  const usedKeys = new Set<string>();
+
   for (const title of ranked) {
+    const dedupeKey = getHomeDiscoveryDedupeKey(title.name);
+    if (!dedupeKey || usedKeys.has(dedupeKey)) {
+      continue;
+    }
+
+    usedKeys.add(dedupeKey);
+    deduped.push(title);
+
+    if (deduped.length >= params.limit) {
+      break;
+    }
+  }
+
+  for (const title of deduped) {
     params.usedIds.add(title.id);
   }
 
-  return ranked;
+  return deduped;
 }
 
 function isUpcomingEligible(title: TitleSummary, todayIsoDate: string) {
@@ -169,7 +189,8 @@ function hasLatestInterest(title: TitleSummary) {
   return (
     numberOrZero(title.rawgAdded) >= LATEST_MIN_ADDED ||
     numberOrZero(title.rawgReviewsCount) >= LATEST_MIN_REVIEWS ||
-    numberOrZero(title.rawgSuggestionsCount) >= LATEST_MIN_SUGGESTIONS
+    numberOrZero(title.rawgSuggestionsCount) >= LATEST_MIN_SUGGESTIONS ||
+    numberOrZero(title.rawgRatingsCount) >= LATEST_MIN_RATINGS
   );
 }
 

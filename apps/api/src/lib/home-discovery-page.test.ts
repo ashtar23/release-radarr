@@ -106,6 +106,34 @@ test("decodeHomeDiscoveryCursor rejects mismatched or malformed cursors", () => 
   );
 });
 
+test("buildHomeDiscoveryPageResult removes obvious title variants before paging", () => {
+  const rows = [
+    createTitleSummary("rawg:8", "Mixtape (2025)", {
+      earliestReleaseDate: "2026-05-07",
+      rawgAdded: 30,
+    }),
+    createTitleSummary("rawg:9", "Mixtape", {
+      earliestReleaseDate: "2026-05-07",
+      rawgAdded: 2,
+    }),
+    createTitleSummary("rawg:10", "Gamma", {
+      earliestReleaseDate: "2026-05-08",
+      rawgAdded: 10,
+    }),
+  ];
+
+  const result = buildHomeDiscoveryPageResult({
+    section: "upcoming",
+    rows,
+    limit: 2,
+  });
+
+  assert.deepEqual(
+    result.items.map((item) => item.id),
+    ["rawg:8", "rawg:10"],
+  );
+});
+
 function createTitleSummary(
   id: string,
   name: string,

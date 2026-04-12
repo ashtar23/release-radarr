@@ -8,6 +8,18 @@ import {
   normalizeHomeDiscoveryPageLimit,
   type HomeDiscoverySection,
 } from "./home-discovery-page";
+import {
+  LATEST_MIN_ADDED,
+  LATEST_MIN_RATINGS,
+  LATEST_MIN_REVIEWS,
+  LATEST_MIN_SUGGESTIONS,
+  POPULAR_MIN_ADDED,
+  POPULAR_MIN_RATINGS,
+  POPULAR_MIN_SUGGESTIONS,
+  UPCOMING_MIN_ADDED,
+  UPCOMING_MIN_RATINGS,
+  UPCOMING_MIN_SUGGESTIONS,
+} from "./home-discovery-quality";
 import { selectHomeDiscoveryRails } from "./home-discovery-selection";
 import { queryCachedTitles } from "./postgres";
 
@@ -176,31 +188,34 @@ async function listUpcomingPage(params: {
         and cover_image_url is not null
         and jsonb_array_length(platforms) > 0
         and (
-          coalesce(rawg_added, 0) >= 10
-          or coalesce(rawg_suggestions_count, 0) >= 40
-          or coalesce(rawg_ratings_count, 0) >= 3
+          coalesce(rawg_added, 0) >= $3::integer
+          or coalesce(rawg_suggestions_count, 0) >= $4::integer
+          or coalesce(rawg_ratings_count, 0) >= $5::integer
         )
         and (
-          $3::date is null
-          or earliest_release_date > $3::date
+          $6::date is null
+          or earliest_release_date > $6::date
           or (
-            earliest_release_date = $3::date
-            and coalesce(rawg_added, 0) < $4::integer
+            earliest_release_date = $6::date
+            and coalesce(rawg_added, 0) < $7::integer
           )
           or (
-            earliest_release_date = $3::date
-            and coalesce(rawg_added, 0) = $4::integer
-            and id > $5::text
+            earliest_release_date = $6::date
+            and coalesce(rawg_added, 0) = $7::integer
+            and id > $8::text
           )
         )
       order by earliest_release_date asc,
                coalesce(rawg_added, 0) desc,
                id asc
-      limit $6
+      limit $9
     `,
     [
       params.todayIsoDate,
       params.latestIsoDate,
+      UPCOMING_MIN_ADDED,
+      UPCOMING_MIN_SUGGESTIONS,
+      UPCOMING_MIN_RATINGS,
       cursor?.date ?? null,
       cursor?.added ?? 0,
       cursor?.id ?? "",
@@ -233,31 +248,36 @@ async function listLatestPage(params: {
         and cover_image_url is not null
         and jsonb_array_length(platforms) > 0
         and (
-          coalesce(rawg_added, 0) >= 8
-          or coalesce(rawg_reviews_count, 0) >= 2
-          or coalesce(rawg_suggestions_count, 0) >= 15
+          coalesce(rawg_added, 0) >= $3::integer
+          or coalesce(rawg_reviews_count, 0) >= $4::integer
+          or coalesce(rawg_suggestions_count, 0) >= $5::integer
+          or coalesce(rawg_ratings_count, 0) >= $6::integer
         )
         and (
-          $3::date is null
-          or earliest_release_date < $3::date
+          $7::date is null
+          or earliest_release_date < $7::date
           or (
-            earliest_release_date = $3::date
-            and coalesce(rawg_added, 0) < $4::integer
+            earliest_release_date = $7::date
+            and coalesce(rawg_added, 0) < $8::integer
           )
           or (
-            earliest_release_date = $3::date
-            and coalesce(rawg_added, 0) = $4::integer
-            and id < $5::text
+            earliest_release_date = $7::date
+            and coalesce(rawg_added, 0) = $8::integer
+            and id < $9::text
           )
         )
       order by earliest_release_date desc,
                coalesce(rawg_added, 0) desc,
                id desc
-      limit $6
+      limit $10
     `,
     [
       params.earliestIsoDate,
       params.latestIsoDate,
+      LATEST_MIN_ADDED,
+      LATEST_MIN_REVIEWS,
+      LATEST_MIN_SUGGESTIONS,
+      LATEST_MIN_RATINGS,
       cursor?.date ?? null,
       cursor?.added ?? 0,
       cursor?.id ?? "",
@@ -290,38 +310,41 @@ async function listPopularPage(params: {
         and cover_image_url is not null
         and jsonb_array_length(platforms) > 0
         and (
-          coalesce(rawg_added, 0) >= 25
-          or coalesce(rawg_suggestions_count, 0) >= 50
-          or coalesce(rawg_ratings_count, 0) >= 5
+          coalesce(rawg_added, 0) >= $3::integer
+          or coalesce(rawg_suggestions_count, 0) >= $4::integer
+          or coalesce(rawg_ratings_count, 0) >= $5::integer
         )
         and (
-          $3::integer is null
-          or coalesce(rawg_added, 0) < $3::integer
+          $6::integer is null
+          or coalesce(rawg_added, 0) < $6::integer
           or (
-            coalesce(rawg_added, 0) = $3::integer
-            and coalesce(rawg_ratings_count, 0) < $4::integer
+            coalesce(rawg_added, 0) = $6::integer
+            and coalesce(rawg_ratings_count, 0) < $7::integer
           )
           or (
-            coalesce(rawg_added, 0) = $3::integer
-            and coalesce(rawg_ratings_count, 0) = $4::integer
-            and coalesce(rawg_suggestions_count, 0) < $5::integer
+            coalesce(rawg_added, 0) = $6::integer
+            and coalesce(rawg_ratings_count, 0) = $7::integer
+            and coalesce(rawg_suggestions_count, 0) < $8::integer
           )
           or (
-            coalesce(rawg_added, 0) = $3::integer
-            and coalesce(rawg_ratings_count, 0) = $4::integer
-            and coalesce(rawg_suggestions_count, 0) = $5::integer
-            and id < $6::text
+            coalesce(rawg_added, 0) = $6::integer
+            and coalesce(rawg_ratings_count, 0) = $7::integer
+            and coalesce(rawg_suggestions_count, 0) = $8::integer
+            and id < $9::text
           )
         )
       order by coalesce(rawg_added, 0) desc,
                coalesce(rawg_ratings_count, 0) desc,
                coalesce(rawg_suggestions_count, 0) desc,
                id desc
-      limit $7
+      limit $10
     `,
     [
       params.earliestIsoDate,
       params.latestIsoDate,
+      POPULAR_MIN_ADDED,
+      POPULAR_MIN_SUGGESTIONS,
+      POPULAR_MIN_RATINGS,
       cursor?.added ?? null,
       cursor?.ratingsCount ?? 0,
       cursor?.suggestionsCount ?? 0,

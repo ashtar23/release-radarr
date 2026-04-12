@@ -98,6 +98,32 @@ test("selectHomeDiscoveryRails prefers stronger near-term popular titles over we
   );
 });
 
+test("selectHomeDiscoveryRails removes obvious year-suffixed title variants", () => {
+  const mixtapeVariant = createTitleSummary("rawg:9", "Mixtape (2025)", {
+    earliestReleaseDate: "2026-05-07",
+    rawgAdded: 30,
+    rawgSuggestionsCount: 174,
+  });
+  const mixtapeBase = createTitleSummary("rawg:10", "Mixtape", {
+    earliestReleaseDate: "2026-05-07",
+    rawgAdded: 2,
+    rawgSuggestionsCount: 97,
+  });
+
+  const result = selectHomeDiscoveryRails({
+    upcomingCandidates: [mixtapeVariant, mixtapeBase],
+    latestCandidates: [],
+    popularCandidates: [],
+    todayIsoDate: "2026-04-09",
+    limit: 10,
+  });
+
+  assert.deepEqual(
+    result.upcoming.map((title) => title.id),
+    ["rawg:9"],
+  );
+});
+
 function createTitleSummary(
   id: string,
   name: string,
