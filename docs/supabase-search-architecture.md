@@ -37,9 +37,11 @@ Request flow:
 Search is DB-first, then RAWG fallback.
 
 1. client sends `query`, `page`, `limit`, and optional `forceRefresh`
-2. backend queries local `titles` first using normalized query variants
-3. backend ranks and merges local candidates into the page the user actually sees
-4. if the local page is weak or stale, backend fetches RAWG, normalizes the results, and upserts them into `titles`
+2. backend queries local `titles` first using normalized `search_name`,
+   substring matching, and trigram similarity
+3. backend ranks the local candidate pool into the page the user actually sees
+4. if the first local page is weak or stale, backend fetches RAWG, normalizes
+   the results, and upserts them into `titles`
 5. response includes `page`, `limit`, `totalCount`, `hasMore`, `servedBy`, and decision metadata
 
 This lets the mobile app drive infinite scroll without guessing whether more data exists.

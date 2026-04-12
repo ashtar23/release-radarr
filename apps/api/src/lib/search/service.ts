@@ -15,6 +15,7 @@ import {
   normalizeSearchKey,
   tokenizeSearchKey,
 } from "./normalize";
+import { decideSearchExecution } from "./policy";
 import { rankResults } from "./ranking";
 import type { RankedSearchCandidate, SearchTitlesParams } from "./types";
 
@@ -41,15 +42,22 @@ export async function searchTitles(
     queryTokens,
   );
   const localSearch = await fetchLocalSearchResults({
+    normalizedQuery,
     queryTokens,
     page,
     limit,
   });
 
   const rankedLocalResults = rankResults(localSearch.results, searchContext);
-  const localPageResults = slicePage(rankedLocalResults, page, limit);
+  const executionDecision = decideSearchExecution({
+    rankedLocalResults,
+    context: searchContext,
+    page,
+    limit,
+    forceRefresh: params.forceRefresh,
+  });
 
-  if (!params.forceRefresh && localPageResults.length === limit) {
+  if (executionDecision.kind === "local") {
     return buildSearchResult({
       query: trimmedQuery,
       results: rankedLocalResults,
@@ -57,7 +65,7 @@ export async function searchTitles(
       page,
       limit,
       servedBy: "local-cache",
-      decisionReason: "local_sufficient",
+      decisionReason: executionDecision.decisionReason,
     });
   }
 
@@ -123,11 +131,7 @@ export async function searchTitles(
       limit,
       servedBy: "rawg-refresh",
       decisionReason: params.forceRefresh ? "forced_refresh" : "provider_used",
-      providerUsedTrigger: params.forceRefresh
-        ? localPageResults.length === limit
-          ? "freshness"
-          : "coverage_and_freshness"
-        : "coverage",
+      providerUsedTrigger: executionDecision.providerUsedTrigger,
     });
   } catch {
     return buildSearchResult({

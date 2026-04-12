@@ -4,12 +4,12 @@ This is the current-state reference for the search contract, ranking behavior, a
 
 ## API surface
 
-The edge function routes are:
-- `GET /api/titles`
-- `GET /api/titles/:id`
-- `GET /api/watchlist`
-- `POST /api/watchlist`
-- `DELETE /api/watchlist/:titleId`
+The current API routes are:
+- `GET /titles`
+- `GET /titles/:titleId`
+- `GET /watchlist`
+- `POST /watchlist`
+- `DELETE /watchlist/:titleId`
 
 Public title routes are unauthenticated. Watchlist routes require a bearer token validated through Supabase Auth.
 
@@ -32,7 +32,8 @@ Response:
 - `decisionReason`
 - `providerUsedTrigger`
 
-The shared client mirrors that contract and `useSearchTitlesQuery` uses `useInfiniteQuery` with a fixed page size.
+The shared client mirrors that contract and the mobile search flow uses
+`useInfiniteQuery` with a fixed page size.
 
 ## Pagination stance
 
@@ -71,16 +72,19 @@ The goal is not identical pagination mechanics across features. The goal is the 
 ## Search flow
 
 1. normalize the query and decide whether it is broad or specific
-2. fetch the local page from `titles`
-3. rank and merge local candidates using the current search scoring rules
-4. if the page is weak or stale, fetch RAWG, normalize the result set, and upsert it into the cache
+2. fetch a local candidate pool from `titles` using normalized `search_name`,
+   substring matches, and trigram similarity
+3. rank the local candidates using the current search scoring rules
+4. if the first local page is not meaningfully sufficient, fetch RAWG,
+   normalize the result set, upsert it into the cache, and rerank the merged
+   set
 5. return the ranked page plus pagination metadata
 
 The important behavior is that search is DB-first, but the user always gets a ranked page, not raw provider output.
 
 ## Ranking behavior
 
-Ranking lives in `supabase/functions/api/handlers/search.ts` and is built from:
+Ranking lives in `apps/api/src/lib/search/ranking.ts` and is built from:
 - lexical matching and token coverage
 - broad vs specific intent
 - platform relevance
@@ -99,10 +103,11 @@ Specific queries can stop early when strong matches are exhausted, which keeps l
 
 ## Code references
 
-- Search handler and ranking: `supabase/functions/api/handlers/search.ts`
-- Search policy helpers: `supabase/functions/api/utils/search-fallback-policy.ts`
-- Search freshness helpers: `supabase/functions/api/utils/search-freshness-window.ts`
-- Search provider policy: `supabase/functions/api/utils/search-provider-policy.ts`
+- Search route: `apps/api/src/routes/titles.ts`
+- Search service: `apps/api/src/lib/search/service.ts`
+- Search local/provider data access: `apps/api/src/lib/search/data.ts`
+- Search ranking: `apps/api/src/lib/search/ranking.ts`
+- Search fallback policy: `apps/api/src/lib/search/policy.ts`
 - Shared search contract: `packages/types/src/titles.ts`
 - Search client: `packages/api-client/src/search.ts`
 - Mobile search query hook: `apps/mobile/src/features/search/queries/use-search-titles-infinite-query.ts`

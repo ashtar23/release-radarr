@@ -23,6 +23,7 @@ import type {
 } from "./types";
 
 export async function fetchLocalSearchResults(params: {
+  normalizedQuery: string;
   queryTokens: string[];
   page: number;
   limit: number;
@@ -32,19 +33,92 @@ export async function fetchLocalSearchResults(params: {
     Math.max(params.page * params.limit * 5, MIN_LOCAL_CANDIDATES),
     MAX_LOCAL_CANDIDATES,
   );
-  const likePatterns = params.queryTokens.map((token) => `%${token}%`);
+  const tokenPatterns = params.queryTokens.map((token) => `%${token}%`);
+  const startsWithPattern = `${params.normalizedQuery}%`;
+  const minSimilarity = getMinimumSimilarityThreshold(
+    params.normalizedQuery,
+    params.queryTokens.length,
+  );
 
   const [countResult, rowsResult] = await Promise.all([
     pool.query<CountRow>(
       `
+        with local_candidates as (
+          select
+            t.id,
+            case when t.search_name = $1 then 1 else 0 end as exact_match,
+            case when t.search_name like $2 then 1 else 0 end as starts_with_query,
+            case when position($1 in t.search_name) > 0 then 1 else 0 end as contains_query,
+            (
+              select count(*)::int
+              from unnest($3::text[]) as token
+              where position(token in t.search_name) > 0
+            ) as token_match_count,
+            similarity(t.search_name, $1) as name_similarity
+          from public.titles t
+          where
+            t.search_name = $1
+            or t.search_name like $2
+            or position($1 in t.search_name) > 0
+            or t.search_name % $1
+            or t.search_name ilike any($4::text[])
+        )
         select count(*)::int as total_count
-        from public.titles
-        where search_name ilike all($1::text[])
+        from local_candidates
+        where
+          exact_match = 1
+          or starts_with_query = 1
+          or contains_query = 1
+          or token_match_count > 0
+          or name_similarity >= $5
       `,
-      [likePatterns],
+      [
+        params.normalizedQuery,
+        startsWithPattern,
+        params.queryTokens,
+        tokenPatterns,
+        minSimilarity,
+      ],
     ),
     pool.query<SearchRow>(
       `
+        with local_candidates as (
+          select
+            t.id,
+            t.kind,
+            t.source,
+            t.external_id,
+            t.slug,
+            t.name,
+            t.cover_image_url,
+            t.earliest_release_date,
+            t.developers,
+            t.publishers,
+            t.platforms,
+            t.rawg_rating,
+            t.rawg_ratings_count,
+            t.rawg_metacritic,
+            t.rawg_added,
+            t.rawg_reviews_count,
+            t.rawg_suggestions_count,
+            t.rawg_rating_top,
+            case when t.search_name = $1 then 1 else 0 end as exact_match,
+            case when t.search_name like $2 then 1 else 0 end as starts_with_query,
+            case when position($1 in t.search_name) > 0 then 1 else 0 end as contains_query,
+            (
+              select count(*)::int
+              from unnest($3::text[]) as token
+              where position(token in t.search_name) > 0
+            ) as token_match_count,
+            similarity(t.search_name, $1) as name_similarity
+          from public.titles t
+          where
+            t.search_name = $1
+            or t.search_name like $2
+            or position($1 in t.search_name) > 0
+            or t.search_name % $1
+            or t.search_name ilike any($4::text[])
+        )
         select
           id,
           kind,
@@ -64,16 +138,33 @@ export async function fetchLocalSearchResults(params: {
           rawg_reviews_count,
           rawg_suggestions_count,
           rawg_rating_top
-        from public.titles
-        where search_name ilike all($1::text[])
+        from local_candidates
+        where
+          exact_match = 1
+          or starts_with_query = 1
+          or contains_query = 1
+          or token_match_count > 0
+          or name_similarity >= $5
         order by
+          exact_match desc,
+          starts_with_query desc,
+          contains_query desc,
+          token_match_count desc,
+          name_similarity desc,
           rawg_metacritic desc nulls last,
           rawg_ratings_count desc nulls last,
           rawg_added desc nulls last,
           id asc
-        limit $2::int
+        limit $6::int
       `,
-      [likePatterns, candidateLimit],
+      [
+        params.normalizedQuery,
+        startsWithPattern,
+        params.queryTokens,
+        tokenPatterns,
+        minSimilarity,
+        candidateLimit,
+      ],
     ),
   ]);
 
@@ -81,6 +172,25 @@ export async function fetchLocalSearchResults(params: {
     totalCount: countResult.rows[0]?.total_count ?? 0,
     results: rowsResult.rows.map(mapSearchRowToCandidate),
   };
+}
+
+function getMinimumSimilarityThreshold(
+  normalizedQuery: string,
+  tokenCount: number,
+) {
+  if (tokenCount >= 3) {
+    return 0.14;
+  }
+
+  if (tokenCount === 2) {
+    return 0.18;
+  }
+
+  if (normalizedQuery.length >= 8) {
+    return 0.22;
+  }
+
+  return 0.3;
 }
 
 export async function fetchProviderSearchCandidates(params: {
