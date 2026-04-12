@@ -41,6 +41,9 @@
         "bundleIdentifier": "com.ashtar23.soonr.staging",
         "ascAppId": "6761613452"
       }
+    },
+    "staging_testflight": {
+      "extends": "staging"
     }
   }
 }
