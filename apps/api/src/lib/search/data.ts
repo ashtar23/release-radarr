@@ -35,13 +35,15 @@ export async function fetchLocalSearchResults(params: {
     Math.max(params.page * params.limit * 5, MIN_LOCAL_CANDIDATES),
     MAX_LOCAL_CANDIDATES,
   );
-  const tokenPatterns = params.queryTokens.map((token) => `%${token}%`);
   const startsWithPattern = `${params.normalizedQuery}%`;
   const searchPolicy = getLocalSearchPolicy({
     normalizedQuery: params.normalizedQuery,
     queryTokens: params.queryTokens,
     intentMode: params.intentMode,
   });
+  const matchTokenPatterns = searchPolicy.matchTokens.map(
+    (token) => `%${token}%`,
+  );
 
   const [countResult, rowsResult] = await Promise.all([
     pool.query<CountRow>(
@@ -82,8 +84,8 @@ export async function fetchLocalSearchResults(params: {
       [
         params.normalizedQuery,
         startsWithPattern,
-        params.queryTokens,
-        tokenPatterns,
+        searchPolicy.matchTokens,
+        matchTokenPatterns,
         searchPolicy.minimumTokenMatches,
         searchPolicy.minimumPartialSimilarity,
         searchPolicy.minimumSimilarity,
@@ -173,8 +175,8 @@ export async function fetchLocalSearchResults(params: {
       [
         params.normalizedQuery,
         startsWithPattern,
-        params.queryTokens,
-        tokenPatterns,
+        searchPolicy.matchTokens,
+        matchTokenPatterns,
         searchPolicy.minimumTokenMatches,
         searchPolicy.minimumPartialSimilarity,
         searchPolicy.minimumSimilarity,

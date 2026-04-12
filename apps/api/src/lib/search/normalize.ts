@@ -6,6 +6,7 @@ import {
   EDITION_TERMS,
   MAX_LIMIT,
   SEARCH_PHRASE_ALIASES,
+  SEARCH_STOPWORDS,
 } from "./constants";
 import type { SearchContext } from "./types";
 
@@ -119,6 +120,14 @@ export function tokenizeSearchKey(value: string) {
     .split(" ")
     .map(toCanonicalToken)
     .filter((token) => token.length > 0);
+}
+
+export function getMeaningfulSearchTokens(tokens: string[]) {
+  const meaningful = Array.from(
+    new Set(tokens.filter((token) => !SEARCH_STOPWORDS.has(token))),
+  );
+
+  return meaningful.length > 0 ? meaningful : Array.from(new Set(tokens));
 }
 
 export function normalizeSearchKey(value: string) {

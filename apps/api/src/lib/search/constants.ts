@@ -88,3 +88,17 @@ export const SEARCH_PHRASE_ALIASES: Array<{
   { pattern: /\bspiderman\b/g, replacement: "spider man" },
   { pattern: /\bgow\b/g, replacement: "god of war" },
 ];
+
+export const SEARCH_STOPWORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "for",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+  "with",
+]);

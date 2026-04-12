@@ -11,6 +11,7 @@ test("uses discovery-friendly thresholds for broad single-token queries", () => 
   });
 
   assert.deepEqual(policy, {
+    matchTokens: ["the"],
     minimumSimilarity: 0.3,
     minimumTokenMatches: 1,
     minimumPartialSimilarity: 0.3,
@@ -26,6 +27,7 @@ test("tightens token coverage for specific two-token queries with numbers", () =
   });
 
   assert.deepEqual(policy, {
+    matchTokens: ["witcher", "3"],
     minimumSimilarity: 0.18,
     minimumTokenMatches: 2,
     minimumPartialSimilarity: 0.34,
@@ -41,6 +43,7 @@ test("allows near-miss partial coverage for typo-prone specific queries", () => 
   });
 
   assert.deepEqual(policy, {
+    matchTokens: ["witchr", "3"],
     minimumSimilarity: 0.18,
     minimumTokenMatches: 2,
     minimumPartialSimilarity: 0.34,
@@ -56,9 +59,26 @@ test("requires near-full token coverage for longer specific phrases", () => {
   });
 
   assert.deepEqual(policy, {
-    minimumSimilarity: 0.14,
-    minimumTokenMatches: 3,
-    minimumPartialSimilarity: 0.26,
+    matchTokens: ["god", "war"],
+    minimumSimilarity: 0.18,
+    minimumTokenMatches: 2,
+    minimumPartialSimilarity: 0.34,
+    requireFullTokenCoverage: true,
+  });
+});
+
+test("keeps stopword-only overlap from qualifying as strong specific coverage", () => {
+  const policy = getLocalSearchPolicy({
+    normalizedQuery: "the lord of the rings",
+    queryTokens: ["the", "lord", "of", "the", "rings"],
+    intentMode: "specific",
+  });
+
+  assert.deepEqual(policy, {
+    matchTokens: ["lord", "rings"],
+    minimumSimilarity: 0.18,
+    minimumTokenMatches: 2,
+    minimumPartialSimilarity: 0.34,
     requireFullTokenCoverage: true,
   });
 });
