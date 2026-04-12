@@ -3,14 +3,21 @@ import type { TitleSummary } from "@repo/types";
 import type { HomeDiscoveryResult } from "./contracts";
 import {
   getHomeDiscoveryDedupeKey,
+  isYearEndPlaceholderDate,
   LATEST_MIN_ADDED,
   LATEST_MIN_RATINGS,
   LATEST_MIN_REVIEWS,
   LATEST_MIN_SUGGESTIONS,
   POPULAR_MIN_ADDED,
+  POPULAR_PLACEHOLDER_MIN_ADDED,
+  POPULAR_PLACEHOLDER_MIN_RATINGS,
+  POPULAR_PLACEHOLDER_MIN_SUGGESTIONS,
   POPULAR_MIN_RATINGS,
   POPULAR_MIN_SUGGESTIONS,
   UPCOMING_MIN_ADDED,
+  UPCOMING_PLACEHOLDER_MIN_ADDED,
+  UPCOMING_PLACEHOLDER_MIN_RATINGS,
+  UPCOMING_PLACEHOLDER_MIN_SUGGESTIONS,
   UPCOMING_MIN_RATINGS,
   UPCOMING_MIN_SUGGESTIONS,
 } from "./home-discovery-quality";
@@ -113,6 +120,7 @@ function isUpcomingEligible(title: TitleSummary, todayIsoDate: string) {
   return (
     isDisplayReady(title) &&
     isOnOrAfter(title.earliestReleaseDate, todayIsoDate) &&
+    isAllowedUpcomingPlaceholder(title) &&
     hasUpcomingInterest(title)
   );
 }
@@ -129,6 +137,7 @@ function isPopularEligible(title: TitleSummary, todayIsoDate: string) {
   return (
     isDisplayReady(title) &&
     isOnOrAfter(title.earliestReleaseDate, addDaysIso(todayIsoDate, -30)) &&
+    isAllowedPopularPlaceholder(title) &&
     hasPopularInterest(title)
   );
 }
@@ -137,12 +146,16 @@ function scoreUpcomingTitle(title: TitleSummary, todayIsoDate: string) {
   const daysUntilRelease = clampNonNegative(
     diffDays(todayIsoDate, title.earliestReleaseDate),
   );
+  const placeholderPenalty = isYearEndPlaceholderDate(title.earliestReleaseDate)
+    ? 250
+    : 0;
 
   return (
     (DAYS_IN_YEAR - Math.min(daysUntilRelease, DAYS_IN_YEAR)) * 10 +
     numberOrZero(title.rawgAdded) * 2 +
     numberOrZero(title.rawgSuggestionsCount) * 3 +
-    numberOrZero(title.rawgRatingsCount) * 4
+    numberOrZero(title.rawgRatingsCount) * 4 -
+    placeholderPenalty
   );
 }
 
@@ -163,13 +176,17 @@ function scorePopularTitle(title: TitleSummary, todayIsoDate: string) {
   const releaseDistance = Math.abs(
     diffDays(todayIsoDate, title.earliestReleaseDate),
   );
+  const placeholderPenalty = isYearEndPlaceholderDate(title.earliestReleaseDate)
+    ? 300
+    : 0;
 
   return (
     numberOrZero(title.rawgAdded) * 3 +
     numberOrZero(title.rawgRatingsCount) * 6 +
     numberOrZero(title.rawgSuggestionsCount) * 2 +
     numberOrZero(title.rawgMetacritic) * 5 +
-    Math.max(0, 365 - Math.min(releaseDistance, 365))
+    Math.max(0, 365 - Math.min(releaseDistance, 365)) -
+    placeholderPenalty
   );
 }
 
@@ -182,6 +199,19 @@ function hasUpcomingInterest(title: TitleSummary) {
     numberOrZero(title.rawgAdded) >= UPCOMING_MIN_ADDED ||
     numberOrZero(title.rawgSuggestionsCount) >= UPCOMING_MIN_SUGGESTIONS ||
     numberOrZero(title.rawgRatingsCount) >= UPCOMING_MIN_RATINGS
+  );
+}
+
+function isAllowedUpcomingPlaceholder(title: TitleSummary) {
+  if (!isYearEndPlaceholderDate(title.earliestReleaseDate)) {
+    return true;
+  }
+
+  return (
+    numberOrZero(title.rawgAdded) >= UPCOMING_PLACEHOLDER_MIN_ADDED ||
+    numberOrZero(title.rawgSuggestionsCount) >=
+      UPCOMING_PLACEHOLDER_MIN_SUGGESTIONS ||
+    numberOrZero(title.rawgRatingsCount) >= UPCOMING_PLACEHOLDER_MIN_RATINGS
   );
 }
 
@@ -199,6 +229,19 @@ function hasPopularInterest(title: TitleSummary) {
     numberOrZero(title.rawgAdded) >= POPULAR_MIN_ADDED ||
     numberOrZero(title.rawgSuggestionsCount) >= POPULAR_MIN_SUGGESTIONS ||
     numberOrZero(title.rawgRatingsCount) >= POPULAR_MIN_RATINGS
+  );
+}
+
+function isAllowedPopularPlaceholder(title: TitleSummary) {
+  if (!isYearEndPlaceholderDate(title.earliestReleaseDate)) {
+    return true;
+  }
+
+  return (
+    numberOrZero(title.rawgAdded) >= POPULAR_PLACEHOLDER_MIN_ADDED ||
+    numberOrZero(title.rawgSuggestionsCount) >=
+      POPULAR_PLACEHOLDER_MIN_SUGGESTIONS ||
+    numberOrZero(title.rawgRatingsCount) >= POPULAR_PLACEHOLDER_MIN_RATINGS
   );
 }
 

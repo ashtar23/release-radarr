@@ -124,6 +124,89 @@ test("selectHomeDiscoveryRails removes obvious year-suffixed title variants", ()
   );
 });
 
+test("selectHomeDiscoveryRails excludes weak year-end placeholders from upcoming and popular", () => {
+  const weakPlaceholderUpcoming = createTitleSummary(
+    "rawg:11",
+    "Placeholder Upcoming",
+    {
+      earliestReleaseDate: "2026-12-31",
+      rawgAdded: 18,
+      rawgSuggestionsCount: 65,
+      rawgRatingsCount: 1,
+    },
+  );
+  const strongDatedUpcoming = createTitleSummary("rawg:12", "Dated Upcoming", {
+    earliestReleaseDate: "2026-06-10",
+    rawgAdded: 35,
+    rawgSuggestionsCount: 90,
+    rawgRatingsCount: 4,
+  });
+  const weakPlaceholderPopular = createTitleSummary(
+    "rawg:13",
+    "Placeholder Popular",
+    {
+      earliestReleaseDate: "2026-12-31",
+      rawgAdded: 55,
+      rawgSuggestionsCount: 70,
+      rawgRatingsCount: 1,
+    },
+  );
+  const strongPopular = createTitleSummary("rawg:14", "Strong Popular", {
+    earliestReleaseDate: "2026-09-10",
+    rawgAdded: 220,
+    rawgSuggestionsCount: 260,
+    rawgRatingsCount: 16,
+    rawgMetacritic: 84,
+  });
+
+  const result = selectHomeDiscoveryRails({
+    upcomingCandidates: [weakPlaceholderUpcoming, strongDatedUpcoming],
+    latestCandidates: [],
+    popularCandidates: [weakPlaceholderPopular, strongPopular],
+    todayIsoDate: "2026-04-09",
+    limit: 10,
+  });
+
+  assert.deepEqual(
+    result.upcoming.map((title) => title.id),
+    ["rawg:12"],
+  );
+  assert.deepEqual(
+    result.popular.map((title) => title.id),
+    ["rawg:14"],
+  );
+});
+
+test("selectHomeDiscoveryRails requires stronger signals for latest titles", () => {
+  const middlingLatest = createTitleSummary("rawg:15", "Middling Latest", {
+    earliestReleaseDate: "2026-04-05",
+    rawgAdded: 20,
+    rawgReviewsCount: 4,
+    rawgRatingsCount: 4,
+    rawgSuggestionsCount: 120,
+  });
+  const strongLatest = createTitleSummary("rawg:16", "Strong Latest", {
+    earliestReleaseDate: "2026-04-06",
+    rawgAdded: 30,
+    rawgReviewsCount: 5,
+    rawgRatingsCount: 5,
+    rawgSuggestionsCount: 220,
+  });
+
+  const result = selectHomeDiscoveryRails({
+    upcomingCandidates: [],
+    latestCandidates: [middlingLatest, strongLatest],
+    popularCandidates: [],
+    todayIsoDate: "2026-04-09",
+    limit: 10,
+  });
+
+  assert.deepEqual(
+    result.latest.map((title) => title.id),
+    ["rawg:16"],
+  );
+});
+
 function createTitleSummary(
   id: string,
   name: string,

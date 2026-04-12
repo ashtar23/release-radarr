@@ -14,9 +14,15 @@ import {
   LATEST_MIN_REVIEWS,
   LATEST_MIN_SUGGESTIONS,
   POPULAR_MIN_ADDED,
+  POPULAR_PLACEHOLDER_MIN_ADDED,
+  POPULAR_PLACEHOLDER_MIN_RATINGS,
+  POPULAR_PLACEHOLDER_MIN_SUGGESTIONS,
   POPULAR_MIN_RATINGS,
   POPULAR_MIN_SUGGESTIONS,
   UPCOMING_MIN_ADDED,
+  UPCOMING_PLACEHOLDER_MIN_ADDED,
+  UPCOMING_PLACEHOLDER_MIN_RATINGS,
+  UPCOMING_PLACEHOLDER_MIN_SUGGESTIONS,
   UPCOMING_MIN_RATINGS,
   UPCOMING_MIN_SUGGESTIONS,
 } from "./home-discovery-quality";
@@ -193,22 +199,29 @@ async function listUpcomingPage(params: {
           or coalesce(rawg_ratings_count, 0) >= $5::integer
         )
         and (
-          $6::date is null
-          or earliest_release_date > $6::date
+          extract(month from earliest_release_date) <> 12
+          or extract(day from earliest_release_date) <> 31
+          or coalesce(rawg_added, 0) >= $6::integer
+          or coalesce(rawg_suggestions_count, 0) >= $7::integer
+          or coalesce(rawg_ratings_count, 0) >= $8::integer
+        )
+        and (
+          $9::date is null
+          or earliest_release_date > $9::date
           or (
-            earliest_release_date = $6::date
-            and coalesce(rawg_added, 0) < $7::integer
+            earliest_release_date = $9::date
+            and coalesce(rawg_added, 0) < $10::integer
           )
           or (
-            earliest_release_date = $6::date
-            and coalesce(rawg_added, 0) = $7::integer
-            and id > $8::text
+            earliest_release_date = $9::date
+            and coalesce(rawg_added, 0) = $10::integer
+            and id > $11::text
           )
         )
       order by earliest_release_date asc,
                coalesce(rawg_added, 0) desc,
                id asc
-      limit $9
+      limit $12
     `,
     [
       params.todayIsoDate,
@@ -216,6 +229,9 @@ async function listUpcomingPage(params: {
       UPCOMING_MIN_ADDED,
       UPCOMING_MIN_SUGGESTIONS,
       UPCOMING_MIN_RATINGS,
+      UPCOMING_PLACEHOLDER_MIN_ADDED,
+      UPCOMING_PLACEHOLDER_MIN_SUGGESTIONS,
+      UPCOMING_PLACEHOLDER_MIN_RATINGS,
       cursor?.date ?? null,
       cursor?.added ?? 0,
       cursor?.id ?? "",
@@ -315,29 +331,36 @@ async function listPopularPage(params: {
           or coalesce(rawg_ratings_count, 0) >= $5::integer
         )
         and (
-          $6::integer is null
-          or coalesce(rawg_added, 0) < $6::integer
+          extract(month from earliest_release_date) <> 12
+          or extract(day from earliest_release_date) <> 31
+          or coalesce(rawg_added, 0) >= $6::integer
+          or coalesce(rawg_suggestions_count, 0) >= $7::integer
+          or coalesce(rawg_ratings_count, 0) >= $8::integer
+        )
+        and (
+          $9::integer is null
+          or coalesce(rawg_added, 0) < $9::integer
           or (
-            coalesce(rawg_added, 0) = $6::integer
-            and coalesce(rawg_ratings_count, 0) < $7::integer
+            coalesce(rawg_added, 0) = $9::integer
+            and coalesce(rawg_ratings_count, 0) < $10::integer
           )
           or (
-            coalesce(rawg_added, 0) = $6::integer
-            and coalesce(rawg_ratings_count, 0) = $7::integer
-            and coalesce(rawg_suggestions_count, 0) < $8::integer
+            coalesce(rawg_added, 0) = $9::integer
+            and coalesce(rawg_ratings_count, 0) = $10::integer
+            and coalesce(rawg_suggestions_count, 0) < $11::integer
           )
           or (
-            coalesce(rawg_added, 0) = $6::integer
-            and coalesce(rawg_ratings_count, 0) = $7::integer
-            and coalesce(rawg_suggestions_count, 0) = $8::integer
-            and id < $9::text
+            coalesce(rawg_added, 0) = $9::integer
+            and coalesce(rawg_ratings_count, 0) = $10::integer
+            and coalesce(rawg_suggestions_count, 0) = $11::integer
+            and id < $12::text
           )
         )
       order by coalesce(rawg_added, 0) desc,
                coalesce(rawg_ratings_count, 0) desc,
                coalesce(rawg_suggestions_count, 0) desc,
                id desc
-      limit $10
+      limit $13
     `,
     [
       params.earliestIsoDate,
@@ -345,6 +368,9 @@ async function listPopularPage(params: {
       POPULAR_MIN_ADDED,
       POPULAR_MIN_SUGGESTIONS,
       POPULAR_MIN_RATINGS,
+      POPULAR_PLACEHOLDER_MIN_ADDED,
+      POPULAR_PLACEHOLDER_MIN_SUGGESTIONS,
+      POPULAR_PLACEHOLDER_MIN_RATINGS,
       cursor?.added ?? null,
       cursor?.ratingsCount ?? 0,
       cursor?.suggestionsCount ?? 0,
