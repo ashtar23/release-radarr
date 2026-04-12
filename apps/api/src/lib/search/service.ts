@@ -44,6 +44,7 @@ export async function searchTitles(
   const localSearch = await fetchLocalSearchResults({
     normalizedQuery,
     queryTokens,
+    intentMode: searchContext.intentMode,
     page,
     limit,
   });

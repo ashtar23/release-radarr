@@ -15,6 +15,7 @@ import {
   shouldUsePreciseSearch,
   toIsoDateOrNull,
 } from "./normalize";
+import { getLocalSearchPolicy } from "./local-search-policy";
 import type {
   CountRow,
   ProviderSearchResult,
@@ -25,6 +26,7 @@ import type {
 export async function fetchLocalSearchResults(params: {
   normalizedQuery: string;
   queryTokens: string[];
+  intentMode: "broad" | "specific";
   page: number;
   limit: number;
 }) {
@@ -35,10 +37,11 @@ export async function fetchLocalSearchResults(params: {
   );
   const tokenPatterns = params.queryTokens.map((token) => `%${token}%`);
   const startsWithPattern = `${params.normalizedQuery}%`;
-  const minSimilarity = getMinimumSimilarityThreshold(
-    params.normalizedQuery,
-    params.queryTokens.length,
-  );
+  const searchPolicy = getLocalSearchPolicy({
+    normalizedQuery: params.normalizedQuery,
+    queryTokens: params.queryTokens,
+    intentMode: params.intentMode,
+  });
 
   const [countResult, rowsResult] = await Promise.all([
     pool.query<CountRow>(
@@ -69,15 +72,21 @@ export async function fetchLocalSearchResults(params: {
           exact_match = 1
           or starts_with_query = 1
           or contains_query = 1
-          or token_match_count > 0
-          or name_similarity >= $5
+          or token_match_count >= $5
+          or (
+            token_match_count >= greatest($5 - 1, 1)
+            and name_similarity >= $6
+          )
+          or name_similarity >= $7
       `,
       [
         params.normalizedQuery,
         startsWithPattern,
         params.queryTokens,
         tokenPatterns,
-        minSimilarity,
+        searchPolicy.minimumTokenMatches,
+        searchPolicy.minimumPartialSimilarity,
+        searchPolicy.minimumSimilarity,
       ],
     ),
     pool.query<SearchRow>(
@@ -143,8 +152,12 @@ export async function fetchLocalSearchResults(params: {
           exact_match = 1
           or starts_with_query = 1
           or contains_query = 1
-          or token_match_count > 0
-          or name_similarity >= $5
+          or token_match_count >= $5
+          or (
+            token_match_count >= greatest($5 - 1, 1)
+            and name_similarity >= $6
+          )
+          or name_similarity >= $7
         order by
           exact_match desc,
           starts_with_query desc,
@@ -155,14 +168,16 @@ export async function fetchLocalSearchResults(params: {
           rawg_ratings_count desc nulls last,
           rawg_added desc nulls last,
           id asc
-        limit $6::int
+        limit $8::int
       `,
       [
         params.normalizedQuery,
         startsWithPattern,
         params.queryTokens,
         tokenPatterns,
-        minSimilarity,
+        searchPolicy.minimumTokenMatches,
+        searchPolicy.minimumPartialSimilarity,
+        searchPolicy.minimumSimilarity,
         candidateLimit,
       ],
     ),
@@ -172,25 +187,6 @@ export async function fetchLocalSearchResults(params: {
     totalCount: countResult.rows[0]?.total_count ?? 0,
     results: rowsResult.rows.map(mapSearchRowToCandidate),
   };
-}
-
-function getMinimumSimilarityThreshold(
-  normalizedQuery: string,
-  tokenCount: number,
-) {
-  if (tokenCount >= 3) {
-    return 0.14;
-  }
-
-  if (tokenCount === 2) {
-    return 0.18;
-  }
-
-  if (normalizedQuery.length >= 8) {
-    return 0.22;
-  }
-
-  return 0.3;
 }
 
 export async function fetchProviderSearchCandidates(params: {
