@@ -333,8 +333,6 @@ function filterProviderSearchResults(
     1,
     params.meaningfulQueryTokens.length,
   );
-  const requireStrongSingleTokenMatch =
-    params.meaningfulQueryTokens.length === 1;
 
   return results.filter((result) => {
     const normalizedName = normalizeSearchKey(result.name);
@@ -347,57 +345,28 @@ function filterProviderSearchResults(
 
     const nameTokens = tokenizeSearchKey(result.name);
     const meaningfulMatches = params.meaningfulQueryTokens.filter(
-      (queryToken) =>
-        hasApproximateTokenMatch(
-          queryToken,
-          nameTokens,
-          requireStrongSingleTokenMatch,
-        ),
+      (queryToken) => hasApproximateTokenMatch(queryToken, nameTokens),
     ).length;
 
     return meaningfulMatches >= requiredMeaningfulMatches;
   });
 }
 
-function hasApproximateTokenMatch(
-  queryToken: string,
-  nameTokens: string[],
-  requireStrongMatch: boolean,
-) {
+function hasApproximateTokenMatch(queryToken: string, nameTokens: string[]) {
   return nameTokens.some((nameToken) => {
     if (nameToken === queryToken) {
       return true;
     }
 
-    const prefixLength = sharedPrefixLength(queryToken, nameToken);
+    if (
+      queryToken.length >= 5 &&
+      nameToken.length >= 5 &&
+      sharedPrefixLength(queryToken, nameToken) >= 4
+    ) {
+      return true;
+    }
+
     const distance = getEditDistance(queryToken, nameToken);
-    const lengthDifference = Math.abs(queryToken.length - nameToken.length);
-
-    if (
-      requireStrongMatch &&
-      queryToken.length >= 5 &&
-      nameToken.length >= 5 &&
-      prefixLength >= 4 &&
-      queryToken.at(-1) === nameToken.at(-1) &&
-      lengthDifference <= 2 &&
-      distance <= 2
-    ) {
-      return true;
-    }
-
-    if (
-      !requireStrongMatch &&
-      queryToken.length >= 5 &&
-      nameToken.length >= 5 &&
-      prefixLength >= 4
-    ) {
-      return true;
-    }
-
-    if (requireStrongMatch) {
-      return false;
-    }
-
     if (queryToken.length >= 7 || nameToken.length >= 7) {
       return distance <= 2;
     }

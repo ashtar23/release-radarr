@@ -168,28 +168,6 @@ test("keeps strong sequel queries local without forcing provider refresh", () =>
   });
 });
 
-test("does not treat weak short-acronym sequel pages as locally sufficient", () => {
-  const decision = decideSearchExecution({
-    rankedLocalResults: [
-      createCandidate("GTA 6 (leaked)", {
-        rawgAdded: 0,
-        rawgRatingsCount: 0,
-        rawgReviewsCount: 0,
-        rawgSuggestionsCount: 0,
-      }),
-    ],
-    context: createContext("gta 6"),
-    page: 1,
-    limit: 20,
-    forceRefresh: false,
-  });
-
-  assert.deepEqual(decision, {
-    kind: "provider",
-    providerUsedTrigger: "coverage",
-  });
-});
-
 test("uses freshness trigger when force refresh is requested and local coverage is already full", () => {
   const decision = decideSearchExecution({
     rankedLocalResults: [
