@@ -199,3 +199,24 @@ test("uses combined coverage and freshness trigger when force refresh is request
     providerUsedTrigger: "coverage_and_freshness",
   });
 });
+
+test("does not treat leaked acronym sequel titles as locally sufficient", () => {
+  const decision = decideSearchExecution({
+    rankedLocalResults: [
+      createCandidate("GTA 6 (leaked)", {
+        rawgAdded: 900,
+        rawgRatingsCount: 120,
+      }),
+      createCandidate("GTA 6 (fan build)"),
+    ],
+    context: createContext("gta 6"),
+    page: 1,
+    limit: 20,
+    forceRefresh: false,
+  });
+
+  assert.deepEqual(decision, {
+    kind: "provider",
+    providerUsedTrigger: "coverage",
+  });
+});

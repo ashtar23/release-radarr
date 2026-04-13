@@ -78,3 +78,60 @@ test("throws when both precise and fallback provider search attempts fail", asyn
     ),
   );
 });
+
+test("filters unrelated same-number provider matches for high-intent numeric queries", async () => {
+  const result = await fetchProviderSearchCandidates(
+    {
+      query: "witchr 3",
+      page: 1,
+      limit: 20,
+      rawgApiKey: "test-key",
+    },
+    {
+      fetchRawgSearchResults: async () => ({
+        totalCount: 4,
+        results: [
+          createSummary("The Witcher 3: Wild Hunt"),
+          createSummary("Battlefield 3"),
+          createSummary("Doom 3"),
+          createSummary("The Witcher 2: Assassins of Kings"),
+        ],
+      }),
+      logProviderFetchFailure: () => undefined,
+    },
+  );
+
+  assert.deepEqual(
+    result.results.map((candidate) => candidate.summary.name),
+    ["The Witcher 3: Wild Hunt"],
+  );
+  assert.equal(result.totalCount, 1);
+});
+
+test("filters low-trust leaked acronym variants for high-intent numeric queries", async () => {
+  const result = await fetchProviderSearchCandidates(
+    {
+      query: "gta 6",
+      page: 1,
+      limit: 20,
+      rawgApiKey: "test-key",
+    },
+    {
+      fetchRawgSearchResults: async () => ({
+        totalCount: 3,
+        results: [
+          createSummary("GTA 6 (leaked build)"),
+          createSummary("Grand Theft Auto VI"),
+          createSummary("Grand Theft Auto: Vice City"),
+        ],
+      }),
+      logProviderFetchFailure: () => undefined,
+    },
+  );
+
+  assert.deepEqual(
+    result.results.map((candidate) => candidate.summary.name),
+    ["Grand Theft Auto VI"],
+  );
+  assert.equal(result.totalCount, 1);
+});

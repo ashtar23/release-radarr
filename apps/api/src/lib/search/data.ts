@@ -15,6 +15,11 @@ import {
   shouldUsePreciseSearch,
   toIsoDateOrNull,
 } from "./normalize";
+import {
+  getHighIntentNumericQueryProfile,
+  isLowTrustSearchVariant,
+  isStrongHighIntentNumericMatch,
+} from "./high-intent-query";
 import { getLocalSearchPolicy } from "./local-search-policy";
 import type {
   CountRow,
@@ -226,21 +231,26 @@ export async function fetchLocalSearchResults(params: {
   };
 }
 
-export async function fetchProviderSearchCandidates(params: {
-  query: string;
-  page: number;
-  limit: number;
-  rawgApiKey: string;
-}, deps?: {
-  fetchRawgSearchResults: typeof fetchRawgSearchResults;
-  logProviderFetchFailure: typeof logProviderFetchFailure;
-}): Promise<ProviderSearchResult> {
-  const fetchSearchResults = deps?.fetchRawgSearchResults ?? fetchRawgSearchResults;
+export async function fetchProviderSearchCandidates(
+  params: {
+    query: string;
+    page: number;
+    limit: number;
+    rawgApiKey: string;
+  },
+  deps?: {
+    fetchRawgSearchResults: typeof fetchRawgSearchResults;
+    logProviderFetchFailure: typeof logProviderFetchFailure;
+  },
+): Promise<ProviderSearchResult> {
+  const fetchSearchResults =
+    deps?.fetchRawgSearchResults ?? fetchRawgSearchResults;
   const logFailure = deps?.logProviderFetchFailure ?? logProviderFetchFailure;
   const targetCount = params.page * params.limit;
   const results: RankedSearchCandidate[] = [];
   let totalCount: number | null = null;
   const precise = shouldUsePreciseSearch(params.query);
+  const highIntentProfile = getHighIntentNumericQueryProfile(params.query);
 
   for (
     let providerPage = 1;
@@ -261,9 +271,22 @@ export async function fetchProviderSearchCandidates(params: {
       },
     );
 
-    totalCount = providerPageResult.totalCount;
+    const filteredPageResults = highIntentProfile.isHighIntentNumericQuery
+      ? providerPageResult.results.filter(
+          (result) =>
+            isStrongHighIntentNumericMatch(result.name, highIntentProfile) &&
+            !isLowTrustSearchVariant(
+              result.name,
+              highIntentProfile.queryTokens,
+            ),
+        )
+      : providerPageResult.results;
+
+    totalCount = highIntentProfile.isHighIntentNumericQuery
+      ? results.length + filteredPageResults.length
+      : providerPageResult.totalCount;
     results.push(
-      ...providerPageResult.results.map((result) =>
+      ...filteredPageResults.map((result) =>
         createProviderSearchCandidate(result),
       ),
     );

@@ -43,6 +43,7 @@ export const NOISE_KEYWORD_PENALTIES = [
   { keyword: "mod", points: -220 },
   { keyword: "fan", points: -180 },
   { keyword: "test", points: -140 },
+  { keyword: "leaked", points: -260 },
   { keyword: "prototype", points: -200 },
   { keyword: "simulator", points: -280 },
   { keyword: "demake", points: -260 },
@@ -57,6 +58,7 @@ export const PARENTHETICAL_NOISE_TOKENS = new Set([
   "demo",
   "fan",
   "fangame",
+  "leaked",
   "mod",
   "prototype",
   "simulator",
@@ -86,6 +88,7 @@ export const SEARCH_PHRASE_ALIASES: Array<{
   replacement: string;
 }> = [
   { pattern: /\bspiderman\b/g, replacement: "spider man" },
+  { pattern: /\bgta\b/g, replacement: "grand theft auto" },
   { pattern: /\bgow\b/g, replacement: "god of war" },
 ];
 

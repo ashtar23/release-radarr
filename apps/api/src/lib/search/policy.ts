@@ -1,4 +1,5 @@
 import { STRONG_COVERAGE_THRESHOLD } from "./constants";
+import { isLowTrustSearchVariant } from "./high-intent-query";
 import { normalizeSearchKey } from "./normalize";
 import type {
   RankedSearchCandidate,
@@ -159,6 +160,7 @@ function hasUsableSpecificMetadata(candidate: RankedSearchCandidate) {
   const summary = candidate.summary;
   return (
     summary.platforms.length > 0 &&
+    !isLowTrustSearchVariant(summary.name, []) &&
     (summary.coverImageUrl !== null || !hasVeryLowEngagement(candidate))
   );
 }
