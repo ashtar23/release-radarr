@@ -4,11 +4,6 @@ import assert from "node:assert/strict";
 import type { TitleSummary } from "@repo/types";
 
 import { resolveProviderRefresh } from "./service";
-import {
-  createSearchContext,
-  normalizeSearchKey,
-  tokenizeSearchKey,
-} from "./normalize";
 import type { RankedSearchCandidate, SearchContext } from "./types";
 
 function createSummary(
@@ -48,9 +43,16 @@ function createCandidate(
 }
 
 function createContext(query: string): SearchContext {
-  const normalizedQuery = normalizeSearchKey(query);
-  const queryTokens = tokenizeSearchKey(query);
-  return createSearchContext(query, normalizedQuery, queryTokens);
+  const queryTokens = query.split(" ");
+
+  return {
+    normalizedQuery: query,
+    queryTokens,
+    queryTokenSet: new Set(queryTokens),
+    meaningfulQueryTokens: queryTokens.filter((token) => !/\d/.test(token)),
+    intentMode: "specific",
+    includesEditionTerms: false,
+  };
 }
 
 test("serves provider results even when provider summary upsert fails", async () => {
