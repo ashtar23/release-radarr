@@ -231,24 +231,35 @@ export async function fetchProviderSearchCandidates(params: {
   page: number;
   limit: number;
   rawgApiKey: string;
+}, deps?: {
+  fetchRawgSearchResults: typeof fetchRawgSearchResults;
+  logProviderFetchFailure: typeof logProviderFetchFailure;
 }): Promise<ProviderSearchResult> {
+  const fetchSearchResults = deps?.fetchRawgSearchResults ?? fetchRawgSearchResults;
+  const logFailure = deps?.logProviderFetchFailure ?? logProviderFetchFailure;
   const targetCount = params.page * params.limit;
   const results: RankedSearchCandidate[] = [];
   let totalCount: number | null = null;
+  const precise = shouldUsePreciseSearch(params.query);
 
   for (
     let providerPage = 1;
     providerPage <= Math.min(params.page, MAX_PROVIDER_PAGES);
     providerPage += 1
   ) {
-    const providerPageResult = await fetchRawgSearchResults({
-      rawgApiKey: params.rawgApiKey,
-      query: params.query,
-      page: providerPage,
-      pageSize: params.limit,
-      precise: shouldUsePreciseSearch(params.query),
-      exact: false,
-    });
+    const providerPageResult = await fetchProviderPageWithFallback(
+      {
+        rawgApiKey: params.rawgApiKey,
+        query: params.query,
+        page: providerPage,
+        pageSize: params.limit,
+        precise,
+      },
+      {
+        fetchRawgSearchResults: fetchSearchResults,
+        logProviderFetchFailure: logFailure,
+      },
+    );
 
     totalCount = providerPageResult.totalCount;
     results.push(
@@ -269,6 +280,58 @@ export async function fetchProviderSearchCandidates(params: {
     totalCount,
     results,
   };
+}
+
+async function fetchProviderPageWithFallback(
+  params: {
+    rawgApiKey: string;
+    query: string;
+    page: number;
+    pageSize: number;
+    precise: boolean;
+  },
+  deps: {
+    fetchRawgSearchResults: typeof fetchRawgSearchResults;
+    logProviderFetchFailure: typeof logProviderFetchFailure;
+  },
+) {
+  try {
+    return await deps.fetchRawgSearchResults({
+      rawgApiKey: params.rawgApiKey,
+      query: params.query,
+      page: params.page,
+      pageSize: params.pageSize,
+      precise: params.precise,
+      exact: false,
+    });
+  } catch (error) {
+    if (!params.precise) {
+      throw error;
+    }
+
+    deps.logProviderFetchFailure("precise", params.query, error);
+
+    return deps.fetchRawgSearchResults({
+      rawgApiKey: params.rawgApiKey,
+      query: params.query,
+      page: params.page,
+      pageSize: params.pageSize,
+      precise: false,
+      exact: false,
+    });
+  }
+}
+
+function logProviderFetchFailure(
+  mode: "precise" | "fallback",
+  query: string,
+  error: unknown,
+) {
+  console.error("Search provider fetch failed.", {
+    mode,
+    query,
+    error,
+  });
 }
 
 export async function upsertTitleSummaries(results: TitleSummary[]) {
