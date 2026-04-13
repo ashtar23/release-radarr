@@ -41,6 +41,17 @@ export function decideSearchExecution(params: {
     };
   }
 
+  if (
+    params.page === 1 &&
+    params.context.intentMode === "specific" &&
+    isLocallySufficientFirstPage(localPageResults, params.context)
+  ) {
+    return {
+      kind: "local",
+      decisionReason: "local_sufficient",
+    };
+  }
+
   if (localPageResults.length < params.limit) {
     return {
       kind: "provider",

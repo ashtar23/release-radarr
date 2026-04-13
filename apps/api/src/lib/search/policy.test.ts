@@ -102,7 +102,7 @@ test("triggers provider fallback for weak broad local pages even when full", () 
 
 test("triggers provider fallback when the local page is underfilled", () => {
   const decision = decideSearchExecution({
-    rankedLocalResults: [createCandidate("Witchr 3")],
+    rankedLocalResults: [createCandidate("The Witcher 3: Wild Hunt")],
     context: createContext("witchr 3"),
     page: 1,
     limit: 2,
@@ -112,6 +112,40 @@ test("triggers provider fallback when the local page is underfilled", () => {
   assert.deepEqual(decision, {
     kind: "provider",
     providerUsedTrigger: "coverage",
+  });
+});
+
+test("keeps strong underfilled specific pages local when the exact family is already covered", () => {
+  const decision = decideSearchExecution({
+    rankedLocalResults: [
+      createCandidate("God of War (2018)"),
+      createCandidate("God of War II"),
+      createCandidate("God of War: Ragnarök"),
+    ],
+    context: createContext("god of war"),
+    page: 1,
+    limit: 20,
+    forceRefresh: false,
+  });
+
+  assert.deepEqual(decision, {
+    kind: "local",
+    decisionReason: "local_sufficient",
+  });
+});
+
+test("keeps exact single-result specific pages local when the local match is highly confident", () => {
+  const decision = decideSearchExecution({
+    rankedLocalResults: [createCandidate("Control Resonant")],
+    context: createContext("control resonant"),
+    page: 1,
+    limit: 20,
+    forceRefresh: false,
+  });
+
+  assert.deepEqual(decision, {
+    kind: "local",
+    decisionReason: "local_sufficient",
   });
 });
 
