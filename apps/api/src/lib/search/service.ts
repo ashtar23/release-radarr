@@ -82,69 +82,150 @@ export async function searchTitles(
     });
   }
 
+  const providerRefresh = await resolveProviderRefresh({
+    query: trimmedQuery,
+    localResults: rankedLocalResults,
+    localTotalCount: localSearch.totalCount,
+    context: searchContext,
+    page,
+    limit,
+    forceRefresh: params.forceRefresh,
+    providerUsedTrigger: executionDecision.providerUsedTrigger,
+    rawgApiKey: env.rawgApiKey,
+  });
+
+  return buildSearchResult({
+    query: trimmedQuery,
+    results: providerRefresh.results,
+    totalCount: providerRefresh.totalCount,
+    page,
+    limit,
+    servedBy: providerRefresh.servedBy,
+    decisionReason: providerRefresh.decisionReason,
+    providerUsedTrigger: providerRefresh.providerUsedTrigger,
+  });
+}
+
+type ResolveProviderRefreshParams = {
+  query: string;
+  localResults: RankedSearchCandidate[];
+  localTotalCount: number;
+  context: Parameters<typeof rankResults>[1];
+  page: number;
+  limit: number;
+  forceRefresh: boolean;
+  providerUsedTrigger: "coverage" | "coverage_and_freshness" | "freshness";
+  rawgApiKey: string;
+  deps?: {
+    fetchProviderSearchCandidates: typeof fetchProviderSearchCandidates;
+    upsertProviderSearchResults: typeof upsertProviderSearchResults;
+    enrichProviderSearchResults: typeof enrichProviderSearchResults;
+    mergeUniqueResults: typeof mergeUniqueResults;
+    rankResults: typeof rankResults;
+    logProviderRefreshFailure: typeof logProviderRefreshFailure;
+  };
+};
+
+type ProviderRefreshResolution = {
+  results: RankedSearchCandidate[];
+  totalCount: number;
+  servedBy: "local-cache" | "rawg-refresh";
+  decisionReason:
+    | "forced_refresh"
+    | "provider_fetch_failed"
+    | "provider_used"
+    | "sparse_broad_local";
+  providerUsedTrigger?: "coverage" | "coverage_and_freshness" | "freshness";
+};
+
+export async function resolveProviderRefresh(
+  params: ResolveProviderRefreshParams,
+): Promise<ProviderRefreshResolution> {
+  const deps = {
+    fetchProviderSearchCandidates,
+    upsertProviderSearchResults,
+    enrichProviderSearchResults,
+    mergeUniqueResults,
+    rankResults,
+    logProviderRefreshFailure,
+    ...params.deps,
+  };
+
+  let providerSearch;
   try {
-    const providerSearch = await fetchProviderSearchCandidates({
-      query: trimmedQuery,
-      page,
-      limit,
-      rawgApiKey: env.rawgApiKey,
+    providerSearch = await deps.fetchProviderSearchCandidates({
+      query: params.query,
+      page: params.page,
+      limit: params.limit,
+      rawgApiKey: params.rawgApiKey,
     });
+  } catch (error) {
+    deps.logProviderRefreshFailure("fetch", params.query, error);
 
-    if (providerSearch.results.length === 0) {
-      return buildSearchResult({
-        query: trimmedQuery,
-        results: rankedLocalResults,
-        totalCount: localSearch.totalCount,
-        page,
-        limit,
-        servedBy: "local-cache",
-        decisionReason: params.forceRefresh
-          ? "forced_refresh"
-          : "sparse_broad_local",
-      });
-    }
-
-    await upsertProviderSearchResults(
-      providerSearch.results.map((result) => result.summary),
-    );
-
-    void enrichProviderSearchResults({
-      results: providerSearch.results,
-      rawgApiKey: env.rawgApiKey,
-    }).catch((error: unknown) => {
-      console.error("Provider detail enrichment failed.", error);
-    });
-
-    const mergedResults = rankResults(
-      mergeUniqueResults(rankedLocalResults, providerSearch.results),
-      searchContext,
-    );
-
-    return buildSearchResult({
-      query: trimmedQuery,
-      results: mergedResults,
-      totalCount: Math.max(
-        localSearch.totalCount,
-        providerSearch.totalCount ?? 0,
-        mergedResults.length,
-      ),
-      page,
-      limit,
-      servedBy: "rawg-refresh",
-      decisionReason: params.forceRefresh ? "forced_refresh" : "provider_used",
-      providerUsedTrigger: executionDecision.providerUsedTrigger,
-    });
-  } catch {
-    return buildSearchResult({
-      query: trimmedQuery,
-      results: rankedLocalResults,
-      totalCount: localSearch.totalCount,
-      page,
-      limit,
+    return {
+      results: params.localResults,
+      totalCount: params.localTotalCount,
       servedBy: "local-cache",
       decisionReason: "provider_fetch_failed",
-    });
+    };
   }
+
+  if (providerSearch.results.length === 0) {
+    return {
+      results: params.localResults,
+      totalCount: params.localTotalCount,
+      servedBy: "local-cache",
+      decisionReason: params.forceRefresh
+        ? "forced_refresh"
+        : "sparse_broad_local",
+    };
+  }
+
+  try {
+    await deps.upsertProviderSearchResults(
+      providerSearch.results.map((result) => result.summary),
+    );
+  } catch (error) {
+    deps.logProviderRefreshFailure("upsert", params.query, error);
+  }
+
+  void deps
+    .enrichProviderSearchResults({
+      results: providerSearch.results,
+      rawgApiKey: params.rawgApiKey,
+    })
+    .catch((error: unknown) => {
+      deps.logProviderRefreshFailure("enrich", params.query, error);
+    });
+
+  const mergedResults = deps.rankResults(
+    deps.mergeUniqueResults(params.localResults, providerSearch.results),
+    params.context,
+  );
+
+  return {
+    results: mergedResults,
+    totalCount: Math.max(
+      params.localTotalCount,
+      providerSearch.totalCount ?? 0,
+      mergedResults.length,
+    ),
+    servedBy: "rawg-refresh",
+    decisionReason: params.forceRefresh ? "forced_refresh" : "provider_used",
+    providerUsedTrigger: params.providerUsedTrigger,
+  };
+}
+
+function logProviderRefreshFailure(
+  step: "fetch" | "upsert" | "enrich",
+  query: string,
+  error: unknown,
+) {
+  console.error("Search provider refresh failed.", {
+    step,
+    query,
+    error,
+  });
 }
 
 function buildSearchResult(params: {
