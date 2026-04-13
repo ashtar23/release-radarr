@@ -16,6 +16,8 @@ test("uses discovery-friendly thresholds for broad single-token queries", () => 
     minimumTokenMatches: 1,
     minimumPartialSimilarity: 0.3,
     requireFullTokenCoverage: false,
+    requirePhraseAnchor: false,
+    allowSimilarityFallback: true,
   });
 });
 
@@ -32,6 +34,8 @@ test("tightens token coverage for specific two-token queries with numbers", () =
     minimumTokenMatches: 2,
     minimumPartialSimilarity: 0.34,
     requireFullTokenCoverage: true,
+    requirePhraseAnchor: false,
+    allowSimilarityFallback: true,
   });
 });
 
@@ -48,6 +52,8 @@ test("allows near-miss partial coverage for typo-prone specific queries", () => 
     minimumTokenMatches: 2,
     minimumPartialSimilarity: 0.34,
     requireFullTokenCoverage: true,
+    requirePhraseAnchor: false,
+    allowSimilarityFallback: true,
   });
 });
 
@@ -64,6 +70,8 @@ test("requires near-full token coverage for longer specific phrases", () => {
     minimumTokenMatches: 2,
     minimumPartialSimilarity: 0.34,
     requireFullTokenCoverage: true,
+    requirePhraseAnchor: true,
+    allowSimilarityFallback: false,
   });
 });
 
@@ -80,5 +88,7 @@ test("keeps stopword-only overlap from qualifying as strong specific coverage", 
     minimumTokenMatches: 2,
     minimumPartialSimilarity: 0.34,
     requireFullTokenCoverage: true,
+    requirePhraseAnchor: true,
+    allowSimilarityFallback: false,
   });
 });

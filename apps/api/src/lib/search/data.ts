@@ -54,6 +54,11 @@ export async function fetchLocalSearchResults(params: {
             case when t.search_name = $1 then 1 else 0 end as exact_match,
             case when t.search_name like $2 then 1 else 0 end as starts_with_query,
             case when position($1 in t.search_name) > 0 then 1 else 0 end as contains_query,
+            case
+              when to_tsvector('simple', t.search_name) @@ phraseto_tsquery('simple', $5)
+              then 1
+              else 0
+            end as phrase_match,
             (
               select count(*)::int
               from unnest($3::text[]) as token
@@ -65,6 +70,7 @@ export async function fetchLocalSearchResults(params: {
             t.search_name = $1
             or t.search_name like $2
             or position($1 in t.search_name) > 0
+            or to_tsvector('simple', t.search_name) @@ phraseto_tsquery('simple', $5)
             or t.search_name % $1
             or t.search_name ilike any($4::text[])
         )
@@ -74,21 +80,32 @@ export async function fetchLocalSearchResults(params: {
           exact_match = 1
           or starts_with_query = 1
           or contains_query = 1
-          or token_match_count >= $5
+          or phrase_match = 1
           or (
-            token_match_count >= greatest($5 - 1, 1)
-            and name_similarity >= $6
+            $9::boolean = false
+            and token_match_count >= $6
           )
-          or name_similarity >= $7
+          or (
+            $10::boolean = true
+            and name_similarity >= $8
+          )
+          or (
+            $9::boolean = false
+            and token_match_count >= greatest($6 - 1, 1)
+            and name_similarity >= $7
+          )
       `,
       [
         params.normalizedQuery,
         startsWithPattern,
         searchPolicy.matchTokens,
         matchTokenPatterns,
+        params.normalizedQuery,
         searchPolicy.minimumTokenMatches,
         searchPolicy.minimumPartialSimilarity,
         searchPolicy.minimumSimilarity,
+        searchPolicy.requirePhraseAnchor,
+        searchPolicy.allowSimilarityFallback,
       ],
     ),
     pool.query<SearchRow>(
@@ -116,6 +133,11 @@ export async function fetchLocalSearchResults(params: {
             case when t.search_name = $1 then 1 else 0 end as exact_match,
             case when t.search_name like $2 then 1 else 0 end as starts_with_query,
             case when position($1 in t.search_name) > 0 then 1 else 0 end as contains_query,
+            case
+              when to_tsvector('simple', t.search_name) @@ phraseto_tsquery('simple', $5)
+              then 1
+              else 0
+            end as phrase_match,
             (
               select count(*)::int
               from unnest($3::text[]) as token
@@ -127,6 +149,7 @@ export async function fetchLocalSearchResults(params: {
             t.search_name = $1
             or t.search_name like $2
             or position($1 in t.search_name) > 0
+            or to_tsvector('simple', t.search_name) @@ phraseto_tsquery('simple', $5)
             or t.search_name % $1
             or t.search_name ilike any($4::text[])
         )
@@ -154,32 +177,44 @@ export async function fetchLocalSearchResults(params: {
           exact_match = 1
           or starts_with_query = 1
           or contains_query = 1
-          or token_match_count >= $5
+          or phrase_match = 1
           or (
-            token_match_count >= greatest($5 - 1, 1)
-            and name_similarity >= $6
+            $9::boolean = false
+            and token_match_count >= $6
           )
-          or name_similarity >= $7
+          or (
+            $10::boolean = true
+            and name_similarity >= $8
+          )
+          or (
+            $9::boolean = false
+            and token_match_count >= greatest($6 - 1, 1)
+            and name_similarity >= $7
+          )
         order by
           exact_match desc,
           starts_with_query desc,
           contains_query desc,
+          phrase_match desc,
           token_match_count desc,
           name_similarity desc,
           rawg_metacritic desc nulls last,
           rawg_ratings_count desc nulls last,
           rawg_added desc nulls last,
           id asc
-        limit $8::int
+        limit $11::int
       `,
       [
         params.normalizedQuery,
         startsWithPattern,
         searchPolicy.matchTokens,
         matchTokenPatterns,
+        params.normalizedQuery,
         searchPolicy.minimumTokenMatches,
         searchPolicy.minimumPartialSimilarity,
         searchPolicy.minimumSimilarity,
+        searchPolicy.requirePhraseAnchor,
+        searchPolicy.allowSimilarityFallback,
         candidateLimit,
       ],
     ),

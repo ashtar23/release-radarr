@@ -6,6 +6,7 @@ export function getLocalSearchPolicy(params: {
   queryTokens: string[];
   intentMode: SearchIntentMode;
 }) {
+  const hasNumericToken = params.queryTokens.some((token) => /\d/.test(token));
   const matchTokens =
     params.intentMode === "specific" && params.queryTokens.length > 1
       ? getMeaningfulSearchTokens(params.queryTokens)
@@ -14,6 +15,12 @@ export function getLocalSearchPolicy(params: {
     params.normalizedQuery,
     matchTokens.length,
   );
+  const requirePhraseAnchor =
+    params.intentMode === "specific" &&
+    params.queryTokens.length > 1 &&
+    !hasNumericToken;
+  const allowSimilarityFallback =
+    params.intentMode === "broad" || hasNumericToken;
 
   if (params.intentMode === "specific" && matchTokens.length > 1) {
     return {
@@ -22,6 +29,8 @@ export function getLocalSearchPolicy(params: {
       minimumTokenMatches: matchTokens.length,
       minimumPartialSimilarity: matchTokens.length >= 3 ? 0.26 : 0.34,
       requireFullTokenCoverage: true,
+      requirePhraseAnchor,
+      allowSimilarityFallback,
     };
   }
 
@@ -31,6 +40,8 @@ export function getLocalSearchPolicy(params: {
     minimumTokenMatches: 1,
     minimumPartialSimilarity: minimumSimilarity,
     requireFullTokenCoverage: false,
+    requirePhraseAnchor: false,
+    allowSimilarityFallback: true,
   };
 }
 
