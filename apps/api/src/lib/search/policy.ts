@@ -97,7 +97,7 @@ function isLocallySufficientFirstPage(
         (topMatch.includesExactQuery &&
           topMatch.coverage >= STRONG_COVERAGE_THRESHOLD) ||
         topMatch.coverage === 1) &&
-      hasUsableSpecificMetadata(top)
+      hasUsableSpecificMetadata(top, context)
     );
   }
 
@@ -155,12 +155,40 @@ function hasHealthyBroadMetadata(candidate: RankedSearchCandidate) {
   return !hasVeryLowEngagement(candidate);
 }
 
-function hasUsableSpecificMetadata(candidate: RankedSearchCandidate) {
+function hasUsableSpecificMetadata(
+  candidate: RankedSearchCandidate,
+  context: SearchContext,
+) {
   const summary = candidate.summary;
+  if (isWeakShortAcronymSpecificQuery(candidate, context)) {
+    return false;
+  }
+
   return (
     summary.platforms.length > 0 &&
     (summary.coverImageUrl !== null || !hasVeryLowEngagement(candidate))
   );
+}
+
+function isWeakShortAcronymSpecificQuery(
+  candidate: RankedSearchCandidate,
+  context: SearchContext,
+) {
+  if (context.intentMode !== "specific") {
+    return false;
+  }
+
+  const hasNumericToken = context.queryTokens.some((token) => /\d/.test(token));
+  if (!hasNumericToken || context.meaningfulQueryTokens.length !== 1) {
+    return false;
+  }
+
+  const [token] = context.meaningfulQueryTokens;
+  if (!token || token.length > 3) {
+    return false;
+  }
+
+  return hasVeryLowEngagement(candidate);
 }
 
 function hasVeryLowEngagement(candidate: RankedSearchCandidate) {

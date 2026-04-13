@@ -93,9 +93,9 @@ test("filters provider results for specific numeric typo queries to keep only ti
         results: [
           createSummary("The Witcher 3: Wild Hunt"),
           createSummary("The Witcher 3: Wild Hunt - Blood and Wine"),
-          createSummary("Battlefield 3"),
-          createSummary("Doom 3"),
-          createSummary("Borderlands 3"),
+          createSummary("Blair Witch"),
+          createSummary("Witcheye"),
+          createSummary("Witchery"),
         ],
       }),
       logProviderFetchFailure: () => undefined,

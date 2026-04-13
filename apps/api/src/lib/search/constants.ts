@@ -40,6 +40,7 @@ export const TRUSTED_PUBLISHERS = new Set([
 
 export const NOISE_KEYWORD_PENALTIES = [
   { keyword: "demo", points: -260 },
+  { keyword: "leaked", points: -320 },
   { keyword: "mod", points: -220 },
   { keyword: "fan", points: -180 },
   { keyword: "test", points: -140 },
