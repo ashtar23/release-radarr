@@ -109,7 +109,7 @@ test("filters provider results for specific numeric typo queries to keep only ti
   );
 });
 
-test("does not apply the strict provider numeric filter to short acronym sequel queries", async () => {
+test("drops low-trust provider junk for short acronym sequel queries", async () => {
   const result = await fetchProviderSearchCandidates(
     {
       query: "gta 6",
@@ -129,9 +129,6 @@ test("does not apply the strict provider numeric filter to short acronym sequel 
     },
   );
 
-  assert.equal(result.totalCount, 2);
-  assert.deepEqual(
-    result.results.map((candidate) => candidate.summary.name),
-    ["Grand Theft Auto VI", "Mafia 3"],
-  );
+  assert.equal(result.totalCount, 0);
+  assert.deepEqual(result.results, []);
 });

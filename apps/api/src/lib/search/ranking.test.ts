@@ -2,24 +2,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { rankResults } from "./ranking";
-import { normalizeSearchKey, tokenizeSearchKey } from "./normalize";
+import {
+  createSearchContext,
+  normalizeSearchKey,
+  tokenizeSearchKey,
+} from "./normalize";
 import type { RankedSearchCandidate, SearchContext } from "./types";
 
 function createContext(query: string): SearchContext {
   const normalizedQuery = normalizeSearchKey(query);
   const queryTokens = tokenizeSearchKey(query);
 
-  return {
-    normalizedQuery,
-    queryTokens,
-    queryTokenSet: new Set(queryTokens),
-    meaningfulQueryTokens: queryTokens.filter((token) => !/\d/.test(token)),
-    intentMode:
-      queryTokens.length > 1 || /\d/.test(query) || /\d/.test(normalizedQuery)
-        ? "specific"
-        : "broad",
-    includesEditionTerms: false,
-  };
+  return createSearchContext(query, normalizedQuery, queryTokens);
 }
 
 function createCandidate(

@@ -8,7 +8,7 @@ import {
   SEARCH_PHRASE_ALIASES,
   SEARCH_STOPWORDS,
 } from "./constants";
-import type { SearchContext } from "./types";
+import type { SearchContext, SearchQueryClass } from "./types";
 
 export function normalizePage(value: number) {
   if (!Number.isFinite(value) || value < 1) {
@@ -38,6 +38,12 @@ export function createSearchContext(
   queryTokens: string[],
 ): SearchContext {
   const meaningfulQueryTokens = getMeaningfulSearchTokens(queryTokens);
+  const queryClass = classifySearchQuery({
+    rawQuery,
+    normalizedQuery,
+    queryTokens,
+    meaningfulQueryTokens,
+  });
 
   return {
     normalizedQuery,
@@ -45,10 +51,49 @@ export function createSearchContext(
     queryTokenSet: new Set(queryTokens),
     meaningfulQueryTokens,
     intentMode: inferSearchIntentMode(rawQuery, normalizedQuery, queryTokens),
+    queryClass,
     includesEditionTerms: EDITION_TERMS.some((term) =>
       normalizedQuery.includes(term),
     ),
   };
+}
+
+export function classifySearchQuery(params: {
+  rawQuery: string;
+  normalizedQuery: string;
+  queryTokens: string[];
+  meaningfulQueryTokens?: string[];
+}): SearchQueryClass {
+  const meaningfulQueryTokens =
+    params.meaningfulQueryTokens ??
+    getMeaningfulSearchTokens(params.queryTokens);
+  const hasNumericToken = params.queryTokens.some((token) => /\d/.test(token));
+  const singleMeaningfulToken = meaningfulQueryTokens[0];
+  const isShortAcronym =
+    meaningfulQueryTokens.length === 1 &&
+    singleMeaningfulToken != null &&
+    /^[a-z]{2,4}$/.test(singleMeaningfulToken);
+
+  if (hasNumericToken && isShortAcronym) {
+    return "acronym_title";
+  }
+
+  if (hasNumericToken) {
+    return "numbered_title";
+  }
+
+  if (params.queryTokens.length > 1 || /\s/.test(params.rawQuery.trim())) {
+    return "exact_or_typo_title";
+  }
+
+  if (
+    params.normalizedQuery.length <= 3 ||
+    SEARCH_STOPWORDS.has(params.normalizedQuery)
+  ) {
+    return "broad_discovery";
+  }
+
+  return "franchise_browse";
 }
 
 function inferSearchIntentMode(

@@ -6,9 +6,11 @@ import {
   MAX_LOCAL_CANDIDATES,
   MAX_PROVIDER_PAGES,
   MIN_LOCAL_CANDIDATES,
+  NOISE_KEYWORD_PENALTIES,
   PROVIDER_DETAIL_ENRICHMENT_LIMIT,
 } from "./constants";
 import {
+  classifySearchQuery,
   getMeaningfulSearchTokens,
   normalizeSearchKey,
   parsePlatforms,
@@ -248,10 +250,13 @@ export async function fetchProviderSearchCandidates(
   const normalizedQuery = normalizeSearchKey(params.query);
   const queryTokens = tokenizeSearchKey(params.query);
   const meaningfulQueryTokens = getMeaningfulSearchTokens(queryTokens);
-  const applySpecificNumericFilter = shouldApplySpecificNumericProviderFilter({
+  const queryClass = classifySearchQuery({
+    rawQuery: params.query,
+    normalizedQuery,
     queryTokens,
     meaningfulQueryTokens,
   });
+  const applyHighIntentFilter = isHighIntentQueryClass(queryClass);
   let totalCount: number | null = null;
   const precise = shouldUsePreciseSearch(params.query);
 
@@ -280,7 +285,8 @@ export async function fetchProviderSearchCandidates(
       {
         normalizedQuery,
         meaningfulQueryTokens,
-        applySpecificNumericFilter,
+        applyHighIntentFilter,
+        queryClass,
       },
     );
     results.push(
@@ -296,25 +302,19 @@ export async function fetchProviderSearchCandidates(
   }
 
   return {
-    totalCount: applySpecificNumericFilter ? results.length : totalCount,
+    totalCount: applyHighIntentFilter ? results.length : totalCount,
     results,
   };
 }
 
-function shouldApplySpecificNumericProviderFilter(params: {
-  queryTokens: string[];
-  meaningfulQueryTokens: string[];
-}) {
-  const hasNumericToken = params.queryTokens.some((token) => /\d/.test(token));
-  if (!hasNumericToken) {
-    return false;
-  }
-
-  if (params.meaningfulQueryTokens.length >= 2) {
-    return true;
-  }
-
-  return (params.meaningfulQueryTokens[0]?.length ?? 0) >= 5;
+function isHighIntentQueryClass(
+  queryClass: ReturnType<typeof classifySearchQuery>,
+) {
+  return (
+    queryClass === "exact_or_typo_title" ||
+    queryClass === "numbered_title" ||
+    queryClass === "acronym_title"
+  );
 }
 
 function filterProviderSearchResults(
@@ -322,10 +322,11 @@ function filterProviderSearchResults(
   params: {
     normalizedQuery: string;
     meaningfulQueryTokens: string[];
-    applySpecificNumericFilter: boolean;
+    applyHighIntentFilter: boolean;
+    queryClass: ReturnType<typeof classifySearchQuery>;
   },
 ) {
-  if (!params.applySpecificNumericFilter) {
+  if (!params.applyHighIntentFilter) {
     return results;
   }
 
@@ -334,7 +335,8 @@ function filterProviderSearchResults(
     params.meaningfulQueryTokens.length,
   );
   const requireStrongSingleTokenMatch =
-    params.meaningfulQueryTokens.length === 1;
+    params.meaningfulQueryTokens.length === 1 &&
+    params.queryClass !== "acronym_title";
 
   return results.filter((result) => {
     const normalizedName = normalizeSearchKey(result.name);
@@ -343,6 +345,10 @@ function filterProviderSearchResults(
       normalizedName.includes(params.normalizedQuery)
     ) {
       return true;
+    }
+
+    if (isLowTrustProviderResult(result, normalizedName)) {
+      return false;
     }
 
     const nameTokens = tokenizeSearchKey(result.name);
@@ -357,6 +363,35 @@ function filterProviderSearchResults(
 
     return meaningfulMatches >= requiredMeaningfulMatches;
   });
+}
+
+function isLowTrustProviderResult(
+  result: TitleSummary,
+  normalizedName: string,
+) {
+  const hasNoiseKeyword = NOISE_KEYWORD_PENALTIES.some(({ keyword }) =>
+    normalizedName.includes(keyword),
+  );
+
+  if (hasNoiseKeyword) {
+    return true;
+  }
+
+  const lowEngagement =
+    (result.rawgAdded ?? 0) < 5 &&
+    (result.rawgRatingsCount ?? 0) < 2 &&
+    (result.rawgReviewsCount ?? 0) < 2 &&
+    (result.rawgSuggestionsCount ?? 0) < 40;
+
+  if (!lowEngagement) {
+    return false;
+  }
+
+  return (
+    result.coverImageUrl == null ||
+    result.platforms.length === 0 ||
+    result.platforms.every((platform) => platform.name === "Web")
+  );
 }
 
 function hasApproximateTokenMatch(

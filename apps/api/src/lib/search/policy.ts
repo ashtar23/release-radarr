@@ -174,12 +174,11 @@ function isWeakShortAcronymSpecificQuery(
   candidate: RankedSearchCandidate,
   context: SearchContext,
 ) {
-  if (context.intentMode !== "specific") {
+  if (context.queryClass !== "acronym_title") {
     return false;
   }
 
-  const hasNumericToken = context.queryTokens.some((token) => /\d/.test(token));
-  if (!hasNumericToken || context.meaningfulQueryTokens.length !== 1) {
+  if (context.meaningfulQueryTokens.length !== 1) {
     return false;
   }
 

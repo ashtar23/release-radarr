@@ -44,6 +44,12 @@ export interface ProviderSearchResult {
 }
 
 export type SearchIntentMode = "broad" | "specific";
+export type SearchQueryClass =
+  | "exact_or_typo_title"
+  | "numbered_title"
+  | "acronym_title"
+  | "franchise_browse"
+  | "broad_discovery";
 
 export interface SearchContext {
   normalizedQuery: string;
@@ -51,6 +57,7 @@ export interface SearchContext {
   queryTokenSet: Set<string>;
   meaningfulQueryTokens: string[];
   intentMode: SearchIntentMode;
+  queryClass: SearchQueryClass;
   includesEditionTerms: boolean;
 }
 
