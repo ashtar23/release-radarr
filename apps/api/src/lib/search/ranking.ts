@@ -108,14 +108,6 @@ function calculateSearchScore(
     mainstreamPlatform,
     webOnlyPlatform,
   );
-  total += computeSpecificNumericQueryPenalty({
-    context,
-    exactMatch,
-    startsWithQuery,
-    includesExactQuery,
-    normalizedName,
-    nameTokens,
-  });
   total += computeBroadRecencyBoost(
     summary,
     context,
@@ -425,71 +417,6 @@ function computePlatformAdjustment(
   }
 
   return total;
-}
-
-function computeSpecificNumericQueryPenalty(params: {
-  context: SearchContext;
-  exactMatch: boolean;
-  startsWithQuery: boolean;
-  includesExactQuery: boolean;
-  normalizedName: string;
-  nameTokens: string[];
-}) {
-  if (params.context.intentMode !== "specific") {
-    return 0;
-  }
-
-  const hasNumericQueryToken = params.context.queryTokens.some((token) =>
-    /\d/.test(token),
-  );
-  if (!hasNumericQueryToken) {
-    return 0;
-  }
-
-  const nonNumericQueryTokens = params.context.meaningfulQueryTokens.filter(
-    (token) => !/\d/.test(token),
-  );
-  if (nonNumericQueryTokens.length === 0) {
-    return 0;
-  }
-
-  if (
-    params.exactMatch ||
-    params.startsWithQuery ||
-    params.includesExactQuery ||
-    hasApproximateNonNumericTokenMatch(nonNumericQueryTokens, params.nameTokens)
-  ) {
-    return 0;
-  }
-
-  return -900;
-}
-
-function hasApproximateNonNumericTokenMatch(
-  queryTokens: string[],
-  nameTokens: string[],
-) {
-  return queryTokens.some((queryToken) =>
-    nameTokens.some((nameToken) => {
-      if (nameToken === queryToken) {
-        return true;
-      }
-
-      const minPrefixLength = Math.min(
-        4,
-        queryToken.length,
-        nameToken.length,
-      );
-      if (minPrefixLength < 3) {
-        return false;
-      }
-
-      return (
-        nameToken.slice(0, minPrefixLength) ===
-        queryToken.slice(0, minPrefixLength)
-      );
-    }),
-  );
 }
 
 function computeBroadRecencyBoost(

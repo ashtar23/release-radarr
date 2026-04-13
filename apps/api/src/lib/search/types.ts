@@ -49,7 +49,6 @@ export interface SearchContext {
   normalizedQuery: string;
   queryTokens: string[];
   queryTokenSet: Set<string>;
-  meaningfulQueryTokens: string[];
   intentMode: SearchIntentMode;
   includesEditionTerms: boolean;
 }

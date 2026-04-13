@@ -13,7 +13,6 @@ function createContext(query: string): SearchContext {
     normalizedQuery,
     queryTokens,
     queryTokenSet: new Set(queryTokens),
-    meaningfulQueryTokens: queryTokens.filter((token) => !/\d/.test(token)),
     intentMode:
       queryTokens.length > 1 || /\d/.test(query) || /\d/.test(normalizedQuery)
         ? "specific"

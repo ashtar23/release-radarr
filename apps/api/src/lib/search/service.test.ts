@@ -43,13 +43,10 @@ function createCandidate(
 }
 
 function createContext(query: string): SearchContext {
-  const queryTokens = query.split(" ");
-
   return {
     normalizedQuery: query,
-    queryTokens,
-    queryTokenSet: new Set(queryTokens),
-    meaningfulQueryTokens: queryTokens.filter((token) => !/\d/.test(token)),
+    queryTokens: query.split(" "),
+    queryTokenSet: new Set(query.split(" ")),
     intentMode: "specific",
     includesEditionTerms: false,
   };
