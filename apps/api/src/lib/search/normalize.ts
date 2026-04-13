@@ -37,10 +37,13 @@ export function createSearchContext(
   normalizedQuery: string,
   queryTokens: string[],
 ): SearchContext {
+  const meaningfulQueryTokens = getMeaningfulSearchTokens(queryTokens);
+
   return {
     normalizedQuery,
     queryTokens,
     queryTokenSet: new Set(queryTokens),
+    meaningfulQueryTokens,
     intentMode: inferSearchIntentMode(rawQuery, normalizedQuery, queryTokens),
     includesEditionTerms: EDITION_TERMS.some((term) =>
       normalizedQuery.includes(term),
