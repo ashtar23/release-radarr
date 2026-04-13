@@ -9,10 +9,12 @@ import {
   PROVIDER_DETAIL_ENRICHMENT_LIMIT,
 } from "./constants";
 import {
+  getMeaningfulSearchTokens,
   normalizeSearchKey,
   parsePlatforms,
   parseStringArray,
   shouldUsePreciseSearch,
+  tokenizeSearchKey,
   toIsoDateOrNull,
 } from "./normalize";
 import { getLocalSearchPolicy } from "./local-search-policy";
@@ -226,19 +228,30 @@ export async function fetchLocalSearchResults(params: {
   };
 }
 
-export async function fetchProviderSearchCandidates(params: {
-  query: string;
-  page: number;
-  limit: number;
-  rawgApiKey: string;
-}, deps?: {
-  fetchRawgSearchResults: typeof fetchRawgSearchResults;
-  logProviderFetchFailure: typeof logProviderFetchFailure;
-}): Promise<ProviderSearchResult> {
-  const fetchSearchResults = deps?.fetchRawgSearchResults ?? fetchRawgSearchResults;
+export async function fetchProviderSearchCandidates(
+  params: {
+    query: string;
+    page: number;
+    limit: number;
+    rawgApiKey: string;
+  },
+  deps?: {
+    fetchRawgSearchResults: typeof fetchRawgSearchResults;
+    logProviderFetchFailure: typeof logProviderFetchFailure;
+  },
+): Promise<ProviderSearchResult> {
+  const fetchSearchResults =
+    deps?.fetchRawgSearchResults ?? fetchRawgSearchResults;
   const logFailure = deps?.logProviderFetchFailure ?? logProviderFetchFailure;
   const targetCount = params.page * params.limit;
   const results: RankedSearchCandidate[] = [];
+  const normalizedQuery = normalizeSearchKey(params.query);
+  const queryTokens = tokenizeSearchKey(params.query);
+  const meaningfulQueryTokens = getMeaningfulSearchTokens(queryTokens);
+  const applySpecificNumericFilter = shouldApplySpecificNumericProviderFilter({
+    queryTokens,
+    meaningfulQueryTokens,
+  });
   let totalCount: number | null = null;
   const precise = shouldUsePreciseSearch(params.query);
 
@@ -262,10 +275,16 @@ export async function fetchProviderSearchCandidates(params: {
     );
 
     totalCount = providerPageResult.totalCount;
+    const filteredResults = filterProviderSearchResults(
+      providerPageResult.results,
+      {
+        normalizedQuery,
+        meaningfulQueryTokens,
+        applySpecificNumericFilter,
+      },
+    );
     results.push(
-      ...providerPageResult.results.map((result) =>
-        createProviderSearchCandidate(result),
-      ),
+      ...filteredResults.map((result) => createProviderSearchCandidate(result)),
     );
 
     if (
@@ -277,9 +296,135 @@ export async function fetchProviderSearchCandidates(params: {
   }
 
   return {
-    totalCount,
+    totalCount: applySpecificNumericFilter ? results.length : totalCount,
     results,
   };
+}
+
+function shouldApplySpecificNumericProviderFilter(params: {
+  queryTokens: string[];
+  meaningfulQueryTokens: string[];
+}) {
+  const hasNumericToken = params.queryTokens.some((token) => /\d/.test(token));
+  if (!hasNumericToken) {
+    return false;
+  }
+
+  if (params.meaningfulQueryTokens.length >= 2) {
+    return true;
+  }
+
+  return (params.meaningfulQueryTokens[0]?.length ?? 0) >= 5;
+}
+
+function filterProviderSearchResults(
+  results: TitleSummary[],
+  params: {
+    normalizedQuery: string;
+    meaningfulQueryTokens: string[];
+    applySpecificNumericFilter: boolean;
+  },
+) {
+  if (!params.applySpecificNumericFilter) {
+    return results;
+  }
+
+  const requiredMeaningfulMatches = Math.max(
+    1,
+    params.meaningfulQueryTokens.length,
+  );
+
+  return results.filter((result) => {
+    const normalizedName = normalizeSearchKey(result.name);
+    if (
+      normalizedName === params.normalizedQuery ||
+      normalizedName.includes(params.normalizedQuery)
+    ) {
+      return true;
+    }
+
+    const nameTokens = tokenizeSearchKey(result.name);
+    const meaningfulMatches = params.meaningfulQueryTokens.filter(
+      (queryToken) => hasApproximateTokenMatch(queryToken, nameTokens),
+    ).length;
+
+    return meaningfulMatches >= requiredMeaningfulMatches;
+  });
+}
+
+function hasApproximateTokenMatch(queryToken: string, nameTokens: string[]) {
+  return nameTokens.some((nameToken) => {
+    if (nameToken === queryToken) {
+      return true;
+    }
+
+    if (
+      queryToken.length >= 5 &&
+      nameToken.length >= 5 &&
+      sharedPrefixLength(queryToken, nameToken) >= 4
+    ) {
+      return true;
+    }
+
+    const distance = getEditDistance(queryToken, nameToken);
+    if (queryToken.length >= 7 || nameToken.length >= 7) {
+      return distance <= 2;
+    }
+
+    return distance <= 1;
+  });
+}
+
+function sharedPrefixLength(left: string, right: string) {
+  const max = Math.min(left.length, right.length);
+  let index = 0;
+
+  while (index < max && left[index] === right[index]) {
+    index += 1;
+  }
+
+  return index;
+}
+
+function getEditDistance(left: string, right: string) {
+  if (left === right) {
+    return 0;
+  }
+
+  if (left.length === 0) {
+    return right.length;
+  }
+
+  if (right.length === 0) {
+    return left.length;
+  }
+
+  const previous = Array.from(
+    { length: right.length + 1 },
+    (_, index) => index,
+  );
+  const current = new Array<number>(right.length + 1);
+
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    current[0] = leftIndex;
+
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitutionCost =
+        left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+
+      current[rightIndex] = Math.min(
+        current[rightIndex - 1]! + 1,
+        previous[rightIndex]! + 1,
+        previous[rightIndex - 1]! + substitutionCost,
+      );
+    }
+
+    for (let index = 0; index < current.length; index += 1) {
+      previous[index] = current[index]!;
+    }
+  }
+
+  return previous[right.length]!;
 }
 
 async function fetchProviderPageWithFallback(

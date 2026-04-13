@@ -78,3 +78,60 @@ test("throws when both precise and fallback provider search attempts fail", asyn
     ),
   );
 });
+
+test("filters provider results for specific numeric typo queries to keep only title-anchored matches", async () => {
+  const result = await fetchProviderSearchCandidates(
+    {
+      query: "witchr 3",
+      page: 1,
+      limit: 20,
+      rawgApiKey: "test-key",
+    },
+    {
+      fetchRawgSearchResults: async () => ({
+        totalCount: 5,
+        results: [
+          createSummary("The Witcher 3: Wild Hunt"),
+          createSummary("The Witcher 3: Wild Hunt - Blood and Wine"),
+          createSummary("Battlefield 3"),
+          createSummary("Doom 3"),
+          createSummary("Borderlands 3"),
+        ],
+      }),
+      logProviderFetchFailure: () => undefined,
+    },
+  );
+
+  assert.equal(result.totalCount, 2);
+  assert.deepEqual(
+    result.results.map((candidate) => candidate.summary.name),
+    ["The Witcher 3: Wild Hunt", "The Witcher 3: Wild Hunt - Blood and Wine"],
+  );
+});
+
+test("does not apply the strict provider numeric filter to short acronym sequel queries", async () => {
+  const result = await fetchProviderSearchCandidates(
+    {
+      query: "gta 6",
+      page: 1,
+      limit: 20,
+      rawgApiKey: "test-key",
+    },
+    {
+      fetchRawgSearchResults: async () => ({
+        totalCount: 2,
+        results: [
+          createSummary("Grand Theft Auto VI"),
+          createSummary("Mafia 3"),
+        ],
+      }),
+      logProviderFetchFailure: () => undefined,
+    },
+  );
+
+  assert.equal(result.totalCount, 2);
+  assert.deepEqual(
+    result.results.map((candidate) => candidate.summary.name),
+    ["Grand Theft Auto VI", "Mafia 3"],
+  );
+});

@@ -127,7 +127,11 @@ export function tokenizeSearchKey(value: string) {
 
 export function getMeaningfulSearchTokens(tokens: string[]) {
   const meaningful = Array.from(
-    new Set(tokens.filter((token) => !SEARCH_STOPWORDS.has(token))),
+    new Set(
+      tokens.filter(
+        (token) => !SEARCH_STOPWORDS.has(token) && !/^[0-9]+$/.test(token),
+      ),
+    ),
   );
 
   return meaningful.length > 0 ? meaningful : Array.from(new Set(tokens));
