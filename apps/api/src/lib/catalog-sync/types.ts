@@ -54,7 +54,7 @@ export type CatalogSyncTask = {
 
 export type CatalogSyncPlan = {
   listRequestBudget: number;
-  detailRequestBudget: number;
+  detailCandidateBudget: number;
   tasks: CatalogSyncTask[];
 };
 
@@ -68,7 +68,7 @@ export type CatalogSyncRunSummary = {
   runId: string;
   status: "completed" | "failed";
   listRequestsUsed: number;
-  detailRequestsUsed: number;
+  detailCandidatesSelected: number;
   fetchedCount: number;
   uniqueCount: number;
   upsertedCount: number;

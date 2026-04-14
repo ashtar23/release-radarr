@@ -13,8 +13,12 @@ const PLATFORM_IDS = {
   switch: 7,
 } as const;
 
-// Genre ids are intentionally supported by the config shape but not enabled
-// until we confirm the final RAWG ids used in production.
+const GENRE_IDS = {
+  action: 4,
+  rpg: 5,
+  shooter: 2,
+  indie: 51,
+} as const;
 
 export const CATALOG_SYNC_SLICE_CONFIGS: CatalogSliceConfig[] = [
   createPlatformSlice("upcoming", "pc", PLATFORM_IDS.pc, 140, {
@@ -25,16 +29,10 @@ export const CATALOG_SYNC_SLICE_CONFIGS: CatalogSliceConfig[] = [
     ordering: "-added",
     dateWindow: { startOffsetDays: 0, endOffsetDays: 365 },
   }),
-  createPlatformSlice(
-    "upcoming",
-    "xbox-series",
-    PLATFORM_IDS.xboxSeries,
-    136,
-    {
-      ordering: "-added",
-      dateWindow: { startOffsetDays: 0, endOffsetDays: 365 },
-    },
-  ),
+  createPlatformSlice("upcoming", "xbox-series", PLATFORM_IDS.xboxSeries, 136, {
+    ordering: "-added",
+    dateWindow: { startOffsetDays: 0, endOffsetDays: 365 },
+  }),
   createPlatformSlice("upcoming", "switch", PLATFORM_IDS.switch, 134, {
     ordering: "-added",
     dateWindow: { startOffsetDays: 0, endOffsetDays: 365 },
@@ -47,16 +45,10 @@ export const CATALOG_SYNC_SLICE_CONFIGS: CatalogSliceConfig[] = [
     ordering: "-released",
     dateWindow: { startOffsetDays: -90, endOffsetDays: 0 },
   }),
-  createPlatformSlice(
-    "recent",
-    "xbox-series",
-    PLATFORM_IDS.xboxSeries,
-    124,
-    {
-      ordering: "-released",
-      dateWindow: { startOffsetDays: -90, endOffsetDays: 0 },
-    },
-  ),
+  createPlatformSlice("recent", "xbox-series", PLATFORM_IDS.xboxSeries, 124, {
+    ordering: "-released",
+    dateWindow: { startOffsetDays: -90, endOffsetDays: 0 },
+  }),
   createPlatformSlice("recent", "switch", PLATFORM_IDS.switch, 122, {
     ordering: "-released",
     dateWindow: { startOffsetDays: -90, endOffsetDays: 0 },
@@ -69,20 +61,18 @@ export const CATALOG_SYNC_SLICE_CONFIGS: CatalogSliceConfig[] = [
     ordering: "-added",
     dateWindow: { startOffsetDays: -365, endOffsetDays: 180 },
   }),
-  createPlatformSlice(
-    "popular",
-    "xbox-series",
-    PLATFORM_IDS.xboxSeries,
-    114,
-    {
-      ordering: "-added",
-      dateWindow: { startOffsetDays: -365, endOffsetDays: 180 },
-    },
-  ),
+  createPlatformSlice("popular", "xbox-series", PLATFORM_IDS.xboxSeries, 114, {
+    ordering: "-added",
+    dateWindow: { startOffsetDays: -365, endOffsetDays: 180 },
+  }),
   createPlatformSlice("popular", "switch", PLATFORM_IDS.switch, 112, {
     ordering: "-added",
     dateWindow: { startOffsetDays: -365, endOffsetDays: 180 },
   }),
+  createGenreSlice("action", GENRE_IDS.action, 108),
+  createGenreSlice("rpg", GENRE_IDS.rpg, 106),
+  createGenreSlice("shooter", GENRE_IDS.shooter, 104),
+  createGenreSlice("indie", GENRE_IDS.indie, 102),
 ];
 
 function createPlatformSlice(
@@ -107,6 +97,26 @@ function createPlatformSlice(
     params: {
       ...params,
       platforms: [platformId],
+    },
+  };
+}
+
+function createGenreSlice(
+  genreKey: string,
+  genreId: number,
+  priority: number,
+): CatalogSliceConfig {
+  return {
+    key: `popular:genre:${genreKey}`,
+    family: "popular_by_genre",
+    enabled: true,
+    priority,
+    cadenceHours: 8,
+    pageBudgetPerRun: 2,
+    params: {
+      ordering: "-added",
+      dateWindow: { startOffsetDays: -365, endOffsetDays: 180 },
+      genres: [genreId],
     },
   };
 }

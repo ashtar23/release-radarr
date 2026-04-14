@@ -111,7 +111,7 @@ export async function runCatalogSync(
 
     const detailLimit = Math.min(
       params.detailLimitPerRun ?? CATALOG_SYNC_DEFAULT_DETAIL_LIMIT_PER_RUN,
-      plan.detailRequestBudget,
+      plan.detailCandidateBudget,
     );
     const enrichmentCandidates = selectCatalogEnrichmentCandidates({
       summaries: uniqueSummaries,
@@ -130,7 +130,7 @@ export async function runCatalogSync(
       runId: run.id,
       status: "completed",
       listRequestsUsed,
-      detailRequestsUsed: enrichmentCandidates.length,
+      detailCandidatesSelected: enrichmentCandidates.length,
       fetchedCount,
       uniqueCount: uniqueSummaries.length,
       upsertedCount: uniqueSummaries.length,
@@ -145,7 +145,7 @@ export async function runCatalogSync(
       runId: run.id,
       status: "failed",
       listRequestsUsed: 0,
-      detailRequestsUsed: 0,
+      detailCandidatesSelected: 0,
       fetchedCount: 0,
       uniqueCount: 0,
       upsertedCount: 0,

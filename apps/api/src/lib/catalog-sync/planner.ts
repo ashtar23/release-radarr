@@ -37,7 +37,7 @@ export function planCatalogSync(params: {
   if (listRequestBudget <= 0) {
     return {
       listRequestBudget: 0,
-      detailRequestBudget: 0,
+      detailCandidateBudget: remainingDailyDetailBudget,
       tasks: [],
     } satisfies CatalogSyncPlan;
   }
@@ -69,7 +69,7 @@ export function planCatalogSync(params: {
 
   return {
     listRequestBudget,
-    detailRequestBudget: remainingDailyDetailBudget,
+    detailCandidateBudget: remainingDailyDetailBudget,
     tasks,
   } satisfies CatalogSyncPlan;
 }

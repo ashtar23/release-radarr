@@ -106,7 +106,7 @@ export async function finalizeCatalogSyncRun(summary: CatalogSyncRunSummary) {
       summary.runId,
       summary.status,
       summary.listRequestsUsed,
-      summary.detailRequestsUsed,
+      summary.detailCandidatesSelected,
       summary.fetchedCount,
       summary.uniqueCount,
       summary.upsertedCount,

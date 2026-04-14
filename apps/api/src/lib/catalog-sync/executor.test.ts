@@ -16,7 +16,12 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
   }> = [];
   const upsertCalls: TitleSummary[][] = [];
   const enrichCalls: Array<{ summaries: TitleSummary[]; limit?: number }> = [];
-  const runSummaries: Array<{ status: string; uniqueCount: number; enrichedCount: number }> = [];
+  const runSummaries: Array<{
+    status: string;
+    uniqueCount: number;
+    enrichedCount: number;
+    detailCandidatesSelected: number;
+  }> = [];
 
   const alpha = createSummary("rawg:1", "Alpha");
   const beta = createSummary("rawg:2", "Beta");
@@ -57,9 +62,10 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
         status: "running",
       }),
       fetchCatalogResults: async (params) => {
-        const key = params.platforms?.[0] === 4 && params.ordering === "-added"
-          ? "upcoming:pc"
-          : "recent:pc";
+        const key =
+          params.platforms?.[0] === 4 && params.ordering === "-added"
+            ? "upcoming:pc"
+            : "recent:pc";
         fetchedPages.push({ key, page: params.page });
 
         if (key === "upcoming:pc" && params.page === 1) {
@@ -90,6 +96,7 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
           status: summary.status,
           uniqueCount: summary.uniqueCount,
           enrichedCount: summary.enrichedCount,
+          detailCandidatesSelected: summary.detailCandidatesSelected,
         });
       },
     },
@@ -118,7 +125,12 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
     ],
   );
   assert.deepEqual(runSummaries, [
-    { status: "completed", uniqueCount: 3, enrichedCount: 2 },
+    {
+      status: "completed",
+      uniqueCount: 3,
+      enrichedCount: 2,
+      detailCandidatesSelected: 2,
+    },
   ]);
   assert.equal(result.listRequestsUsed, 2);
   assert.equal(result.uniqueCount, 3);

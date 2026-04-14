@@ -57,7 +57,7 @@ test("returns no tasks when the daily list budget is exhausted", () => {
 
   assert.deepEqual(plan, {
     listRequestBudget: 0,
-    detailRequestBudget: 0,
+    detailCandidateBudget: 16,
     tasks: [],
   });
 });

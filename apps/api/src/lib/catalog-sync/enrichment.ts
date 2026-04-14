@@ -9,6 +9,7 @@ export function selectCatalogEnrichmentCandidates(params: {
   }
 
   return [...params.summaries]
+    .filter((summary) => hasCatalogEnrichmentSignal(summary))
     .sort((left, right) => {
       const scoreDifference =
         getCatalogEnrichmentPriority(right) -
@@ -35,6 +36,16 @@ function getCatalogEnrichmentPriority(summary: TitleSummary) {
     (summary.rawgRatingsCount ?? 0) * 4 +
     (summary.rawgReviewsCount ?? 0) * 2 +
     (summary.rawgMetacritic ?? 0) * 8
+  );
+}
+
+function hasCatalogEnrichmentSignal(summary: TitleSummary) {
+  return (
+    isFutureRelease(summary.earliestReleaseDate) ||
+    (summary.rawgAdded ?? 0) >= 100 ||
+    (summary.rawgRatingsCount ?? 0) >= 25 ||
+    (summary.rawgReviewsCount ?? 0) >= 10 ||
+    (summary.rawgMetacritic ?? 0) >= 70
   );
 }
 
