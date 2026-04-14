@@ -99,7 +99,7 @@ export async function finalizeCatalogSyncRun(summary: CatalogSyncRunSummary) {
         unique_count = $6,
         upserted_count = $7,
         enriched_count = $8,
-        notes = jsonb_build_object('executedSliceCount', $9)
+        notes = jsonb_build_object('executedSliceCount', $9::int)
       where id = $1
     `,
     [
