@@ -48,12 +48,33 @@ type RawgDetailGame = RawgSearchGame & {
 export async function fetchRawgDiscoveryResults(params: {
   rawgApiKey: string;
   pageSize: number;
+  page?: number;
   ordering?: string;
   dates?: string;
+  platforms?: number[];
+  genres?: number[];
+  metacritic?: { min: number; max: number };
 }): Promise<TitleSummary[]> {
+  return fetchRawgGameListResults(params).then((result) => result.results);
+}
+
+export async function fetchRawgGameListResults(params: {
+  rawgApiKey: string;
+  pageSize: number;
+  page?: number;
+  ordering?: string;
+  dates?: string;
+  platforms?: number[];
+  genres?: number[];
+  metacritic?: { min: number; max: number };
+}): Promise<{
+  totalCount: number | null;
+  results: TitleSummary[];
+}> {
   const url = new URL(RAWG_BASE_URL);
   url.searchParams.set("key", params.rawgApiKey);
   url.searchParams.set("page_size", String(params.pageSize));
+  url.searchParams.set("page", String(params.page ?? 1));
 
   if (params.ordering) {
     url.searchParams.set("ordering", params.ordering);
@@ -63,13 +84,38 @@ export async function fetchRawgDiscoveryResults(params: {
     url.searchParams.set("dates", params.dates);
   }
 
+  if (params.platforms?.length) {
+    url.searchParams.set("platforms", params.platforms.join(","));
+  }
+
+  if (params.genres?.length) {
+    url.searchParams.set("genres", params.genres.join(","));
+  }
+
+  if (params.metacritic) {
+    url.searchParams.set(
+      "metacritic",
+      `${params.metacritic.min},${params.metacritic.max}`,
+    );
+  }
+
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`RAWG discovery failed with status ${response.status}.`);
   }
 
-  const payload = (await response.json()) as RawgSearchResponse;
-  return (payload.results ?? []).map(mapRawgSearchGameToSummary);
+  const payload = (await response.json()) as RawgSearchResponse & {
+    count?: number;
+  };
+  return {
+    totalCount:
+      typeof payload.count === "number" &&
+      Number.isFinite(payload.count) &&
+      payload.count >= 0
+        ? payload.count
+        : null,
+    results: (payload.results ?? []).map(mapRawgSearchGameToSummary),
+  };
 }
 
 export async function fetchRawgSearchResults(params: {
