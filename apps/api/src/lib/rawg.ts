@@ -101,7 +101,10 @@ export async function fetchRawgGameListResults(params: {
 
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`RAWG discovery failed with status ${response.status}.`);
+    throw createRawgHttpError(
+      `RAWG discovery failed with status ${response.status}.`,
+      response.status,
+    );
   }
 
   const payload = (await response.json()) as RawgSearchResponse & {
@@ -155,7 +158,10 @@ export async function fetchRawgSearchResults(params: {
         status: response.status,
         statusText: response.statusText,
       });
-      throw new Error(`RAWG search failed with status ${response.status}.`);
+      throw createRawgHttpError(
+        `RAWG search failed with status ${response.status}.`,
+        response.status,
+      );
     }
 
     const payload = (await response.json()) as RawgSearchResponse & {
@@ -193,7 +199,10 @@ export async function fetchRawgDetail(params: {
 
   const response = await fetch(detailUrl);
   if (!response.ok) {
-    throw new Error(`RAWG detail failed with status ${response.status}.`);
+    throw createRawgHttpError(
+      `RAWG detail failed with status ${response.status}.`,
+      response.status,
+    );
   }
 
   const game = (await response.json()) as RawgDetailGame;
@@ -253,6 +262,12 @@ function normalizeWebsiteUrl(value: string | null | undefined) {
 
   const normalizedValue = value.trim();
   return normalizedValue.length > 0 ? normalizedValue : null;
+}
+
+function createRawgHttpError(message: string, status: number) {
+  const error = new Error(message) as Error & { status?: number };
+  error.status = status;
+  return error;
 }
 
 function normalizeRawgReleases(

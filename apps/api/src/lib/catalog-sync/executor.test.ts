@@ -136,6 +136,93 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
   assert.equal(result.uniqueCount, 3);
 });
 
+test("runCatalogSync treats RAWG 404 discovery pages as exhausted pagination instead of a failed slice", async () => {
+  const appliedOutcomes: Array<{
+    key: string;
+    fetchedCount: number;
+    upsertedCount: number;
+    succeeded: boolean;
+    nextPage: number;
+  }> = [];
+  const runSummaries: Array<{
+    status: string;
+    listRequestsUsed: number;
+    executedSliceCount: number;
+  }> = [];
+
+  const first = createSummary("rawg:10", "First");
+
+  const result = await runCatalogSync(
+    {
+      rawgApiKey: "test-key",
+      perRunListBudget: 2,
+      dailyListBudget: 20,
+      dailyDetailBudget: 5,
+      detailLimitPerRun: 1,
+    },
+    {
+      syncCatalogSliceConfigs: async () => {},
+      getRecentCatalogSyncUsage: async () => ({
+        listRequestsUsed: 0,
+        detailRequestsUsed: 0,
+      }),
+      listCatalogSyncSlices: async () => [
+        createSlice("upcoming:pc", {
+          nextPage: 2,
+          pageBudgetPerRun: 2,
+        }),
+      ],
+      createCatalogSyncRun: async () => ({
+        id: "run-404",
+        startedAt: "2026-04-16T08:30:00.000Z",
+        status: "running",
+      }),
+      fetchCatalogResults: async (params) => {
+        if (params.page === 2) {
+          return { totalCount: 80, results: [first] };
+        }
+
+        const error = new Error("RAWG discovery failed with status 404.") as Error & {
+          status?: number;
+        };
+        error.status = 404;
+        throw error;
+      },
+      upsertSummaries: async () => {},
+      enrichSummaries: async () => 0,
+      applyCatalogSyncSliceOutcome: async (outcome) => {
+        appliedOutcomes.push(outcome);
+      },
+      finalizeCatalogSyncRun: async (summary) => {
+        runSummaries.push({
+          status: summary.status,
+          listRequestsUsed: summary.listRequestsUsed,
+          executedSliceCount: summary.executedSliceCount,
+        });
+      },
+    },
+  );
+
+  assert.deepEqual(appliedOutcomes, [
+    {
+      key: "upcoming:pc",
+      fetchedCount: 1,
+      upsertedCount: 1,
+      succeeded: true,
+      nextPage: 1,
+    },
+  ]);
+  assert.deepEqual(runSummaries, [
+    {
+      status: "completed",
+      listRequestsUsed: 1,
+      executedSliceCount: 1,
+    },
+  ]);
+  assert.equal(result.status, "completed");
+  assert.equal(result.uniqueCount, 1);
+});
+
 function createSlice(
   key: string,
   overrides: Partial<CatalogSyncSliceRecord> = {},

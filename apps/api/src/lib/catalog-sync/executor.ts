@@ -196,11 +196,18 @@ async function executeCatalogSyncTask(params: {
       }
     }
   } catch (error) {
-    console.error("Catalog sync slice failed.", {
-      key: params.task.slice.key,
-      error,
-    });
-    succeeded = false;
+    if (getErrorStatus(error) === 404) {
+      console.warn("Catalog sync slice exhausted available RAWG pages.", {
+        key: params.task.slice.key,
+        nextPage: finalRequestedPage,
+      });
+    } else {
+      console.error("Catalog sync slice failed.", {
+        key: params.task.slice.key,
+        error,
+      });
+      succeeded = false;
+    }
   }
 
   return {
@@ -244,4 +251,17 @@ function addDays(date: Date, days: number) {
 
 function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10);
+}
+
+function getErrorStatus(error: unknown) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof error.status === "number"
+  ) {
+    return error.status;
+  }
+
+  return null;
 }
