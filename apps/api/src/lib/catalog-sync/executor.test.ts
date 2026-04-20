@@ -112,7 +112,8 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
     ["rawg:1", "rawg:2", "rawg:3"],
   );
   assert.equal(enrichCalls.length, 1);
-  assert.equal(enrichCalls[0]?.summaries.length, 2);
+  assert.equal(enrichCalls[0]?.limit, 2);
+  assert.equal(enrichCalls[0]?.summaries.length, 3);
   assert.deepEqual(
     appliedOutcomes.map((outcome) => ({
       key: outcome.key,
@@ -128,8 +129,8 @@ test("runCatalogSync syncs configs, plans slices, dedupes overlap, upserts, and 
     {
       status: "completed",
       uniqueCount: 3,
-      enrichedCount: 2,
-      detailCandidatesSelected: 2,
+      enrichedCount: 3,
+      detailCandidatesSelected: 3,
     },
   ]);
   assert.equal(result.listRequestsUsed, 2);
@@ -221,6 +222,58 @@ test("runCatalogSync treats RAWG 404 discovery pages as exhausted pagination ins
   ]);
   assert.equal(result.status, "completed");
   assert.equal(result.uniqueCount, 1);
+});
+
+test("runCatalogSync considers a broader candidate pool than the per-run detail limit", async () => {
+  const enrichCalls: Array<{ summaries: TitleSummary[]; limit?: number }> = [];
+
+  const result = await runCatalogSync(
+    {
+      rawgApiKey: "test-key",
+      perRunListBudget: 1,
+      dailyListBudget: 20,
+      dailyDetailBudget: 5,
+      detailLimitPerRun: 2,
+    },
+    {
+      syncCatalogSliceConfigs: async () => {},
+      getRecentCatalogSyncUsage: async () => ({
+        listRequestsUsed: 0,
+        detailRequestsUsed: 0,
+      }),
+      listCatalogSyncSlices: async () => [createSlice("popular:pc")],
+      createCatalogSyncRun: async () => ({
+        id: "run-broad-candidates",
+        startedAt: "2026-04-20T08:30:00.000Z",
+        status: "running",
+      }),
+      fetchCatalogResults: async () => ({
+        totalCount: 40,
+        results: [
+          createSummary("rawg:11", "Eleven"),
+          createSummary("rawg:12", "Twelve"),
+          createSummary("rawg:13", "Thirteen"),
+          createSummary("rawg:14", "Fourteen"),
+          createSummary("rawg:15", "Fifteen"),
+        ],
+      }),
+      upsertSummaries: async () => {},
+      enrichSummaries: async (params) => {
+        enrichCalls.push({
+          summaries: params.summaries,
+          limit: params.limit,
+        });
+        return 0;
+      },
+      applyCatalogSyncSliceOutcome: async () => {},
+      finalizeCatalogSyncRun: async () => {},
+    },
+  );
+
+  assert.equal(enrichCalls.length, 1);
+  assert.equal(enrichCalls[0]?.limit, 2);
+  assert.equal(enrichCalls[0]?.summaries.length, 5);
+  assert.equal(result.detailCandidatesSelected, 5);
 });
 
 function createSlice(

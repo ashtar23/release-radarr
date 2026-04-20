@@ -461,31 +461,34 @@ export async function enrichTitleSummaries(params: {
   rawgApiKey: string;
   limit?: number;
 }) {
-  const topSummaries = params.summaries.slice(
-    0,
-    params.limit ?? PROVIDER_DETAIL_ENRICHMENT_LIMIT,
-  );
-  if (topSummaries.length === 0) {
+  const detailLimit = params.limit ?? PROVIDER_DETAIL_ENRICHMENT_LIMIT;
+  if (detailLimit <= 0 || params.summaries.length === 0) {
     return 0;
   }
 
   const idsMissingDetails = await selectIdsMissingDetails(
-    topSummaries.map((summary) => summary.id),
+    params.summaries.map((summary) => summary.id),
   );
 
   if (idsMissingDetails.size === 0) {
     return 0;
   }
 
+  const summariesToFetch = params.summaries
+    .filter((summary) => idsMissingDetails.has(summary.id))
+    .slice(0, detailLimit);
+
+  if (summariesToFetch.length === 0) {
+    return 0;
+  }
+
   const detailFetchResults = await Promise.allSettled(
-    topSummaries
-      .filter((summary) => idsMissingDetails.has(summary.id))
-      .map((summary) =>
-        fetchRawgDetail({
-          rawgApiKey: params.rawgApiKey,
-          externalId: summary.externalId,
-        }),
-      ),
+    summariesToFetch.map((summary) =>
+      fetchRawgDetail({
+        rawgApiKey: params.rawgApiKey,
+        externalId: summary.externalId,
+      }),
+    ),
   );
 
   const detailsToUpsert = detailFetchResults.flatMap((result) =>

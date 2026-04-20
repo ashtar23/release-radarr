@@ -3,6 +3,7 @@ import type { TitleSummary } from "@repo/types";
 import { fetchRawgGameListResults } from "../rawg";
 import { enrichTitleSummaries, upsertTitleSummaries } from "../search/data";
 import {
+  CATALOG_SYNC_DETAIL_CANDIDATE_MULTIPLIER,
   CATALOG_SYNC_DEFAULT_DETAIL_LIMIT_PER_RUN,
   CATALOG_SYNC_PAGE_SIZE,
 } from "./config";
@@ -113,16 +114,20 @@ export async function runCatalogSync(
       params.detailLimitPerRun ?? CATALOG_SYNC_DEFAULT_DETAIL_LIMIT_PER_RUN,
       plan.detailCandidateBudget,
     );
+    const detailCandidateLimit =
+      detailLimit <= 0
+        ? 0
+        : detailLimit * CATALOG_SYNC_DETAIL_CANDIDATE_MULTIPLIER;
     const enrichmentCandidates = selectCatalogEnrichmentCandidates({
       summaries: uniqueSummaries,
-      limit: detailLimit,
+      limit: detailCandidateLimit,
     });
     const enrichedCount =
       enrichmentCandidates.length > 0
         ? await deps.enrichSummaries({
             summaries: enrichmentCandidates,
             rawgApiKey: params.rawgApiKey,
-            limit: enrichmentCandidates.length,
+            limit: detailLimit,
           })
         : 0;
 
