@@ -3,6 +3,9 @@ import type { paths } from "./generated/openapi";
 export type HealthStatusResponse =
   paths["/health"]["get"]["responses"][200]["content"]["application/json"];
 
+export type EmailAvailabilityResponse =
+  paths["/auth/email-availability"]["get"]["responses"][200]["content"]["application/json"];
+
 export type HomeDiscoveryResponse =
   paths["/home/discovery"]["get"]["responses"][200]["content"]["application/json"];
 

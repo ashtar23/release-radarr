@@ -2,6 +2,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
 
+import { registerAuthRoutes } from "./routes/auth";
 import { env, resolveCorsAllowedOrigins } from "./lib/env";
 import { registerOpenApi, shouldEnableApiDocs } from "./lib/openapi";
 import { registerHomeRoutes } from "./routes/home";
@@ -46,6 +47,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
   await server.register(websocket);
 
   registerSystemRoutes(server);
+  registerAuthRoutes(server);
   registerHomeRoutes(server);
   registerProfileRoutes(server);
   registerSocialRoutes(server);

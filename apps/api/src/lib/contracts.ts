@@ -55,6 +55,11 @@ export interface UsernameAvailabilityResult {
   reason?: "taken" | "invalid" | "reserved";
 }
 
+export interface EmailAvailabilityResult {
+  available: boolean;
+  reason?: "taken";
+}
+
 export interface SocialFollowingMutationResult {
   following: boolean;
   isFriend: boolean;
