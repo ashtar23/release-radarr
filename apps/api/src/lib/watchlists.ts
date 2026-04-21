@@ -1,7 +1,4 @@
-import type {
-  WatchlistItem,
-  WatchlistSort,
-} from "@repo/types";
+import type { WatchlistItem, WatchlistSort } from "@repo/types";
 
 import type { Database } from "@shared/database-types";
 import type {
@@ -43,6 +40,13 @@ type DecodedCursor =
     };
 
 export async function listWatchlistItems(
+  userId: string,
+  options: ListWatchlistOptions = {},
+): Promise<WatchlistListResult> {
+  return listWatchlistItemsForUser(userId, options);
+}
+
+export async function listWatchlistItemsForUser(
   userId: string,
   options: ListWatchlistOptions = {},
 ): Promise<WatchlistListResult> {

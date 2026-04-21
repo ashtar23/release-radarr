@@ -7,6 +7,8 @@ import { registerOpenApi, shouldEnableApiDocs } from "./lib/openapi";
 import { registerHomeRoutes } from "./routes/home";
 import { registerNotificationsRealtimeRoutes } from "./routes/notifications-realtime";
 import { registerNotificationRoutes } from "./routes/notifications";
+import { registerProfileRoutes } from "./routes/profile";
+import { registerSocialRoutes } from "./routes/social";
 import { registerSystemRoutes } from "./routes/system";
 import { registerTitleRoutes } from "./routes/titles";
 import { registerWatchlistRoutes } from "./routes/watchlist";
@@ -45,6 +47,8 @@ export async function buildServer(options: BuildServerOptions = {}) {
 
   registerSystemRoutes(server);
   registerHomeRoutes(server);
+  registerProfileRoutes(server);
+  registerSocialRoutes(server);
   registerTitleRoutes(server);
   registerNotificationRoutes(server);
   registerWatchlistRoutes(server);

@@ -32,3 +32,16 @@ export async function authenticateAccessToken(accessToken: string) {
 
   return user;
 }
+
+export async function fetchAuthUserById(userId: string) {
+  const {
+    data: { user },
+    error,
+  } = await getSupabaseAdmin().auth.admin.getUserById(userId);
+
+  if (error || !user) {
+    return null;
+  }
+
+  return user;
+}
