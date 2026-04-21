@@ -4,2121 +4,2250 @@
  */
 
 export interface paths {
-    "/openapi.json": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/openapi.json": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
-        /** Get API health status */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {string} */
-                            status: "ok";
-                            appEnv: "development" | "staging" | "production" | "test";
-                            dataSource: "postgres" | "supabase";
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/auth/email-availability": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Check email availability */
-        get: {
-            parameters: {
-                query: {
-                    email: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            available: boolean;
-                            /** @enum {string} */
-                            reason?: "taken";
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/home/discovery": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get home discovery rails */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+    /** Get API health status */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              /** @enum {string} */
+              status: "ok";
+              appEnv: "development" | "staging" | "production" | "test";
+              dataSource: "postgres" | "supabase";
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            upcoming: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                            latest: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                            popular: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/home/discovery/upcoming": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List upcoming discovery titles */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/email-availability": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/home/discovery/latest": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** Check email availability */
+    get: {
+      parameters: {
+        query: {
+          email: string;
         };
-        /** List recently released discovery titles */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              available: boolean;
+              /** @enum {string} */
+              reason?: "taken";
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/home/discovery/popular": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List worth-watching discovery titles */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/sign-up": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/profile/username-availability": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /** Create account */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            /** Format: email */
+            email: string;
+            password: string;
+            username: string;
+            displayName?: string;
+          };
         };
-        /** Check username availability */
-        get: {
-            parameters: {
-                query: {
-                    username: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              userId: string;
+              /** Format: email */
+              email: string;
+              username: string;
+              displayName: string | null;
+              /** @enum {string} */
+              nextStep: "sign-in";
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            available: boolean;
-                            reason?: "taken" | "invalid" | "reserved";
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/profile/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get profile overview */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            profile: {
-                                userId: string;
-                                username: string | null;
-                                displayName: string | null;
-                                avatarUrl: string | null;
-                                bio: string | null;
-                                watchlistVisibility: "private" | "friends" | "public";
-                            };
-                            relationship: {
-                                following: boolean;
-                                followedByViewer: boolean;
-                                isFriend: boolean;
-                            };
-                            counts: {
-                                followers: number;
-                                following: number;
-                                friends: number;
-                            };
-                            canViewWatchlist: boolean;
-                            watchlistPreview: {
-                                id: string;
-                                titleId: string;
-                                name: string;
-                                addedAt: string;
-                            }[];
-                            recentAdditionsPreview: {
-                                id: string;
-                                titleId: string;
-                                name: string;
-                                addedAt: string;
-                            }[];
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/home/discovery": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/profile/{userId}/followers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List profile followers */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
+    /** Get home discovery rails */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              upcoming: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
+              latest: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
+              popular: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                userId: string;
-                                username: string | null;
-                                displayName: string | null;
-                                avatarUrl: string | null;
-                                relationship: {
-                                    following: boolean;
-                                    followedByViewer: boolean;
-                                    isFriend: boolean;
-                                };
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/profile/{userId}/following": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List profile following */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                userId: string;
-                                username: string | null;
-                                displayName: string | null;
-                                avatarUrl: string | null;
-                                relationship: {
-                                    following: boolean;
-                                    followedByViewer: boolean;
-                                    isFriend: boolean;
-                                };
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/home/discovery/upcoming": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/profile/{userId}/friends": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** List upcoming discovery titles */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
         };
-        /** List profile friends */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
+              nextCursor: string | null;
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                userId: string;
-                                username: string | null;
-                                displayName: string | null;
-                                avatarUrl: string | null;
-                                relationship: {
-                                    following: boolean;
-                                    followedByViewer: boolean;
-                                    isFriend: boolean;
-                                };
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/profile/{userId}/watchlist": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List profile watchlist */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                id: string;
-                                title: {
-                                    id: string;
-                                    /** @enum {string} */
-                                    kind: "game";
-                                    /** @enum {string} */
-                                    source: "rawg";
-                                    externalId: string;
-                                    slug: string;
-                                    name: string;
-                                    coverImageUrl: string | null;
-                                    earliestReleaseDate: string | null;
-                                    platforms: {
-                                        id: string;
-                                        name: string;
-                                    }[];
-                                    rawgRating: number | null;
-                                    rawgRatingsCount: number | null;
-                                    rawgMetacritic: number | null;
-                                    rawgAdded: number | null;
-                                    rawgReviewsCount: number | null;
-                                    rawgSuggestionsCount: number | null;
-                                    rawgRatingTop: number | null;
-                                };
-                                releases: {
-                                    platformId: string;
-                                    platformName: string;
-                                    releaseDate: string | null;
-                                    releaseDatePrecision: "day" | "month" | "year" | "unknown";
-                                }[];
-                                addedAt: string;
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/home/discovery/latest": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/social/following/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** List recently released discovery titles */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
         };
-        get?: never;
-        /** Follow a user */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
+              nextCursor: string | null;
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            following: boolean;
-                            isFriend: boolean;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        post?: never;
-        /** Unfollow a user */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    userId: string;
-                };
-                cookie?: never;
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            following: boolean;
-                            isFriend: boolean;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/titles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search titles */
-        get: {
-            parameters: {
-                query: {
-                    /** @description Search query text. */
-                    query: string;
-                    /** @description Optional positive integer page number. */
-                    page?: string;
-                    /** @description Optional positive integer page size. */
-                    limit?: string;
-                    /** @description Optional truthy flag: 1, true, or yes. */
-                    forceRefresh?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            query: string;
-                            results: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                            }[];
-                            totalCount: number;
-                            page: number;
-                            limit: number;
-                            hasMore: boolean;
-                            servedBy?: "local-cache" | "rawg-refresh";
-                            decisionReason?: "local_sufficient" | "sparse_broad_local" | "forced_refresh" | "provider_missing_key" | "provider_fetch_failed" | "provider_used";
-                            providerUsedTrigger?: "coverage" | "freshness" | "coverage_and_freshness";
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/home/discovery/popular": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/titles/{titleId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** List worth-watching discovery titles */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
         };
-        /** Get title details */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    titleId: string;
-                };
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
+              nextCursor: string | null;
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            details: {
-                                id: string;
-                                /** @enum {string} */
-                                kind: "game";
-                                /** @enum {string} */
-                                source: "rawg";
-                                externalId: string;
-                                slug: string;
-                                name: string;
-                                coverImageUrl: string | null;
-                                earliestReleaseDate: string | null;
-                                platforms: {
-                                    id: string;
-                                    name: string;
-                                }[];
-                                rawgRating: number | null;
-                                rawgRatingsCount: number | null;
-                                rawgMetacritic: number | null;
-                                rawgAdded: number | null;
-                                rawgReviewsCount: number | null;
-                                rawgSuggestionsCount: number | null;
-                                rawgRatingTop: number | null;
-                                description: string | null;
-                                genres: string[];
-                                developers: string[];
-                                publishers: string[];
-                                websiteUrl: string | null;
-                                releases: {
-                                    platformId: string;
-                                    platformName: string;
-                                    releaseDate: string | null;
-                                    releaseDatePrecision: "day" | "month" | "year" | "unknown";
-                                }[];
-                            };
-                            isInWatchlist: boolean;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/notifications/unread-count": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get unread notification count */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            unreadCount: number;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/profile/username-availability": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/notifications": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** Check username availability */
+    get: {
+      parameters: {
+        query: {
+          username: string;
         };
-        /** List notifications */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              available: boolean;
+              reason?: "taken" | "invalid" | "reserved";
             };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                id: string;
-                                titleId: string;
-                                eventType: "release_date_changed" | "release_approaching";
-                                /** @enum {string} */
-                                destinationKind: "title";
-                                destinationTitleId: string;
-                                titleName: string;
-                                titleArtworkUrl: string | null;
-                                message: string;
-                                subtitle: string | null;
-                                payload: {
-                                    previousReleaseDate: string | null;
-                                    nextReleaseDate: string | null;
-                                } | {
-                                    targetReleaseDate: string | null;
-                                    timingPreset: "on_day" | "hours_24_before" | "days_7_before" | "days_30_before";
-                                };
-                                createdAt: string;
-                                readAt: string | null;
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/notification-preferences": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get notification preferences */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            preferences: {
-                                channels: {
-                                    inApp: boolean;
-                                    push: boolean;
-                                };
-                                events: {
-                                    releaseDateChanged: boolean;
-                                    releaseApproaching: boolean;
-                                };
-                                timingPresets: ("on_day" | "hours_24_before" | "days_7_before" | "days_30_before")[];
-                                updatedAt: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        /** Update notification preferences */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        channels: {
-                            inApp: boolean;
-                            push: boolean;
-                        };
-                        events: {
-                            releaseDateChanged: boolean;
-                            releaseApproaching: boolean;
-                        };
-                        timingPresets: ("on_day" | "hours_24_before" | "days_7_before" | "days_30_before")[];
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            preferences: {
-                                channels: {
-                                    inApp: boolean;
-                                    push: boolean;
-                                };
-                                events: {
-                                    releaseDateChanged: boolean;
-                                    releaseApproaching: boolean;
-                                };
-                                timingPresets: ("on_day" | "hours_24_before" | "days_7_before" | "days_30_before")[];
-                                updatedAt: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/profile/{userId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/notifications/read": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** Get profile overview */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          userId: string;
         };
-        get?: never;
-        put?: never;
-        /** Mark a notification as read */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              profile: {
+                userId: string;
+                username: string | null;
+                displayName: string | null;
+                avatarUrl: string | null;
+                bio: string | null;
+                watchlistVisibility: "private" | "friends" | "public";
+              };
+              relationship: {
+                following: boolean;
+                followedByViewer: boolean;
+                isFriend: boolean;
+              };
+              counts: {
+                followers: number;
+                following: number;
+                friends: number;
+              };
+              canViewWatchlist: boolean;
+              watchlistPreview: {
+                id: string;
+                titleId: string;
+                name: string;
+                addedAt: string;
+              }[];
+              recentAdditionsPreview: {
+                id: string;
+                titleId: string;
+                name: string;
+                addedAt: string;
+              }[];
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        notificationId: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            notification: {
-                                id: string;
-                                titleId: string;
-                                eventType: "release_date_changed" | "release_approaching";
-                                /** @enum {string} */
-                                destinationKind: "title";
-                                destinationTitleId: string;
-                                titleName: string;
-                                titleArtworkUrl: string | null;
-                                message: string;
-                                subtitle: string | null;
-                                payload: {
-                                    previousReleaseDate: string | null;
-                                    nextReleaseDate: string | null;
-                                } | {
-                                    targetReleaseDate: string | null;
-                                    timingPreset: "on_day" | "hours_24_before" | "days_7_before" | "days_30_before";
-                                };
-                                createdAt: string;
-                                readAt: string | null;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/notifications/read-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Mark all notifications as read */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            markedCount: number;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/profile/{userId}/followers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/watchlist": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** List profile followers */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
         };
-        /** List watchlist items */
-        get: {
-            parameters: {
-                query?: {
-                    cursor?: string;
-                    limit?: string;
-                    query?: string;
-                    sort?: "added-desc" | "added-asc" | "release-desc" | "release-asc" | "name-asc" | "name-desc";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: {
-                                id: string;
-                                title: {
-                                    id: string;
-                                    /** @enum {string} */
-                                    kind: "game";
-                                    /** @enum {string} */
-                                    source: "rawg";
-                                    externalId: string;
-                                    slug: string;
-                                    name: string;
-                                    coverImageUrl: string | null;
-                                    earliestReleaseDate: string | null;
-                                    platforms: {
-                                        id: string;
-                                        name: string;
-                                    }[];
-                                    rawgRating: number | null;
-                                    rawgRatingsCount: number | null;
-                                    rawgMetacritic: number | null;
-                                    rawgAdded: number | null;
-                                    rawgReviewsCount: number | null;
-                                    rawgSuggestionsCount: number | null;
-                                    rawgRatingTop: number | null;
-                                };
-                                releases: {
-                                    platformId: string;
-                                    platformName: string;
-                                    releaseDate: string | null;
-                                    releaseDatePrecision: "day" | "month" | "year" | "unknown";
-                                }[];
-                                addedAt: string;
-                            }[];
-                            nextCursor: string | null;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+        header?: never;
+        path: {
+          userId: string;
         };
-        put?: never;
-        /** Add a title to the watchlist */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                userId: string;
+                username: string | null;
+                displayName: string | null;
+                avatarUrl: string | null;
+                relationship: {
+                  following: boolean;
+                  followedByViewer: boolean;
+                  isFriend: boolean;
+                };
+              }[];
+              nextCursor: string | null;
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        titleId: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            item: {
-                                id: string;
-                                title: {
-                                    id: string;
-                                    /** @enum {string} */
-                                    kind: "game";
-                                    /** @enum {string} */
-                                    source: "rawg";
-                                    externalId: string;
-                                    slug: string;
-                                    name: string;
-                                    coverImageUrl: string | null;
-                                    earliestReleaseDate: string | null;
-                                    platforms: {
-                                        id: string;
-                                        name: string;
-                                    }[];
-                                    rawgRating: number | null;
-                                    rawgRatingsCount: number | null;
-                                    rawgMetacritic: number | null;
-                                    rawgAdded: number | null;
-                                    rawgReviewsCount: number | null;
-                                    rawgSuggestionsCount: number | null;
-                                    rawgRatingTop: number | null;
-                                };
-                                releases: {
-                                    platformId: string;
-                                    platformName: string;
-                                    releaseDate: string | null;
-                                    releaseDatePrecision: "day" | "month" | "year" | "unknown";
-                                }[];
-                                addedAt: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
     };
-    "/watchlist/{titleId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get watchlist membership for a title */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    titleId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            isInWatchlist: boolean;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        /** Remove a title from the watchlist */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    titleId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            removed: true;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: string;
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/profile/{userId}/following": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** List profile following */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
+        };
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                userId: string;
+                username: string | null;
+                displayName: string | null;
+                avatarUrl: string | null;
+                relationship: {
+                  following: boolean;
+                  followedByViewer: boolean;
+                  isFriend: boolean;
+                };
+              }[];
+              nextCursor: string | null;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/profile/{userId}/friends": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List profile friends */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
+        };
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                userId: string;
+                username: string | null;
+                displayName: string | null;
+                avatarUrl: string | null;
+                relationship: {
+                  following: boolean;
+                  followedByViewer: boolean;
+                  isFriend: boolean;
+                };
+              }[];
+              nextCursor: string | null;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/profile/{userId}/watchlist": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List profile watchlist */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
+        };
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                id: string;
+                title: {
+                  id: string;
+                  /** @enum {string} */
+                  kind: "game";
+                  /** @enum {string} */
+                  source: "rawg";
+                  externalId: string;
+                  slug: string;
+                  name: string;
+                  coverImageUrl: string | null;
+                  earliestReleaseDate: string | null;
+                  platforms: {
+                    id: string;
+                    name: string;
+                  }[];
+                  rawgRating: number | null;
+                  rawgRatingsCount: number | null;
+                  rawgMetacritic: number | null;
+                  rawgAdded: number | null;
+                  rawgReviewsCount: number | null;
+                  rawgSuggestionsCount: number | null;
+                  rawgRatingTop: number | null;
+                };
+                releases: {
+                  platformId: string;
+                  platformName: string;
+                  releaseDate: string | null;
+                  releaseDatePrecision: "day" | "month" | "year" | "unknown";
+                }[];
+                addedAt: string;
+              }[];
+              nextCursor: string | null;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/social/following/{userId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Follow a user */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              following: boolean;
+              isFriend: boolean;
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    post?: never;
+    /** Unfollow a user */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              following: boolean;
+              isFriend: boolean;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/titles": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Search titles */
+    get: {
+      parameters: {
+        query: {
+          /** @description Search query text. */
+          query: string;
+          /** @description Optional positive integer page number. */
+          page?: string;
+          /** @description Optional positive integer page size. */
+          limit?: string;
+          /** @description Optional truthy flag: 1, true, or yes. */
+          forceRefresh?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              query: string;
+              results: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+              }[];
+              totalCount: number;
+              page: number;
+              limit: number;
+              hasMore: boolean;
+              servedBy?: "local-cache" | "rawg-refresh";
+              decisionReason?:
+                | "local_sufficient"
+                | "sparse_broad_local"
+                | "forced_refresh"
+                | "provider_missing_key"
+                | "provider_fetch_failed"
+                | "provider_used";
+              providerUsedTrigger?:
+                | "coverage"
+                | "freshness"
+                | "coverage_and_freshness";
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/titles/{titleId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get title details */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          titleId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              details: {
+                id: string;
+                /** @enum {string} */
+                kind: "game";
+                /** @enum {string} */
+                source: "rawg";
+                externalId: string;
+                slug: string;
+                name: string;
+                coverImageUrl: string | null;
+                earliestReleaseDate: string | null;
+                platforms: {
+                  id: string;
+                  name: string;
+                }[];
+                rawgRating: number | null;
+                rawgRatingsCount: number | null;
+                rawgMetacritic: number | null;
+                rawgAdded: number | null;
+                rawgReviewsCount: number | null;
+                rawgSuggestionsCount: number | null;
+                rawgRatingTop: number | null;
+                description: string | null;
+                genres: string[];
+                developers: string[];
+                publishers: string[];
+                websiteUrl: string | null;
+                releases: {
+                  platformId: string;
+                  platformName: string;
+                  releaseDate: string | null;
+                  releaseDatePrecision: "day" | "month" | "year" | "unknown";
+                }[];
+              };
+              isInWatchlist: boolean;
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/unread-count": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get unread notification count */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              unreadCount: number;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List notifications */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                id: string;
+                titleId: string;
+                eventType: "release_date_changed" | "release_approaching";
+                /** @enum {string} */
+                destinationKind: "title";
+                destinationTitleId: string;
+                titleName: string;
+                titleArtworkUrl: string | null;
+                message: string;
+                subtitle: string | null;
+                payload:
+                  | {
+                      previousReleaseDate: string | null;
+                      nextReleaseDate: string | null;
+                    }
+                  | {
+                      targetReleaseDate: string | null;
+                      timingPreset:
+                        | "on_day"
+                        | "hours_24_before"
+                        | "days_7_before"
+                        | "days_30_before";
+                    };
+                createdAt: string;
+                readAt: string | null;
+              }[];
+              nextCursor: string | null;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notification-preferences": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get notification preferences */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              preferences: {
+                channels: {
+                  inApp: boolean;
+                  push: boolean;
+                };
+                events: {
+                  releaseDateChanged: boolean;
+                  releaseApproaching: boolean;
+                };
+                timingPresets: (
+                  | "on_day"
+                  | "hours_24_before"
+                  | "days_7_before"
+                  | "days_30_before"
+                )[];
+                updatedAt: string;
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    /** Update notification preferences */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            channels: {
+              inApp: boolean;
+              push: boolean;
+            };
+            events: {
+              releaseDateChanged: boolean;
+              releaseApproaching: boolean;
+            };
+            timingPresets: (
+              | "on_day"
+              | "hours_24_before"
+              | "days_7_before"
+              | "days_30_before"
+            )[];
+          };
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              preferences: {
+                channels: {
+                  inApp: boolean;
+                  push: boolean;
+                };
+                events: {
+                  releaseDateChanged: boolean;
+                  releaseApproaching: boolean;
+                };
+                timingPresets: (
+                  | "on_day"
+                  | "hours_24_before"
+                  | "days_7_before"
+                  | "days_30_before"
+                )[];
+                updatedAt: string;
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/read": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Mark a notification as read */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            notificationId: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              notification: {
+                id: string;
+                titleId: string;
+                eventType: "release_date_changed" | "release_approaching";
+                /** @enum {string} */
+                destinationKind: "title";
+                destinationTitleId: string;
+                titleName: string;
+                titleArtworkUrl: string | null;
+                message: string;
+                subtitle: string | null;
+                payload:
+                  | {
+                      previousReleaseDate: string | null;
+                      nextReleaseDate: string | null;
+                    }
+                  | {
+                      targetReleaseDate: string | null;
+                      timingPreset:
+                        | "on_day"
+                        | "hours_24_before"
+                        | "days_7_before"
+                        | "days_30_before";
+                    };
+                createdAt: string;
+                readAt: string | null;
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/notifications/read-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Mark all notifications as read */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              markedCount: number;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/watchlist": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List watchlist items */
+    get: {
+      parameters: {
+        query?: {
+          cursor?: string;
+          limit?: string;
+          query?: string;
+          sort?:
+            | "added-desc"
+            | "added-asc"
+            | "release-desc"
+            | "release-asc"
+            | "name-asc"
+            | "name-desc";
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              items: {
+                id: string;
+                title: {
+                  id: string;
+                  /** @enum {string} */
+                  kind: "game";
+                  /** @enum {string} */
+                  source: "rawg";
+                  externalId: string;
+                  slug: string;
+                  name: string;
+                  coverImageUrl: string | null;
+                  earliestReleaseDate: string | null;
+                  platforms: {
+                    id: string;
+                    name: string;
+                  }[];
+                  rawgRating: number | null;
+                  rawgRatingsCount: number | null;
+                  rawgMetacritic: number | null;
+                  rawgAdded: number | null;
+                  rawgReviewsCount: number | null;
+                  rawgSuggestionsCount: number | null;
+                  rawgRatingTop: number | null;
+                };
+                releases: {
+                  platformId: string;
+                  platformName: string;
+                  releaseDate: string | null;
+                  releaseDatePrecision: "day" | "month" | "year" | "unknown";
+                }[];
+                addedAt: string;
+              }[];
+              nextCursor: string | null;
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Add a title to the watchlist */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            titleId: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Default Response */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              item: {
+                id: string;
+                title: {
+                  id: string;
+                  /** @enum {string} */
+                  kind: "game";
+                  /** @enum {string} */
+                  source: "rawg";
+                  externalId: string;
+                  slug: string;
+                  name: string;
+                  coverImageUrl: string | null;
+                  earliestReleaseDate: string | null;
+                  platforms: {
+                    id: string;
+                    name: string;
+                  }[];
+                  rawgRating: number | null;
+                  rawgRatingsCount: number | null;
+                  rawgMetacritic: number | null;
+                  rawgAdded: number | null;
+                  rawgReviewsCount: number | null;
+                  rawgSuggestionsCount: number | null;
+                  rawgRatingTop: number | null;
+                };
+                releases: {
+                  platformId: string;
+                  platformName: string;
+                  releaseDate: string | null;
+                  releaseDatePrecision: "day" | "month" | "year" | "unknown";
+                }[];
+                addedAt: string;
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/watchlist/{titleId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get watchlist membership for a title */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          titleId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              isInWatchlist: boolean;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    /** Remove a title from the watchlist */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          titleId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Default Response */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              /** @enum {boolean} */
+              removed: true;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+  schemas: never;
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

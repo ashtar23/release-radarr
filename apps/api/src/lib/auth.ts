@@ -48,6 +48,37 @@ export async function fetchAuthUserById(userId: string) {
   return user;
 }
 
+export async function createAuthUser(params: {
+  email: string;
+  password: string;
+  emailConfirmed: boolean;
+}) {
+  const {
+    data: { user },
+    error,
+  } = await getSupabaseAdmin().auth.admin.createUser({
+    email: params.email,
+    password: params.password,
+    email_confirm: params.emailConfirmed,
+  });
+
+  if (error || !user?.id || !user.email) {
+    throw error ?? new Error("Failed to create auth user.");
+  }
+
+  return {
+    userId: user.id,
+    email: normalizeAuthEmail(user.email),
+  };
+}
+
+export async function deleteAuthUser(userId: string) {
+  const { error } = await getSupabaseAdmin().auth.admin.deleteUser(userId);
+  if (error) {
+    throw error;
+  }
+}
+
 export async function findAuthUserByEmail(email: string) {
   const normalizedEmail = normalizeAuthEmail(email);
   let page = 1;
@@ -63,8 +94,9 @@ export async function findAuthUserByEmail(email: string) {
     }
 
     const matchedUser =
-      data.users.find((user) => user.email?.trim().toLowerCase() === normalizedEmail) ??
-      null;
+      data.users.find(
+        (user) => user.email?.trim().toLowerCase() === normalizedEmail,
+      ) ?? null;
 
     if (matchedUser) {
       return matchedUser;
@@ -113,6 +145,59 @@ export async function upsertAuthIdentity(params: {
     `,
     [params.userId, normalizeAuthEmail(params.email)],
   );
+}
+
+export async function persistAuthUserIdentity(params: {
+  userId: string;
+  email: string;
+  username: string;
+  displayName: string | null;
+}) {
+  const pool = getPostgresPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query("begin");
+    await client.query(
+      `
+        insert into public.auth_user_identities (
+          user_id,
+          email
+        )
+        values ($1::uuid, $2::text)
+        on conflict (user_id) do update
+        set
+          email = excluded.email,
+          updated_at = timezone('utc', now())
+      `,
+      [params.userId, normalizeAuthEmail(params.email)],
+    );
+
+    await client.query(
+      `
+        insert into public.user_profiles (
+          user_id,
+          username,
+          display_name,
+          watchlist_visibility
+        )
+        values ($1::uuid, $2::text, $3::text, 'friends')
+        on conflict (user_id) do update
+        set
+          username = excluded.username,
+          display_name = excluded.display_name,
+          updated_at = timezone('utc', now())
+      `,
+      [params.userId, params.username, params.displayName],
+    );
+
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function isAuthEmailRegistered(email: string) {

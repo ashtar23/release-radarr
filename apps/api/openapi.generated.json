@@ -166,6 +166,149 @@
         }
       }
     },
+    "/auth/sign-up": {
+      "post": {
+        "summary": "Create account",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password",
+                  "username"
+                ],
+                "properties": {
+                  "email": {
+                    "minLength": 1,
+                    "format": "email",
+                    "type": "string"
+                  },
+                  "password": {
+                    "minLength": 8,
+                    "type": "string"
+                  },
+                  "username": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "userId",
+                    "email",
+                    "username",
+                    "displayName",
+                    "nextStep"
+                  ],
+                  "properties": {
+                    "userId": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "format": "email",
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "displayName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "nextStep": {
+                      "type": "string",
+                      "enum": [
+                        "sign-in"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/home/discovery": {
       "get": {
         "summary": "Get home discovery rails",

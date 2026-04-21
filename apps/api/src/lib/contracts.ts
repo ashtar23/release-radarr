@@ -60,6 +60,14 @@ export interface EmailAvailabilityResult {
   reason?: "taken";
 }
 
+export interface SignUpResult {
+  userId: string;
+  email: string;
+  username: string;
+  displayName: string | null;
+  nextStep: "sign-in";
+}
+
 export interface SocialFollowingMutationResult {
   following: boolean;
   isFriend: boolean;
